@@ -3,11 +3,12 @@
 # Title                                   Brampton Transit But Location Parse
 #
 # ----------------------------------------------------------------------------------------------------------------------
-from Funcs.functions import *
+from Funcs.webcrawler import *
+from Funcs.analysis import *
 # ----------------------------------------------------------------------------------------------------------------------
 
 
-def main():
+def collect_data():
     """ This function will define the main logic of this data collection experiment """
 
     # Instantiate webcrawler, and connect to databse
@@ -28,8 +29,19 @@ def main():
         time.sleep(30)
 
 
+
+def analyze_data():
+    """ This function will define the main logic of the data exploration section of this project """
+
+    #
+    conn = sqlite3.connect(r"C:\Users\renac\Desktop\DataStorage.db")
+    old_buslocation_df = pd.read_sql_query("SELECT * FROM TRANSIT_LOCATION_DB", conn)
+    old_buslocation_df.to_csv(r"C:\Users\renac\Desktop\BusLocations.csv", index=False)
+
 # ----------------------------------------------------------------------------------------------------------------------
 
 # Main Entry Point Into Python Code
 if __name__ == "__main__":
-    main()
+
+    # collect_data()
+    analyze_data()
