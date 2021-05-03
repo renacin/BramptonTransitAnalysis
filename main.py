@@ -33,10 +33,9 @@ def collect_data():
 def analyze_data():
     """ This function will define the main logic of the data exploration section of this project """
 
-    #
-    conn = sqlite3.connect(r"C:\Users\renac\Desktop\DataStorage.db")
-    old_buslocation_df = pd.read_sql_query("SELECT * FROM TRANSIT_LOCATION_DB", conn)
-    old_buslocation_df.to_csv(r"C:\Users\renac\Desktop\BusLocations.csv", index=False)
+    # Instantiate data collection class, and pass the location of the dataset
+    Col_Data = DataCollection(r"C:\Users\renac\Desktop\DataStorage.db")
+    Col_Data.process_transit_data()
 
 # ----------------------------------------------------------------------------------------------------------------------
 
