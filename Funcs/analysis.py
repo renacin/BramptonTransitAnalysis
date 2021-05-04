@@ -54,12 +54,22 @@ class DataCollection:
                 temp_df = temp_df[temp_df["trip_id"] == trip]
                 temp_df = temp_df.sort_values(["timestamp"], ascending=True)
 
-                # Fix Lat/Long Accurary (3 Dec Pts. 110m Acc) Remove Duplicate Rows (Mask stop_id, timestamp, )
+                # Fix Lat/Long Accurary (5 Dec Pts. for high acc, 3 Dec Pts. for low acc and duplicate removal)
+                # Remove Duplicate Rows (Mask all columns except for lat & long)
                 temp_df = temp_df.sort_values(["timestamp"], ascending=True)
                 for cordtype in ["latitude", "longitude"]:
+
+                    # Fix lat long columns for high acc
                     temp_df[cordtype] = temp_df[cordtype].astype(float)
                     temp_df[cordtype] = temp_df[cordtype].round(decimals=5)
 
+                    # Create new columns
+                    new_cord_col = f"{cordtype}_Round"
+                    temp_df[new_cord_col] = temp_df[cordtype].round(decimals=3)
+
+
+                temp_df = temp_df.drop_duplicates(subset = ["latitude_Round", "longitude_Round"], keep = 'first')
+                del temp_df["latitude_Round"], temp_df["longitude_Round"]
                 temp_df.to_csv(r"C:\Users\renac\Desktop\TestData.csv", index=False)
 
 
@@ -86,6 +96,7 @@ license_plate
 weather_id
 
 
-43.735, -79.636
-43.676	-79.722
+43.73527, -79.63649
+43.67615, -79.72186
+
 """
