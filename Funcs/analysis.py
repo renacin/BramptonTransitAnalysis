@@ -46,35 +46,32 @@ class DataCollection:
 
             # Focus On Specific Route; Organize By Trip ID
             temp_df = transit_df[transit_df["route_id"] == route]
+            print(f"Route Name: {route}, Num Points {len(temp_df)}")
+            # buses = temp_df["id"].unique().tolist()
+            # for bus in buses:
+            #
+            #     # Focus on specific bus ID
+            #     temp_df = temp_df[temp_df["id"] == bus]
+            #     temp_df = temp_df.sort_values(["timestamp"], ascending=True)
+            #
+            #     # Remove Duplicate Rows (Mask all columns except for lat & long)
+            #     temp_df = temp_df.sort_values(["timestamp"], ascending=True)
+            #     for cordtype in ["latitude", "longitude"]:
+            #
+            #         # Fix lat long columns for high acc | Create New Columns
+            #         temp_df[cordtype] = temp_df[cordtype].astype(float)
+            #         temp_df[cordtype] = temp_df[cordtype].round(decimals=5)
+            #         new_cord_col = f"{cordtype}_Round"
+            #         temp_df[new_cord_col] = temp_df[cordtype].round(decimals=3)
+            #
+            #     # Keep first and last of stationary positions
+            #     temp_df = pd.concat([temp_df.drop_duplicates(subset = ["latitude_Round", "longitude_Round"], keep = 'first'), temp_df.drop_duplicates(subset = ["latitude_Round", "longitude_Round"], keep = 'last'),])
+            #     temp_df = temp_df.drop_duplicates()
+            #     del temp_df["latitude_Round"], temp_df["longitude_Round"]
+            #     temp_df.to_csv(r"C:\Users\renac\Desktop\TestData.csv", index=False)
+            #     break
+            # break
 
-            all_trips = temp_df["trip_id"].unique().tolist()
-            for trip in all_trips:
-
-                # Focus on specific trip ID
-                temp_df = temp_df[temp_df["trip_id"] == trip]
-                temp_df = temp_df.sort_values(["timestamp"], ascending=True)
-
-                # Fix Lat/Long Accurary (5 Dec Pts. for high acc, 3 Dec Pts. for low acc and duplicate removal)
-                # Remove Duplicate Rows (Mask all columns except for lat & long)
-                temp_df = temp_df.sort_values(["timestamp"], ascending=True)
-                for cordtype in ["latitude", "longitude"]:
-
-                    # Fix lat long columns for high acc
-                    temp_df[cordtype] = temp_df[cordtype].astype(float)
-                    temp_df[cordtype] = temp_df[cordtype].round(decimals=5)
-
-                    # Create new columns
-                    new_cord_col = f"{cordtype}_Round"
-                    temp_df[new_cord_col] = temp_df[cordtype].round(decimals=3)
-
-
-                temp_df = temp_df.drop_duplicates(subset = ["latitude_Round", "longitude_Round"], keep = 'first')
-                del temp_df["latitude_Round"], temp_df["longitude_Round"]
-                temp_df.to_csv(r"C:\Users\renac\Desktop\TestData.csv", index=False)
-
-
-                break
-            break
 
 """
 congestion_level, current_status
