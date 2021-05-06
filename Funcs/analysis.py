@@ -37,41 +37,18 @@ class DataCollection:
 
 
     def process_transit_data(self):
-        """ This function will identify key statistics from transit data """
+        """ This function will identify key statistics from transit data | First explore the data"""
 
-        # Grab transit data from stored dictionary | Start exploration
+        # Grab transit data from stored dictionary
         transit_df = self.dataframe_dict["TRANSIT_LOCATION_DB"]
+        weather_df = self.dataframe_dict["WEATHER_DB"]
+
+        # Start data exploration
         all_routes = transit_df["route_id"].unique().tolist()
         for route in all_routes:
-
             # Focus On Specific Route; Organize By Trip ID
             temp_df = transit_df[transit_df["route_id"] == route]
             print(f"Route Name: {route}, Num Points {len(temp_df)}")
-            # buses = temp_df["id"].unique().tolist()
-            # for bus in buses:
-            #
-            #     # Focus on specific bus ID
-            #     temp_df = temp_df[temp_df["id"] == bus]
-            #     temp_df = temp_df.sort_values(["timestamp"], ascending=True)
-            #
-            #     # Remove Duplicate Rows (Mask all columns except for lat & long)
-            #     temp_df = temp_df.sort_values(["timestamp"], ascending=True)
-            #     for cordtype in ["latitude", "longitude"]:
-            #
-            #         # Fix lat long columns for high acc | Create New Columns
-            #         temp_df[cordtype] = temp_df[cordtype].astype(float)
-            #         temp_df[cordtype] = temp_df[cordtype].round(decimals=5)
-            #         new_cord_col = f"{cordtype}_Round"
-            #         temp_df[new_cord_col] = temp_df[cordtype].round(decimals=3)
-            #
-            #     # Keep first and last of stationary positions
-            #     temp_df = pd.concat([temp_df.drop_duplicates(subset = ["latitude_Round", "longitude_Round"], keep = 'first'), temp_df.drop_duplicates(subset = ["latitude_Round", "longitude_Round"], keep = 'last'),])
-            #     temp_df = temp_df.drop_duplicates()
-            #     del temp_df["latitude_Round"], temp_df["longitude_Round"]
-            #     temp_df.to_csv(r"C:\Users\renac\Desktop\TestData.csv", index=False)
-            #     break
-            # break
-
 
 """
 congestion_level, current_status
