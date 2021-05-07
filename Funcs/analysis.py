@@ -60,32 +60,8 @@ class DataCollection:
         plt.rcParams["figure.figsize"] = (10, 6)
         plt.bar(hours, obs_in_hour, color='#607c8e')
         plt.title("# Data Points Collected Every Hour Since 4/30/2021, 10:00 AM")
-        plt.xlabel("# Of Data Points")
+        plt.xlabel("Number Of Hours Since Start")
         plt.xticks(hrs5, hrs5, rotation ='vertical')
-        plt.ylabel("Number Of Hours Since Start")
+        plt.ylabel("# Of Data Points")
         plt.grid(axis='y', alpha=0.75)
         plt.show()
-"""
-congestion_level, current_status
-current_stop_sequence
-stop_id	timestamp
-latitude
-longitud
-bearing
-odometer
-speed
-trip_id
-start_time
-start_date
-schedule_relationship
-route_id
-id
-label
-license_plate
-weather_id
-
-
-43.73527, -79.63649
-43.67615, -79.72186
-
-"""
