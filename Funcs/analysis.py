@@ -10,6 +10,7 @@ import datetime
 import sqlite3
 
 import pandas as pd
+import matplotlib.pyplot as plt
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -43,13 +44,27 @@ class DataCollection:
         transit_df = self.dataframe_dict["TRANSIT_LOCATION_DB"]
         weather_df = self.dataframe_dict["WEATHER_DB"]
 
-        # Start data exploration
-        all_routes = transit_df["route_id"].unique().tolist()
-        for route in all_routes:
-            # Focus On Specific Route; Organize By Trip ID
-            temp_df = transit_df[transit_df["route_id"] == route]
-            print(f"Route Name: {route}, Num Points {len(temp_df)}")
+        # When Was Data Collected; Was It Continuous, or were there errors?
+        all_timestamps = sorted(transit_df["timestamp"].tolist())
+        start_timestamp = all_timestamps[0]
+        end_timestamp = all_timestamps[0] + 3600
+        obs_in_hour = []
+        for x in range(121):
+            df_query = transit_df[(transit_df["timestamp"] >= start_timestamp) & (transit_df["timestamp"] <= end_timestamp)]
+            obs_in_hour.append(len(df_query))
+            start_timestamp += 3600
+            end_timestamp += 3600
 
+        hours = [x for x in range(121)]
+        hrs5 = [x for x in range(0, 121, 5)]
+        plt.rcParams["figure.figsize"] = (10, 6)
+        plt.bar(hours, obs_in_hour, color='#607c8e')
+        plt.title("# Data Points Collected Every Hour Since 4/30/2021, 10:00 AM")
+        plt.xlabel("# Of Data Points")
+        plt.xticks(hrs5, hrs5, rotation ='vertical')
+        plt.ylabel("Number Of Hours Since Start")
+        plt.grid(axis='y', alpha=0.75)
+        plt.show()
 """
 congestion_level, current_status
 current_stop_sequence

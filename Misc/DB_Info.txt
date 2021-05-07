@@ -1,5 +1,10 @@
 General Information About Data Collected:
 
+---> Span Of Data Collection
+1st Timestamp: 1619791245
+Last Timestamp: 1620159434
+
+Time Between: 4.2 Days (102 Hours)
 
 --> Transit Data As A Pandas DF:
 RangeIndex: 404763 entries, 0 to 404762
