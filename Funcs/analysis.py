@@ -45,24 +45,5 @@ class DataCollection:
         weather_df = self.dataframe_dict["WEATHER_DB"]
 
         # When Was Data Collected; Was It Continuous, or were there errors?
-        transit_df = transit_df[transit_df["route_id"] == "21-295"]
-        all_timestamps = sorted(transit_df["timestamp"].tolist())
-        start_timestamp = all_timestamps[0]
-        end_timestamp = all_timestamps[0] + 3600
-        obs_in_hour = []
-        for x in range(121):
-            df_query = transit_df[(transit_df["timestamp"] >= start_timestamp) & (transit_df["timestamp"] <= end_timestamp)]
-            obs_in_hour.append(len(df_query))
-            start_timestamp += 3600
-            end_timestamp += 3600
-
-        hours = [x for x in range(121)]
-        hrs5 = [x for x in range(0, 121, 5)]
-        plt.rcParams["figure.figsize"] = (10, 6)
-        plt.bar(hours, obs_in_hour, color='#607c8e')
-        plt.title("# Data Points Collected Every Hour Since 4/30/2021, 10:00 AM FOR 21-295 ROUTE")
-        plt.xlabel("Number Of Hours Since Start")
-        plt.xticks(hrs5, hrs5, rotation ='vertical')
-        plt.ylabel("# Of Data Points")
-        plt.grid(axis='y', alpha=0.75)
-        plt.show()
+        transit_df = transit_df[transit_df["route_id"] == "502-295"]
+        transit_df.to_csv(r"C:\Users\renac\Desktop\502Data.csv", index=False)
