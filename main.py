@@ -34,7 +34,7 @@ def analyze_data():
     """ This function will define the main logic of the data exploration section of this project """
 
     # Instantiate data collection class, and pass the location of the dataset
-    Col_Data = DataCollection(r"C:\Users\renac\Desktop\DataStorage.db")
+    Col_Data = DataCollection(r"Data\Transit_Data.csv")
     Col_Data.process_transit_data()
 
 # ----------------------------------------------------------------------------------------------------------------------
