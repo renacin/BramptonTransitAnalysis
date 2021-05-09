@@ -60,32 +60,28 @@ class DataCollection:
         weather_df = self.dataframe_dict["WEATHER_DB"]
 
         # Main terminals on stop
-        term_dict = {"Sandalwood_Loop": (43.72056, -79.80911), "Brampton_Bus_Terminal": (43.68707, -79.76210), "Shoppers_World_Terminal": (43.66608, -79.73392), "Square_One_Bus_Terminal": (43.59458, -79.64834)}
+        term_dict = {"Sandalwood_Loop": (43.72056, -79.80911), "Square_One_Bus_Terminal": (43.59458, -79.64834)}
 
         # When Was Data Collected; Was It Continuous, or were there errors?
-        transit_df = transit_df[transit_df["route_id"] == "502-295"]
-        for bus in transit_df["id"].unique().tolist():
-            transit_df = transit_df[transit_df["id"] == bus]
-            transit_df = transit_df.sort_values(["timestamp"], ascending=True)
+        route_df = transit_df[transit_df["route_id"] == "502-295"]
 
-            # Pull lat & Longs
-            bus_lat = transit_df["latitude"].tolist()
-            bus_long = transit_df["longitude"].tolist()
+        # Pull lat & Longs
+        bus_lat = route_df["latitude"].tolist()
+        bus_long = route_df["longitude"].tolist()
 
-            bus_coords = [(bus_lat, bus_long)for bus_lat, bus_long in zip(bus_lat, bus_long)]
+        bus_coords = [(bus_lat, bus_long)for bus_lat, bus_long in zip(bus_lat, bus_long)]
 
-            # Calculate distance to each terminal on 502 route
-            for terminal in term_dict:
-                term_coord = term_dict[terminal]
-                transit_df[f"Dist2{terminal}"] = [dist2term(bus_coord, term_coord) for bus_coord in bus_coords]
+        # Calculate distance to each terminal on 502 route
+        for terminal in term_dict:
+            term_coord = term_dict[terminal]
+            route_df[f"Dist2{terminal}"] = [dist2term(bus_coord, term_coord) for bus_coord in bus_coords]
 
-
-            # Graph with matplotlib
-            for trip in transit_df["trip_id"].unique().tolist():
-                transit_df = transit_df[transit_df["trip_id"] == trip]
-                plt.plot(transit_df["timestamp"], transit_df["Dist2Sandalwood_Loop"])
-                plt.plot(transit_df["timestamp"], transit_df["Dist2Square_One_Bus_Terminal"])
+        # Plot only one trip
+        list_of_trips = route_df["trip_id"].unique().tolist()
+        for trip in list_of_trips:
+            unq_trip_df = route_df[route_df["trip_id"] == trip]
+            list_of_buses = unq_trip_df["id"].unique().tolist()
+            for bus in list_of_buses:
+                unq_bus_trip_df = unq_trip_df[unq_trip_df["id"] == bus]
+                plt.plot(unq_bus_trip_df["timestamp"], unq_bus_trip_df["Dist2Sandalwood_Loop"])
                 plt.show()
-
-            transit_df.to_csv(r"C:\Users\renac\Desktop\502Data_FocusBus.csv", index=False)
-            break
