@@ -81,9 +81,11 @@ class DataCollection:
 
 
             # Graph with matplotlib
-            plt.plot(transit_df["timestamp"], transit_df["Dist2Sandalwood_Loop"])
-            plt.plot(transit_df["timestamp"], transit_df["Dist2Square_One_Bus_Terminal"])
-            plt.show()
+            for trip in transit_df["trip_id"].unique().tolist():
+                transit_df = transit_df[transit_df["trip_id"] == trip]
+                plt.plot(transit_df["timestamp"], transit_df["Dist2Sandalwood_Loop"])
+                plt.plot(transit_df["timestamp"], transit_df["Dist2Square_One_Bus_Terminal"])
+                plt.show()
 
             transit_df.to_csv(r"C:\Users\renac\Desktop\502Data_FocusBus.csv", index=False)
             break
