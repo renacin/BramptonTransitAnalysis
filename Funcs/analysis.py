@@ -12,7 +12,7 @@ import sqlite3
 import pandas as pd
 import matplotlib.pyplot as plt
 import geopy
-from geopy.distance import VincentyDistance, geodesic
+from geopy.distance import geodesic
 
 import warnings
 warnings.filterwarnings('ignore')
