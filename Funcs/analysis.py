@@ -3,18 +3,12 @@
 # Title                              Main functions used to analyses collected data
 #
 # ----------------------------------------------------------------------------------------------------------------------
-import os, sys, time, re
-import json, requests, ast
-
-import datetime
-import sqlite3
-
+import time, datetime, warnings
 import pandas as pd
 import matplotlib.pyplot as plt
 import geopy
 from geopy.distance import geodesic
 
-import warnings
 warnings.filterwarnings('ignore')
 # ----------------------------------------------------------------------------------------------------------------------
 
@@ -29,8 +23,12 @@ class DataCollection:
         self.transit_data_csv = pd.read_csv(csv_file_loc)
 
 
+
+    # -----------------------------------------------------------------------------------------------------------------
     def process_transit_data(self):
         """ This function will identify key statistics from transit data | First explore the data"""
+
+
 
         def dist2term(bus_coord):
             """ This function takes both the bus location as well as stop location and calculates the distance between """
@@ -40,6 +38,8 @@ class DataCollection:
             dist_measure = str(geodesic(bus_point, term_point)).replace(" km", "")
 
             return round(float(dist_measure), 3)
+
+
 
         def rem_idle(temp_df):
             """ This function takes a dataframe containing bus location data and removes and point where the bus is idling """
@@ -60,28 +60,34 @@ class DataCollection:
             return cleaned_df
 
 
+
+        # -----------------------------------------------------------------------------------------------------------------
         # Grab transit data from stored dictionary
         transit_df = self.transit_data_csv
 
         # When Was Data Collected; Was It Continuous, or were there errors?
+        start_time = time.time()
         route_df = transit_df[transit_df["route_id"] == "502-295"]
+        print(f"Time To Isolate Route: {round((time.time() - start_time), 6)}")
 
         # Pull lat & Longs & Create new column
-        bus_coords = [(bus_lat, bus_long) for bus_lat, bus_long in zip(route_df["latitude"].tolist(), route_df["longitude"].tolist())]
+        start_time = time.time()
+        route_df["bus_coords"] = list(zip(route_df["latitude"], route_df["longitude"]))
+        route_df["Dist2Sandalwood_Loop"] = route_df["bus_coords"].apply(dist2term)
+        print(f"Time To Calculate Distane To Stop: {round((time.time() - start_time), 6)}")
 
-        # Calculate distance to each terminal on 502 route
-        route_df["Dist2Sandalwood_Loop"] = [dist2term(bus_coord) for bus_coord in bus_coords]
 
-        # Plot only one bus trip at a time, and only trips moving away from the Sandalwood loop (Begining values should be greater than 1 KM)
-        route_df["unq_id"] = route_df["trip_id"].astype(str) + "_" + route_df["id"].astype(str)
-        list_of_trips = route_df["unq_id"].unique().tolist()
-        for trip in list_of_trips:
 
-            # Remove data points where bus is idling at the begining or end of the trip
-            unq_trip_df = route_df[route_df["unq_id"] == trip]
-            unq_trip_df["timesince"] = (unq_trip_df["timestamp"] - unq_trip_df["timestamp"].min()) / 60
-
-            # Plot Trip Graphs, Start At Sandalwood, Trip must be less than 120 minutes
-            if (unq_trip_df["Dist2Sandalwood_Loop"].tolist()[0] <= 1) and (unq_trip_df["timesince"].max() <= 200) and (unq_trip_df["timesince"].max() >= 10):
-                plt.plot(unq_trip_df["timesince"], unq_trip_df["Dist2Sandalwood_Loop"])
-                plt.show()
+        # # Plot only one bus trip at a time, and only trips moving away from the Sandalwood loop (Begining values should be greater than 1 KM)
+        # route_df["unq_id"] = route_df["trip_id"].astype(str) + "_" + route_df["id"].astype(str)
+        # list_of_trips = route_df["unq_id"].unique().tolist()
+        # for trip in list_of_trips:
+        #
+        #     # Remove data points where bus is idling at the begining or end of the trip
+        #     unq_trip_df = route_df[route_df["unq_id"] == trip]
+        #     unq_trip_df["timesince"] = (unq_trip_df["timestamp"] - unq_trip_df["timestamp"].min()) / 60
+        #
+        #     # Plot Trip Graphs, Start At Sandalwood, Trip must be less than 120 minutes
+        #     if (unq_trip_df["Dist2Sandalwood_Loop"].tolist()[0] <= 1) and (unq_trip_df["timesince"].max() <= 200) and (unq_trip_df["timesince"].max() >= 10):
+        #         plt.plot(unq_trip_df["timesince"], unq_trip_df["Dist2Sandalwood_Loop"])
+        #         plt.show()
