@@ -4,12 +4,13 @@
 #
 # ----------------------------------------------------------------------------------------------------------------------
 import time, datetime, warnings
+warnings.filterwarnings('ignore')
+
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import geopy
 from geopy.distance import geodesic
-
-warnings.filterwarnings('ignore')
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -23,22 +24,36 @@ class DataCollection:
         self.transit_data_csv = pd.read_csv(csv_file_loc)
 
 
-
     # -----------------------------------------------------------------------------------------------------------------
     def process_transit_data(self):
         """ This function will identify key statistics from transit data | First explore the data"""
 
 
+        def vec_haversine(coord):
 
-        def dist2term(bus_coord):
-            """ This function takes both the bus location as well as stop location and calculates the distance between """
+            """
+            This function will calculate the distance between bus location and bus stop; returns distance in km
+            Taken from: https://datascience.blog.wzb.eu/2018/02/02/vectorization-and-parallelization-in-python-with-numpy-and-pandas/
+            """
+            b_lat, b_lng = (43.72056, -79.80911)
+            a_lat, a_lng = coord[0], coord[1]
+            R = 6371  # earth radius in km
 
-            bus_point = geopy.Point(bus_coord[0], bus_coord[1])
-            term_point = geopy.Point(43.72056, -79.80911)
-            dist_measure = str(geodesic(bus_point, term_point)).replace(" km", "")
+            a_lat = np.radians(a_lat)
+            a_lng = np.radians(a_lng)
+            b_lat = np.radians(b_lat)
+            b_lng = np.radians(b_lng)
 
-            return round(float(dist_measure), 3)
+            d_lat = b_lat - a_lat
+            d_lng = b_lng - a_lng
 
+            d_lat_sq = np.sin(d_lat / 2) ** 2
+            d_lng_sq = np.sin(d_lng / 2) ** 2
+
+            a = d_lat_sq + np.cos(a_lat) * np.cos(b_lat) * d_lng_sq
+            c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1-a))
+
+            return R * c  # returns distance between a and b in km
 
 
         def rem_idle(temp_df):
@@ -60,34 +75,27 @@ class DataCollection:
             return cleaned_df
 
 
-
         # -----------------------------------------------------------------------------------------------------------------
         # Grab transit data from stored dictionary
         transit_df = self.transit_data_csv
 
         # When Was Data Collected; Was It Continuous, or were there errors?
-        start_time = time.time()
         route_df = transit_df[transit_df["route_id"] == "502-295"]
-        print(f"Time To Isolate Route: {round((time.time() - start_time), 6)}")
 
         # Pull lat & Longs & Create new column
-        start_time = time.time()
         route_df["bus_coords"] = list(zip(route_df["latitude"], route_df["longitude"]))
-        route_df["Dist2Sandalwood_Loop"] = route_df["bus_coords"].apply(dist2term)
-        print(f"Time To Calculate Distane To Stop: {round((time.time() - start_time), 6)}")
+        route_df["Dist2Sandalwood_Loop"] = route_df["bus_coords"].apply(vec_haversine)
 
+        # Plot only one bus trip at a time, and only trips moving away from the Sandalwood loop (Begining values should be greater than 1 KM)
+        route_df["unq_id"] = route_df["trip_id"].astype(str) + "_" + route_df["id"].astype(str)
+        list_of_trips = route_df["unq_id"].unique().tolist()
+        for trip in list_of_trips:
 
+            # Remove data points where bus is idling at the begining or end of the trip
+            unq_trip_df = route_df[route_df["unq_id"] == trip]
+            unq_trip_df["timesince"] = (unq_trip_df["timestamp"] - unq_trip_df["timestamp"].min()) / 60
 
-        # # Plot only one bus trip at a time, and only trips moving away from the Sandalwood loop (Begining values should be greater than 1 KM)
-        # route_df["unq_id"] = route_df["trip_id"].astype(str) + "_" + route_df["id"].astype(str)
-        # list_of_trips = route_df["unq_id"].unique().tolist()
-        # for trip in list_of_trips:
-        #
-        #     # Remove data points where bus is idling at the begining or end of the trip
-        #     unq_trip_df = route_df[route_df["unq_id"] == trip]
-        #     unq_trip_df["timesince"] = (unq_trip_df["timestamp"] - unq_trip_df["timestamp"].min()) / 60
-        #
-        #     # Plot Trip Graphs, Start At Sandalwood, Trip must be less than 120 minutes
-        #     if (unq_trip_df["Dist2Sandalwood_Loop"].tolist()[0] <= 1) and (unq_trip_df["timesince"].max() <= 200) and (unq_trip_df["timesince"].max() >= 10):
-        #         plt.plot(unq_trip_df["timesince"], unq_trip_df["Dist2Sandalwood_Loop"])
-        #         plt.show()
+            # Plot Trip Graphs, Start At Sandalwood, Trip must be less than 120 minutes
+            if (unq_trip_df["Dist2Sandalwood_Loop"].tolist()[0] <= 1) and (unq_trip_df["timesince"].max() <= 200) and (unq_trip_df["timesince"].max() >= 10):
+                plt.plot(unq_trip_df["timesince"], unq_trip_df["Dist2Sandalwood_Loop"])
+                plt.show()
