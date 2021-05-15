@@ -4,7 +4,7 @@
 #
 # ----------------------------------------------------------------------------------------------------------------------
 import time, datetime, warnings
-warnings.filterwarnings('ignore')
+warnings.filterwarnings("ignore")
 
 import pandas as pd
 import numpy as np
@@ -100,19 +100,9 @@ class DataCollection:
 
             # Plot Trip Graphs, Start At Sandalwood, Trip must be less than 120 minutes
             if (unq_trip_df["Dist2Sandalwood_Loop"].tolist()[0] <= 1) and (unq_trip_df["timesince"].max() <= 200) and (unq_trip_df["timesince"].max() >= 10):
-                plt.plot(unq_trip_df["timesince"], unq_trip_df["Dist2Sandalwood_Loop"])
                 plt.plot(no_idle_df["timesince"], no_idle_df["Dist2Sandalwood_Loop"])
-                plt.show()
-
-
-
-
-
-
-
-
-
-
+                
+        plt.show()
 
 
 
