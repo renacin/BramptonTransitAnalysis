@@ -61,13 +61,9 @@ class DataCollection:
 
             for cordtype in ["latitude", "longitude"]:
 
-                # Fix lat long columns for high acc
-                temp_df[cordtype] = temp_df[cordtype].astype(float)
-                temp_df[cordtype] = temp_df[cordtype].round(decimals=5)
-
                 # Create new columns
                 new_cord_col = f"{cordtype}_Round"
-                temp_df[new_cord_col] = temp_df[cordtype].round(decimals=3)
+                temp_df[new_cord_col] = temp_df[cordtype].round(decimals=2)
 
             cleaned_df = temp_df.drop_duplicates(subset = ["latitude_Round", "longitude_Round", "unq_id"], keep = 'last')
 
@@ -91,11 +87,46 @@ class DataCollection:
         list_of_trips = route_df["unq_id"].unique().tolist()
         for trip in list_of_trips:
 
-            # Remove data points where bus is idling at the begining or end of the trip
+
+            # Original Data
             unq_trip_df = route_df[route_df["unq_id"] == trip]
+            unq_trip_df_cleaned = unq_trip_df.copy()
+            no_idle_df = rem_idle(unq_trip_df_cleaned)
+
+            # Create Timestamps For Both Dataframes
             unq_trip_df["timesince"] = (unq_trip_df["timestamp"] - unq_trip_df["timestamp"].min()) / 60
+            no_idle_df["timesince"] = (no_idle_df["timestamp"] - no_idle_df["timestamp"].min()) / 60
+
 
             # Plot Trip Graphs, Start At Sandalwood, Trip must be less than 120 minutes
             if (unq_trip_df["Dist2Sandalwood_Loop"].tolist()[0] <= 1) and (unq_trip_df["timesince"].max() <= 200) and (unq_trip_df["timesince"].max() >= 10):
                 plt.plot(unq_trip_df["timesince"], unq_trip_df["Dist2Sandalwood_Loop"])
+                plt.plot(no_idle_df["timesince"], no_idle_df["Dist2Sandalwood_Loop"])
                 plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#
