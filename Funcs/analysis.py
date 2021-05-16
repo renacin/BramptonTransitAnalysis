@@ -83,8 +83,10 @@ class DataCollection:
         route_df["Dist2Sandalwood_Loop"] = route_df["bus_coords"].apply(vec_haversine)
 
         # Plot only one bus trip at a time, and only trips moving away from the Sandalwood loop (Begining values should be greater than 1 KM)
+        # Save X & Y Data To Create Line Of Best Fit
         route_df["unq_id"] = route_df["trip_id"].astype(str) + "_" + route_df["id"].astype(str)
         list_of_trips = route_df["unq_id"].unique().tolist()
+        data_storage = {"x": [], "y": []}
         for trip in list_of_trips:
 
 
@@ -100,8 +102,18 @@ class DataCollection:
 
             # Plot Trip Graphs, Start At Sandalwood, Trip must be less than 120 minutes
             if (unq_trip_df["Dist2Sandalwood_Loop"].tolist()[0] <= 1) and (unq_trip_df["timesince"].max() <= 200) and (unq_trip_df["timesince"].max() >= 10):
-                plt.plot(no_idle_df["timesince"], no_idle_df["Dist2Sandalwood_Loop"])
-                
+                plt.plot(no_idle_df["timesince"], no_idle_df["Dist2Sandalwood_Loop"], color="grey")
+                data_storage["x"].extend(no_idle_df["timesince"].tolist())
+                data_storage["y"].extend(no_idle_df["Dist2Sandalwood_Loop"].tolist())
+
+        # Plot Polynomial Line Of Bst Fit
+        X = np.array(data_storage["x"])
+        Y = np.array(data_storage["y"])
+        poly_coeff = np.polyfit(X, Y, 5)
+
+        x_new = np.linspace(0, 50, 100)
+        y_new = np.poly1d(poly_coeff)
+        plt.plot(x_new, y_new(x_new), color="red")
         plt.show()
 
 
