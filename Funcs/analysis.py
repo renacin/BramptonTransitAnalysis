@@ -101,7 +101,7 @@ class DataCollection:
 
 
             # Plot Trip Graphs, Start At Sandalwood, Trip must be less than 120 minutes
-            if (unq_trip_df["Dist2Sandalwood_Loop"].tolist()[0] <= 1) and (unq_trip_df["timesince"].max() <= 200) and (unq_trip_df["timesince"].max() >= 10):
+            if (no_idle_df["Dist2Sandalwood_Loop"].tolist()[0] <= 1) and (no_idle_df["timesince"].max() <= 200) and (no_idle_df["timesince"].max() >= 10):
                 plt.plot(no_idle_df["timesince"], no_idle_df["Dist2Sandalwood_Loop"], color="grey")
                 data_storage["x"].extend(no_idle_df["timesince"].tolist())
                 data_storage["y"].extend(no_idle_df["Dist2Sandalwood_Loop"].tolist())
@@ -109,10 +109,15 @@ class DataCollection:
         # Plot Polynomial Line Of Bst Fit
         X = np.array(data_storage["x"])
         Y = np.array(data_storage["y"])
-        poly_coeff = np.polyfit(X, Y, 5)
+        poly_coeff = np.polyfit(X, Y, 10)
 
         x_new = np.linspace(0, 50, 100)
         y_new = np.poly1d(poly_coeff)
+
+        plt.rcParams["figure.figsize"] = (10, 6)
+        plt.title("Distance Traveled Vs. Time Since Start")
+        plt.xlabel("Minutes Since Start Of Trip")
+        plt.ylabel("Distance Traveled [KM]")
         plt.plot(x_new, y_new(x_new), color="red")
         plt.show()
 
