@@ -72,29 +72,6 @@ class DataCollection:
             return cleaned_df
 
 
-        def histogram(df_list):
-            """ This function takes a list of a data and creates a histogram """
-
-            # Turn List Into Pandas Series
-
-            # Name Of Column
-            col_name = df_list.name
-
-            # Central Distribution Measures
-            col_mean, col_mode, col_median, col_count = descriptive.central_tendency(df_list, print_data=True)
-            col_std, col_var, col_min, col_max = descriptive.dispersion(df_list, print_data=True)
-            col_skew, col_kurto = descriptive.distribution(df_list, print_data=True)
-
-            # Basics Of Histogram
-            bins_ = 15
-            plt.figure(figsize= (5, 5))
-            plt.hist(df_list, bins_, edgecolor="black")
-            plt.title("Histogram: {}".format(col_name))
-            plt.xlabel("Obersvations Of: {}".format(col_name))
-            plt.ylabel("Frequency")
-            plt.show()
-
-
         # -----------------------------------------------------------------------------------------------------------------
         # Grab transit data from stored dictionary
         transit_df = self.transit_data_csv
@@ -110,7 +87,8 @@ class DataCollection:
         # Save X & Y Data To Create Line Of Best Fit
         route_df["unq_id"] = route_df["trip_id"].astype(str) + "_" + route_df["id"].astype(str)
         list_of_trips = route_df["unq_id"].unique().tolist()
-        data_storage = {"Trip_Duration": []}
+
+        data_storage = {"Trip_Duration": [], "Time_Stamp": []}
         for trip in list_of_trips:
 
 
@@ -126,12 +104,20 @@ class DataCollection:
             # Gather Data For Trip Duration Histogram, Start At Sandalwood, Trip must be less than 120 minutes, Total Trip Duration Must Be Longer Than 10 min
             if (no_idle_df["Dist2Sandalwood_Loop"].tolist()[0] <= 1) and (no_idle_df["timesince"].max() <= 200) and (no_idle_df["timesince"].max() >= 10):
                 trip_time = no_idle_df["timesince"].tolist()[-1]
+                end_timestamp = no_idle_df["timestamp"].tolist()[-1]
+
                 data_storage["Trip_Duration"].append(round(trip_time, 2))
+                data_storage["Time_Stamp"].append(end_timestamp)
 
-        # Render Histogram
-        trip_dur = pd.DataFrame(data_storage["Trip_Duration"], columns=["502_Trip_Duration"])
-        histogram(trip_dur["502_Trip_Duration"])
+        # Reformat Time Stamp For Understanding & Querying
+        dur_df = pd.DataFrame.from_dict(data_storage)
+        dur_df["DateObj"] = pd.to_datetime(dur_df["Time_Stamp"], unit='s')
+        dur_df["End_Date"] = dur_df["DateObj"].dt.date
+        dur_df["End_Time"] = dur_df["DateObj"].dt.time
 
+        del dur_df["DateObj"], dur_df["Time_Stamp"]
+
+        dur_df.to_csv("Data\TripDuration_ByTripEnd.csv")
 
 
 
