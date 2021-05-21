@@ -117,7 +117,9 @@ class DataCollection:
 
         del dur_df["DateObj"], dur_df["Time_Stamp"]
 
-        dur_df.to_csv("Data\TripDuration_ByTripEnd.csv")
+        cleaned_df = dur_df[dur_df["Trip_Duration"] >= 30]
+        print(cleaned_df.groupby(["End_Date"]).mean())
+
 
 
 
