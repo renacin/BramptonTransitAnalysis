@@ -69,6 +69,8 @@ class DataCollection:
             cleaned_df = temp_df.drop_duplicates(subset = ["latitude_Round", "longitude_Round", "unq_id"], keep = 'last')
 
             del cleaned_df["latitude_Round"], cleaned_df["longitude_Round"]
+            cleaned_df = cleaned_df.drop(cleaned_df.tail(0).index)
+
             return cleaned_df
 
 
@@ -88,7 +90,7 @@ class DataCollection:
         route_df["unq_id"] = route_df["trip_id"].astype(str) + "_" + route_df["id"].astype(str)
         list_of_trips = route_df["unq_id"].unique().tolist()
 
-        data_storage = {"Trip_Duration": [], "Time_Stamp": []}
+        data_storage = {"x": [], "y": []}
         for trip in list_of_trips:
 
 
@@ -98,34 +100,33 @@ class DataCollection:
             no_idle_df = rem_idle(unq_trip_df_cleaned)
 
             # Create Timestamps For Both Dataframes
+            unq_trip_df["timesince"] = (unq_trip_df["timestamp"] - unq_trip_df["timestamp"].min()) / 60
             no_idle_df["timesince"] = (no_idle_df["timestamp"] - no_idle_df["timestamp"].min()) / 60
 
 
-            # Gather Data For Trip Duration Histogram, Start At Sandalwood, Trip must be less than 120 minutes, Total Trip Duration Must Be Longer Than 10 min
-            if (no_idle_df["Dist2Sandalwood_Loop"].tolist()[0] <= 1) and (no_idle_df["timesince"].max() <= 200) and (no_idle_df["timesince"].max() >= 10):
-                trip_time = no_idle_df["timesince"].tolist()[-1]
-                end_timestamp = no_idle_df["timestamp"].tolist()[-1]
+            # Plot Trip Graphs, Start At Sandalwood, Trip must be less than 120 minutes
+            try:
+                if (no_idle_df["Dist2Sandalwood_Loop"].tolist()[0] <= 1) and (no_idle_df["timesince"].max() <= 200) and (no_idle_df["timesince"].max() >= 10):
+                    plt.plot(no_idle_df["timesince"], no_idle_df["Dist2Sandalwood_Loop"], color="grey")
+                    data_storage["x"].extend(no_idle_df["timesince"].tolist())
+                    data_storage["y"].extend(no_idle_df["Dist2Sandalwood_Loop"].tolist())
+            except IndexError:
+                pass
 
-                data_storage["Trip_Duration"].append(round(trip_time, 2))
-                data_storage["Time_Stamp"].append(end_timestamp)
+        # Plot Polynomial Line Of Bst Fit
+        X = np.array(data_storage["x"])
+        Y = np.array(data_storage["y"])
+        poly_coeff = np.polyfit(X, Y, 10)
 
-        # Reformat Time Stamp For Understanding & Querying
-        dur_df = pd.DataFrame.from_dict(data_storage)
-        dur_df["DateObj"] = pd.to_datetime(dur_df["Time_Stamp"], unit='s')
-        dur_df["End_Date"] = dur_df["DateObj"].dt.date
-        dur_df["End_Time"] = dur_df["DateObj"].dt.time
+        x_new = np.linspace(0, 50, 100)
+        y_new = np.poly1d(poly_coeff)
 
-        del dur_df["DateObj"], dur_df["Time_Stamp"]
-
-        cleaned_df = dur_df[dur_df["Trip_Duration"] >= 30]
-        print(cleaned_df.groupby(["End_Date"]).mean())
-
-
-
-
-
-
-
+        plt.rcParams["figure.figsize"] = (10, 6)
+        plt.title("Distance Traveled Vs. Time Since Start")
+        plt.xlabel("Minutes Since Start Of Trip")
+        plt.ylabel("Distance Traveled [KM]")
+        plt.plot(x_new, y_new(x_new), color="red")
+        plt.show()
 
 
 
