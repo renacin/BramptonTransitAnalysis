@@ -5,8 +5,8 @@ import numpy as np
 
 
 # Read In DataBase Using A Sqlite3 Connection & Any Additional Data
-db_path = r"/Users/renacin/Desktop/TransitAnalysis/DataStorage.db"
-bus_stops_csv = r"/Users/renacin/Desktop/TransitAnalysis/Data_Bus_Stops.csv"
+db_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/Attempt_2/Data/DataStorage.db"
+bus_stops_csv = r"/Users/renacin/Documents/BramptonTransitAnalysis/Attempt_2/Data/Data_Bus_Stops.csv"
 bus_stops = pd.read_csv(bus_stops_csv)
 con = sqlite3.connect(db_path)
 bus_stops.to_sql("BusStops", con, if_exists="replace", index=False)
@@ -152,15 +152,23 @@ SELECT
 	A.route_id                                                                                                 AS ROUTE_ID,
 	A.trip_id                                                                                                  AS TRIP_ID,
 	A.id                                                                                                       AS ID,
-	A.stop_id                                                                                                  AS STOP_ID
+	A.stop_id                                                                                                  AS STOP_ID,
+
+	B.*
 
 FROM TRANSIT_LOCATION_DB AS A
+LEFT JOIN BusStops AS B ON (A.stop_id = B.stop_id)
+
+WHERE A.trip_id = '16825147-210426-MULTI-Weekday-01'
 ORDER BY A.TRIP_ID, A.ID, A.TIMESTAMP
 '''
 
 # Pull A Small Subset Of Data For A Certain Bus Route
 transit_df = pd.read_sql_query(sql_query, con)
 print(transit_df)
+
+out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/Attempt_2/Misc/Test_Data.csv"
+transit_df.to_csv(out_path, index=False)
 
 
 
