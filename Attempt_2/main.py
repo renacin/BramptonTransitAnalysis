@@ -47,29 +47,7 @@ RawData AS (
 ),
 
 
--- Step #2: Using Above Table Determine First Recorded Stop
-FirstStop AS (
-	SELECT
-		RawData.*
-
-	FROM RawData
-	WHERE RawData.TIME_RANK = 1
-),
-
-
--- Step #3: Join Both Tables, Adding First Location Recorded In Trip
-CleanData AS (
-	SELECT
-		RawData.*,
-		FirstStop.C_LAT                                                       AS P_LAT,
-		FirstStop.C_LONG                                                      AS P_LONG
-
-	FROM RawData LEFT JOIN FirstStop ON (RawData.TRIP_ID = FirstStop.TRIP_ID AND RawData.ID = FirstStop.ID)
-
-),
-
-
--- Step #4: Format Bus Stop Data Before Merge Onto Final Table
+-- Step #2: Format Bus Stop Data Before Merge Onto Final Table
 StopLoc AS (
 	SELECT
 		stop_id                                                          AS STP_ID,
@@ -78,89 +56,18 @@ StopLoc AS (
 		stop_lon                                                         AS STP_LONG
 
 	FROM BusStops
-	LIMIT 100
 )
+
 
 -- Step #5: Merge Stop Information Onto Main Data
 SELECT
-	CleanData.*,
+	RawData.*,
 	StopLoc.*
 
-FROM CleanData LEFT JOIN StopLoc ON (CAST(CleanData.STOP_ID AS VARCHAR) = CAST(StopLoc.STP_ID AS VARCHAR))
+FROM RawData LEFT JOIN StopLoc ON (CAST(RawData.STOP_ID AS VARCHAR) = CAST(StopLoc.STP_ID AS VARCHAR))
 
-WHERE CleanData.TRIP_ID = '16825147-210426-MULTI-Weekday-01'
-AND CleanData.ID = 2084
-'''
-
-
-"""
-My Left Join Isn't Working; Why?
-00050102, 00050104, 00050104, 00050106, 00050108, 00050108
-
-
-From Bus Location Data
-    stop_id route_id
-0  00045510    1-295
-1  00023040    1-295
-2  00050156    1-295
-3  00045533    1-295
-4  15090711    1-295
-5  00045505    1-295
-
-6  00045528    1-295
-7  00002390    1-295
-8  00000210    1-295
-9  00021137    1-295
-"""
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-sql_query = f'''
-
--- Step #1: Try To Merge Bus Stop Information To Bus Location Data
-SELECT
-	RANK()
-	OVER (PARTITION BY A.TRIP_ID, A.ID ORDER BY A.timestamp)                                                   AS TIME_RANK,
-	A.timestamp                                                                                                AS EP_TIME,
-
-	printf("%.2f", CAST(A.TIMESTAMP - MIN(A.TIMESTAMP)
-	OVER (PARTITION BY A.TRIP_ID, A.ID) AS DECIMAL) / 60.0)                                                    AS TRIP_TIME,
-
-	printf("%.2f", CAST(A.TIMESTAMP - COALESCE(LAG(A.TIMESTAMP)
-	OVER (PARTITION BY A.TRIP_ID, A.ID ORDER BY A.TIMESTAMP), A.TIMESTAMP) AS DECIMAL) / 60.0)                 AS LST_UPDT,
-
-	A.latitude                                                                                                 AS C_LAT,
-	A.longitude                                                                                                AS C_LONG,
-	CAST(A.bearing AS INTERGER)                                                                                AS DIR,
-
-	CAST(AVG(A.bearing)
-	OVER (PARTITION BY A.TRIP_ID, A.ID) AS INTERGER)                                                           AS AVG_DIR,
-
-	printf("%.2f", A.speed)                                                                                    AS KPH,
-	A.route_id                                                                                                 AS ROUTE_ID,
-	A.trip_id                                                                                                  AS TRIP_ID,
-	A.id                                                                                                       AS ID,
-	A.stop_id                                                                                                  AS STOP_ID,
-
-	B.*
-
-FROM TRANSIT_LOCATION_DB AS A
-LEFT JOIN BusStops AS B ON (A.stop_id = B.stop_id)
-
-WHERE A.trip_id = '16825147-210426-MULTI-Weekday-01'
-ORDER BY A.TRIP_ID, A.ID, A.TIMESTAMP
+WHERE RawData.TRIP_ID = '16825147-210426-MULTI-Weekday-01'
+AND RawData.ID = 2084
 '''
 
 # Pull A Small Subset Of Data For A Certain Bus Route
