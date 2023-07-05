@@ -154,14 +154,20 @@ def vec_haversine(coord1, coord2):
 
     return R * c  # returns distance between a and b in km
 
+# Determine Previous Bus Stop
 transit_df["PRV_STP_NAME"] = transit_df["PRV_STP_NAME"].ffill()
 transit_df["PRV_STP_LAT"] = transit_df["PRV_STP_LAT"].ffill()
 transit_df["PRV_STP_LONG"] = transit_df["PRV_STP_LONG"].ffill()
 
-transit_df["DST_2_BSTP"] = round(transit_df.apply(lambda x: vec_haversine((x["STP_LAT"], x["STP_LONG"]), (x["C_LAT"], x["C_LONG"])), axis=1), 4)
+# Determine Distance From Previous & Next Bus Stop
+transit_df["DST_2_NBSTP"] = round(transit_df.apply(lambda x: vec_haversine((x["STP_LAT"], x["STP_LONG"]), (x["C_LAT"], x["C_LONG"])), axis=1), 4)
 transit_df["DST_2_PBSTP"] = round(transit_df.apply(lambda x: vec_haversine((x["PRV_STP_LAT"], x["PRV_STP_LONG"]), (x["C_LAT"], x["C_LONG"])), axis=1), 4)
 
-
+# Determine The Speed Travelled For Entire Duration
+speed_df = transit_df.groupby(["ROUTE_ID", "TRIP_ID", "ID", "AVG_DIR"], as_index=False).agg({
+			'number_units':sum
+			}
+)
 out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/Attempt_2/Misc/Test_Data.csv"
 transit_df.to_csv(out_path, index=False)
 
