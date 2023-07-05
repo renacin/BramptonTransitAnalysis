@@ -37,6 +37,9 @@ RawData AS (
 		OVER (PARTITION BY A.TRIP_ID, A.ID) AS INTERGER)                                                           AS AVG_DIR,
 
 		printf("%.2f", A.speed)                                                                                    AS KPH,
+		printf("%.2f", AVG(A.speed) OVER (PARTITION BY A.TRIP_ID, A.ID))                                           AS AVG_KPH,
+
+
 		A.route_id                                                                                                 AS ROUTE_ID,
 		A.trip_id                                                                                                  AS TRIP_ID,
 		A.id                                                                                                       AS ID,
@@ -56,23 +59,108 @@ StopLoc AS (
 		stop_lon                                                         AS STP_LONG
 
 	FROM BusStops
+),
+
+
+-- Step #3: Merge Stop Information Onto Main Data
+CleanedData AS (
+	SELECT
+		RawData.*,
+		StopLoc.*,
+
+		LAG(StopLoc.STP_NAME) OVER (PARTITION BY RawData.TRIP_ID, RawData.ID ORDER BY RawData.EP_TIME)      AS PRV_STP_NAME,
+		LAG(StopLoc.STP_LAT) OVER (PARTITION BY RawData.TRIP_ID, RawData.ID ORDER BY RawData.EP_TIME)       AS PRV_STP_LAT,
+		LAG(StopLoc.STP_LONG) OVER (PARTITION BY RawData.TRIP_ID, RawData.ID ORDER BY RawData.EP_TIME)      AS PRV_STP_LONG
+
+	FROM RawData LEFT JOIN StopLoc ON (CAST(RawData.STOP_ID AS VARCHAR) = CAST(StopLoc.STP_ID AS VARCHAR))
+),
+
+
+-- Step #4: Clean Up Erronious Data
+Cleaner_Data AS (
+	SELECT
+		CleanedData.TIME_RANK,
+		CleanedData.EP_TIME,
+		CleanedData.TRIP_TIME,
+		CleanedData.LST_UPDT,
+		CleanedData.C_LAT,
+		CleanedData.C_LONG,
+		CleanedData.DIR,
+		CleanedData.AVG_DIR,
+		CleanedData.KPH,
+		CleanedData.AVG_KPH,
+		CleanedData.ROUTE_ID,
+		CleanedData.TRIP_ID,
+		CleanedData.ID,
+		CleanedData.STOP_ID,
+		CleanedData.STP_ID,
+		CleanedData.STP_NAME,
+		CleanedData.STP_LAT,
+		CleanedData.STP_LONG,
+
+		CASE WHEN CleanedData.PRV_STP_NAME == CleanedData.STP_NAME THEN CleanedData.PRV_STP_NAME = NULL
+		ELSE CleanedData.PRV_STP_NAME
+		END AS PRV_STP_NAME,
+
+		CASE WHEN CleanedData.PRV_STP_LAT == CleanedData.STP_LAT THEN CleanedData.PRV_STP_LAT = NULL
+		ELSE CleanedData.PRV_STP_LAT
+		END AS PRV_STP_LAT,
+
+		CASE WHEN CleanedData.PRV_STP_LONG == CleanedData.STP_LONG THEN CleanedData.PRV_STP_LONG = NULL
+		ELSE CleanedData.PRV_STP_LONG
+		END AS PRV_STP_LONG
+
+	FROM CleanedData
 )
 
 
--- Step #5: Merge Stop Information Onto Main Data
-SELECT
-	RawData.*,
-	StopLoc.*
-
-FROM RawData LEFT JOIN StopLoc ON (CAST(RawData.STOP_ID AS VARCHAR) = CAST(StopLoc.STP_ID AS VARCHAR))
-
-WHERE RawData.TRIP_ID = '16825147-210426-MULTI-Weekday-01'
-AND RawData.ID = 2084
+SELECT *
+FROM Cleaner_Data
+WHERE Cleaner_Data.TRIP_ID = '16825147-210426-MULTI-Weekday-01'
+AND Cleaner_Data.ID = 2084
 '''
 
 # Pull A Small Subset Of Data For A Certain Bus Route
 transit_df = pd.read_sql_query(sql_query, con)
-print(transit_df)
+
+
+# Find Distance Between First Bus Location
+def vec_haversine(coord1, coord2):
+    """
+	coord1 = first location reported
+	coord2 = current location reported
+
+    This function will calculate the distance between bus location and bus stop; returns distance in km
+    Taken from: https://datascience.blog.wzb.eu/2018/02/02/vectorization-and-parallelization-in-python-with-numpy-and-pandas/
+    """
+    b_lat, b_lng = coord1[0], coord1[1]
+    a_lat, a_lng = coord2[0], coord2[1]
+
+    R = 6371  # earth radius in km
+
+    a_lat = np.radians(a_lat)
+    a_lng = np.radians(a_lng)
+    b_lat = np.radians(b_lat)
+    b_lng = np.radians(b_lng)
+
+    d_lat = b_lat - a_lat
+    d_lng = b_lng - a_lng
+
+    d_lat_sq = np.sin(d_lat / 2) ** 2
+    d_lng_sq = np.sin(d_lng / 2) ** 2
+
+    a = d_lat_sq + np.cos(a_lat) * np.cos(b_lat) * d_lng_sq
+    c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1-a))
+
+    return R * c  # returns distance between a and b in km
+
+transit_df["PRV_STP_NAME"] = transit_df["PRV_STP_NAME"].ffill()
+transit_df["PRV_STP_LAT"] = transit_df["PRV_STP_LAT"].ffill()
+transit_df["PRV_STP_LONG"] = transit_df["PRV_STP_LONG"].ffill()
+
+transit_df["DST_2_BSTP"] = round(transit_df.apply(lambda x: vec_haversine((x["STP_LAT"], x["STP_LONG"]), (x["C_LAT"], x["C_LONG"])), axis=1), 4)
+transit_df["DST_2_PBSTP"] = round(transit_df.apply(lambda x: vec_haversine((x["PRV_STP_LAT"], x["PRV_STP_LONG"]), (x["C_LAT"], x["C_LONG"])), axis=1), 4)
+
 
 out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/Attempt_2/Misc/Test_Data.csv"
 transit_df.to_csv(out_path, index=False)
@@ -97,39 +185,8 @@ transit_df.to_csv(out_path, index=False)
 
 
 
-#
-# # Find Distance Between First Bus Location
-# def vec_haversine(coord1, coord2):
-#     """
-# 	coord1 = first location reported
-# 	coord2 = current location reported
-#
-#     This function will calculate the distance between bus location and bus stop; returns distance in km
-#     Taken from: https://datascience.blog.wzb.eu/2018/02/02/vectorization-and-parallelization-in-python-with-numpy-and-pandas/
-#     """
-#     b_lat, b_lng = coord1[0], coord1[1]
-#     a_lat, a_lng = coord2[0], coord2[1]
-#
-#     R = 6371  # earth radius in km
-#
-#     a_lat = np.radians(a_lat)
-#     a_lng = np.radians(a_lng)
-#     b_lat = np.radians(b_lat)
-#     b_lng = np.radians(b_lng)
-#
-#     d_lat = b_lat - a_lat
-#     d_lng = b_lng - a_lng
-#
-#     d_lat_sq = np.sin(d_lat / 2) ** 2
-#     d_lng_sq = np.sin(d_lng / 2) ** 2
-#
-#     a = d_lat_sq + np.cos(a_lat) * np.cos(b_lat) * d_lng_sq
-#     c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1-a))
-#
-#     return R * c  # returns distance between a and b in km
-#
-#
-# transit_df["DST_FROM_STRT"] = transit_df.apply(lambda x: vec_haversine((x["P_LAT"], x["P_LONG"]), (x["C_LAT"], x["C_LONG"])), axis=1)
+
+
 
 
 # plt.plot(transit_df["TRIP_TIME"], transit_df["DST_FROM_STRT"])
@@ -151,12 +208,4 @@ transit_df.to_csv(out_path, index=False)
 General Notes:
 	+ Displaying Table Names In Sqlite3
 		SELECT * FROM sqlite_master
-
-	CASE WHEN A.bearing BETWEEN 90 AND 180 THEN 'NORT-WEST'
-	     WHEN A.bearing BETWEEN 90 AND 180 THEN 'SOUTH-EAST'
-		 ELSE
-	END AS CARDI,
-
-
-
 """
