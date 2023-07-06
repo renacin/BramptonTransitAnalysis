@@ -53,8 +53,6 @@ sql_query = f'''
 WITH
 RawData AS (
 	SELECT
-		RANK()
-		OVER (PARTITION BY A.TRIP_ID, A.ID ORDER BY A.timestamp)                                                   AS TIME_RANK,
 		A.timestamp                                                                                                AS EP_TIME,
 
 		printf("%.2f", CAST(A.TIMESTAMP - MIN(A.TIMESTAMP)
@@ -105,7 +103,6 @@ CleanedData AS (
 	SELECT
 		RawData.*,
 		StopLoc.*,
-
 		LAG(StopLoc.STP_NAME) OVER (PARTITION BY RawData.TRIP_ID, RawData.ID ORDER BY RawData.EP_TIME)      AS PRV_STP_NAME,
 		LAG(StopLoc.STP_LAT) OVER (PARTITION BY RawData.TRIP_ID, RawData.ID ORDER BY RawData.EP_TIME)       AS PRV_STP_LAT,
 		LAG(StopLoc.STP_LONG) OVER (PARTITION BY RawData.TRIP_ID, RawData.ID ORDER BY RawData.EP_TIME)      AS PRV_STP_LONG
@@ -119,7 +116,6 @@ CleanedData AS (
 -- Step #4: Clean Up Erronious Data
 Cleaner_Data AS (
 	SELECT
-		CleanedData.TIME_RANK,
 		CleanedData.EP_TIME,
 		CleanedData.TRIP_TIME,
 		CleanedData.LST_UPDT,
@@ -132,7 +128,6 @@ Cleaner_Data AS (
 		CleanedData.ROUTE_ID,
 		CleanedData.TRIP_ID,
 		CleanedData.ID,
-		CleanedData.STOP_ID,
 		CleanedData.STP_ID,
 		CleanedData.STP_NAME,
 		CleanedData.STP_LAT,
@@ -156,22 +151,28 @@ Cleaner_Data AS (
 
 
 SELECT *
-FROM Cleaner_Data
+FROM Cleaner_Data AS A
+WHERE A.ROUTE_ID = '501-295'
+AND A.TRIP_ID = '16829122-210426-MULTI-Weekday-01'
+AND A.ID = 1483
 
 '''
 # Pull A Small Subset Of Data For A Certain Bus Route
 transit_df = pd.read_sql_query(sql_query, con)
+print("Finished Gathering Data")
 
 
 # Determine Previous Bus Stop
-transit_df["PRV_STP_NAME"] = transit_df["PRV_STP_NAME"].ffill()
-transit_df["PRV_STP_LAT"] = transit_df["PRV_STP_LAT"].ffill()
-transit_df["PRV_STP_LONG"] = transit_df["PRV_STP_LONG"].ffill()
+for col in ["PRV_STP_NAME", "PRV_STP_LAT", "PRV_STP_LONG"]:
+	transit_df[col] = transit_df.groupby(["ROUTE_ID", "TRIP_ID", "ID", "AVG_DIR"])[col].ffill()
+print("Finished FFilling Data")
+
 
 # Determine Distance From Previous & Next Bus Stop
 transit_df["DST_2_NBSTP"] = round(transit_df.apply(lambda x: vec_haversine((x["STP_LAT"], x["STP_LONG"]), (x["C_LAT"], x["C_LONG"])), axis=1), 4)
 transit_df["DST_2_PBSTP"] = round(transit_df.apply(lambda x: vec_haversine((x["PRV_STP_LAT"], x["PRV_STP_LONG"]), (x["C_LAT"], x["C_LONG"])), axis=1), 4)
 transit_df["DST_2_PLOC"] = round(transit_df.apply(lambda x: vec_haversine((x["PRV_LAT"], x["PRV_LONG"]), (x["C_LAT"], x["C_LONG"])), axis=1), 4)
+print("Finished Calculating Distances")
 
 
 # Determine The Speed Travelled For Entire Duration
@@ -181,11 +182,15 @@ speed_df = transit_df.groupby(["ROUTE_ID", "TRIP_ID", "ID", "AVG_DIR"], as_index
 )
 speed_df["TRIP_TIME"] = speed_df["TRIP_TIME"].astype("float")
 speed_df["TRIP_SPD"] = round(speed_df["TRIP_LEN"] / speed_df["TRIP_TIME"] / 60, 2)
+print("Finished Calculating Trip Speed")
+
 
 transit_df = transit_df.merge(speed_df, how="left", on=["ROUTE_ID", "TRIP_ID", "ID", "AVG_DIR"])
 transit_df["TME_2_PBSTP"] = round(((transit_df["DST_2_PBSTP"] / transit_df["TRIP_SPD"])*60)*60)
 transit_df["TME_2_NBSTP"] = round(((transit_df["DST_2_NBSTP"] / transit_df["TRIP_SPD"])*60)*60)
-transit_df["ARV_TME_PBSTP"] = (transit_df["EP_TIME"] - transit_df["TME_2_PBSTP"]).astype("Int64")
+transit_df["ARV_TME_PBSTP"] = transit_df["EP_TIME"] - transit_df["TME_2_PBSTP"]
+print("Finished Determining Arrival Time ")
+
 
 cleaned_df = transit_df.loc[:, ['ROUTE_ID', 'TRIP_ID', 'ID', 'AVG_DIR', 'PRV_STP_NAME', 'PRV_STP_LAT', 'PRV_STP_LONG', 'ARV_TME_PBSTP']]
 cleaned_df.dropna(inplace=True)
@@ -195,6 +200,7 @@ cleaned_df.sort_values(['ROUTE_ID', 'TRIP_ID', 'ID', 'ARV_TME_PBSTP'], inplace=T
 
 out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/Attempt_2/Misc/Test_Data.csv"
 cleaned_df.to_csv(out_path, index=False)
+print("Finished Writing Data")
 
 
 
