@@ -55,6 +55,159 @@ RawData AS (
 	SELECT
 		A.timestamp                                                                                                AS EP_TIME,
 
+		printf("%.2f", CAST(A.TIMESTAMP - COALESCE(LAG(A.TIMESTAMP)
+		OVER (PARTITION BY A.TRIP_ID, A.ID ORDER BY A.TIMESTAMP), A.TIMESTAMP) AS DECIMAL) / 60.0)                 AS LST_UPDT,
+
+		A.latitude                                                                                                 AS C_LAT,
+		A.longitude                                                                                                AS C_LONG,
+		CAST(A.bearing AS INTERGER)                                                                                AS DIR,
+		CAST(AVG(A.bearing)
+		OVER (PARTITION BY A.TRIP_ID, A.ID) AS INTERGER)                                                           AS AVG_DIR,
+
+
+		COALESCE(LAG(A.latitude) OVER (PARTITION BY A.TRIP_ID, A.ID ORDER BY A.TIMESTAMP), A.latitude)             AS PRV_LAT,
+		COALESCE(LAG(A.longitude) OVER (PARTITION BY A.TRIP_ID, A.ID ORDER BY A.TIMESTAMP), A.longitude)           AS PRV_LONG,
+
+
+		A.route_id                                                                                                 AS ROUTE_ID,
+		A.trip_id                                                                                                  AS TRIP_ID,
+		A.id                                                                                                       AS ID,
+
+		A.stop_id                                                                                                  AS NXT_STP_ID,
+		COALESCE(LAG(A.stop_id) OVER (PARTITION BY A.TRIP_ID, A.ID ORDER BY A.TIMESTAMP), A.stop_id)               AS PRV_STP_ID
+
+	FROM TRANSIT_LOCATION_DB AS A
+	ORDER BY A.TRIP_ID, A.ID, A.TIMESTAMP
+),
+
+
+
+-- Step #2: Merge Bus Stop Information Onto Main Table
+WithStopData AS (
+	SELECT
+		A.*,
+
+		B1.stop_name                                                     AS NXT_STP_NAME,
+		B1.stop_lat                                                      AS NXT_STP_LAT,
+		B1.stop_lon                                                      AS NXT_STP_LONG,
+
+		B2.stop_name                                                     AS PRV_STP_NAME,
+		B2.stop_lat                                                      AS PRV_STP_LAT,
+		B2.stop_lon                                                      AS PRV_STP_LONG
+
+
+	FROM RawData AS A
+	LEFT JOIN BusStops AS B1 ON (A.NXT_STP_ID = B1.stop_id)
+	LEFT JOIN BusStops AS B2 ON (A.PRV_STP_ID = B2.stop_id)
+)
+
+
+SELECT *
+FROM WithStopData AS A
+WHERE A.ROUTE_ID = '501-295'
+AND A.TRIP_ID = '16829122-210426-MULTI-Weekday-01'
+AND A.ID = 1483
+
+'''
+# Pull A Small Subset Of Data For A Certain Bus Route
+transit_df = pd.read_sql_query(sql_query, con)
+out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/Attempt_2/Misc/Test_Data.csv"
+transit_df.to_csv(out_path, index=False)
+print(transit_df)
+
+#
+# # Determine Previous Bus Stop
+# for col in ["PRV_STP_NAME", "PRV_STP_LAT", "PRV_STP_LONG"]:
+# 	transit_df[col] = transit_df.groupby(["ROUTE_ID", "TRIP_ID", "ID", "AVG_DIR"])[col].ffill()
+# print("Finished FFilling Data")
+#
+#
+# # Determine Distance From Previous & Next Bus Stop
+# transit_df["DST_2_NBSTP"] = round(transit_df.apply(lambda x: vec_haversine((x["STP_LAT"], x["STP_LONG"]), (x["C_LAT"], x["C_LONG"])), axis=1), 4)
+# transit_df["DST_2_PBSTP"] = round(transit_df.apply(lambda x: vec_haversine((x["PRV_STP_LAT"], x["PRV_STP_LONG"]), (x["C_LAT"], x["C_LONG"])), axis=1), 4)
+# transit_df["DST_2_PLOC"] = round(transit_df.apply(lambda x: vec_haversine((x["PRV_LAT"], x["PRV_LONG"]), (x["C_LAT"], x["C_LONG"])), axis=1), 4)
+# print("Finished Calculating Distances")
+#
+#
+# # Determine The Speed Travelled For Entire Duration
+# speed_df = transit_df.groupby(["ROUTE_ID", "TRIP_ID", "ID", "AVG_DIR"], as_index=False).agg(
+# 			TRIP_TIME = ("TRIP_TIME", "last"),
+# 			TRIP_LEN = ("DST_2_PLOC", "sum"),
+# )
+# speed_df["TRIP_TIME"] = speed_df["TRIP_TIME"].astype("float")
+# speed_df["TRIP_SPD"] = round(speed_df["TRIP_LEN"] / speed_df["TRIP_TIME"] / 60, 2)
+# print("Finished Calculating Trip Speed")
+#
+#
+# transit_df = transit_df.merge(speed_df, how="left", on=["ROUTE_ID", "TRIP_ID", "ID", "AVG_DIR"])
+# transit_df["TME_2_PBSTP"] = round(((transit_df["DST_2_PBSTP"] / transit_df["TRIP_SPD"])*60)*60)
+# transit_df["TME_2_NBSTP"] = round(((transit_df["DST_2_NBSTP"] / transit_df["TRIP_SPD"])*60)*60)
+# transit_df["ARV_TME_PBSTP"] = transit_df["EP_TIME"] - transit_df["TME_2_PBSTP"]
+# print("Finished Determining Arrival Time ")
+#
+#
+# cleaned_df = transit_df.loc[:, ['ROUTE_ID', 'TRIP_ID', 'ID', 'AVG_DIR', 'PRV_STP_NAME', 'PRV_STP_LAT', 'PRV_STP_LONG', 'ARV_TME_PBSTP']]
+# cleaned_df.dropna(inplace=True)
+# cleaned_df.drop_duplicates(subset=['ROUTE_ID', 'TRIP_ID', 'ID', 'AVG_DIR', 'PRV_STP_NAME', 'PRV_STP_LAT', 'PRV_STP_LONG'], inplace=True)
+# cleaned_df.sort_values(['ROUTE_ID', 'TRIP_ID', 'ID', 'ARV_TME_PBSTP'], inplace=True)
+#
+#
+# out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/Attempt_2/Misc/Test_Data.csv"
+# cleaned_df.to_csv(out_path, index=False)
+# print("Finished Writing Data")
+#
+#
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# plt.plot(transit_df["TRIP_TIME"], transit_df["DST_FROM_STRT"])
+# plt.show()
+
+
+# # Make A Plot To View Bus Locations
+# fig, ax = plt.subplots(figsize=(10, 6))
+# ax.scatter(transit_df["LONG"].tolist(), transit_df["LAT"].tolist())
+# plt.show()
+
+
+
+
+
+
+
+"""
+General Notes:
+	+ Displaying Table Names In Sqlite3
+		SELECT * FROM sqlite_master
+
+
+sql_query = f'''
+-- Step #1: Pull Certain Fields, And Create New Ones
+WITH
+RawData AS (
+	SELECT
+		A.timestamp                                                                                                AS EP_TIME,
+
 		printf("%.2f", CAST(A.TIMESTAMP - MIN(A.TIMESTAMP)
 		OVER (PARTITION BY A.TRIP_ID, A.ID) AS DECIMAL) / 60.0)                                                    AS TRIP_TIME,
 
@@ -157,92 +310,4 @@ AND A.TRIP_ID = '16829122-210426-MULTI-Weekday-01'
 AND A.ID = 1483
 
 '''
-# Pull A Small Subset Of Data For A Certain Bus Route
-transit_df = pd.read_sql_query(sql_query, con)
-print("Finished Gathering Data")
-
-
-# Determine Previous Bus Stop
-for col in ["PRV_STP_NAME", "PRV_STP_LAT", "PRV_STP_LONG"]:
-	transit_df[col] = transit_df.groupby(["ROUTE_ID", "TRIP_ID", "ID", "AVG_DIR"])[col].ffill()
-print("Finished FFilling Data")
-
-
-# Determine Distance From Previous & Next Bus Stop
-transit_df["DST_2_NBSTP"] = round(transit_df.apply(lambda x: vec_haversine((x["STP_LAT"], x["STP_LONG"]), (x["C_LAT"], x["C_LONG"])), axis=1), 4)
-transit_df["DST_2_PBSTP"] = round(transit_df.apply(lambda x: vec_haversine((x["PRV_STP_LAT"], x["PRV_STP_LONG"]), (x["C_LAT"], x["C_LONG"])), axis=1), 4)
-transit_df["DST_2_PLOC"] = round(transit_df.apply(lambda x: vec_haversine((x["PRV_LAT"], x["PRV_LONG"]), (x["C_LAT"], x["C_LONG"])), axis=1), 4)
-print("Finished Calculating Distances")
-
-
-# Determine The Speed Travelled For Entire Duration
-speed_df = transit_df.groupby(["ROUTE_ID", "TRIP_ID", "ID", "AVG_DIR"], as_index=False).agg(
-			TRIP_TIME = ("TRIP_TIME", "last"),
-			TRIP_LEN = ("DST_2_PLOC", "sum"),
-)
-speed_df["TRIP_TIME"] = speed_df["TRIP_TIME"].astype("float")
-speed_df["TRIP_SPD"] = round(speed_df["TRIP_LEN"] / speed_df["TRIP_TIME"] / 60, 2)
-print("Finished Calculating Trip Speed")
-
-
-transit_df = transit_df.merge(speed_df, how="left", on=["ROUTE_ID", "TRIP_ID", "ID", "AVG_DIR"])
-transit_df["TME_2_PBSTP"] = round(((transit_df["DST_2_PBSTP"] / transit_df["TRIP_SPD"])*60)*60)
-transit_df["TME_2_NBSTP"] = round(((transit_df["DST_2_NBSTP"] / transit_df["TRIP_SPD"])*60)*60)
-transit_df["ARV_TME_PBSTP"] = transit_df["EP_TIME"] - transit_df["TME_2_PBSTP"]
-print("Finished Determining Arrival Time ")
-
-
-cleaned_df = transit_df.loc[:, ['ROUTE_ID', 'TRIP_ID', 'ID', 'AVG_DIR', 'PRV_STP_NAME', 'PRV_STP_LAT', 'PRV_STP_LONG', 'ARV_TME_PBSTP']]
-cleaned_df.dropna(inplace=True)
-cleaned_df.drop_duplicates(subset=['ROUTE_ID', 'TRIP_ID', 'ID', 'AVG_DIR', 'PRV_STP_NAME', 'PRV_STP_LAT', 'PRV_STP_LONG'], inplace=True)
-cleaned_df.sort_values(['ROUTE_ID', 'TRIP_ID', 'ID', 'ARV_TME_PBSTP'], inplace=True)
-
-
-out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/Attempt_2/Misc/Test_Data.csv"
-cleaned_df.to_csv(out_path, index=False)
-print("Finished Writing Data")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# plt.plot(transit_df["TRIP_TIME"], transit_df["DST_FROM_STRT"])
-# plt.show()
-
-
-# # Make A Plot To View Bus Locations
-# fig, ax = plt.subplots(figsize=(10, 6))
-# ax.scatter(transit_df["LONG"].tolist(), transit_df["LAT"].tolist())
-# plt.show()
-
-
-
-
-
-
-
-"""
-General Notes:
-	+ Displaying Table Names In Sqlite3
-		SELECT * FROM sqlite_master
 """
