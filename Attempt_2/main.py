@@ -54,24 +54,16 @@ WITH
 RawData AS (
 	SELECT
 		A.timestamp                                                                                                AS EP_TIME,
-
-		printf("%.2f", CAST(A.TIMESTAMP - COALESCE(LAG(A.TIMESTAMP)
-		OVER (PARTITION BY A.TRIP_ID, A.ID ORDER BY A.TIMESTAMP), A.TIMESTAMP) AS DECIMAL) / 60.0)                 AS LST_UPDT,
-
-		A.latitude                                                                                                 AS C_LAT,
-		A.longitude                                                                                                AS C_LONG,
+		A.id                                                                                                       AS ID,
+		A.route_id                                                                                                 AS ROUTE_ID,
+		A.trip_id                                                                                                  AS TRIP_ID,
 		CAST(A.bearing AS INTERGER)                                                                                AS DIR,
 		CAST(AVG(A.bearing)
 		OVER (PARTITION BY A.TRIP_ID, A.ID) AS INTERGER)                                                           AS AVG_DIR,
-
-
 		COALESCE(LAG(A.latitude) OVER (PARTITION BY A.TRIP_ID, A.ID ORDER BY A.TIMESTAMP), A.latitude)             AS PRV_LAT,
 		COALESCE(LAG(A.longitude) OVER (PARTITION BY A.TRIP_ID, A.ID ORDER BY A.TIMESTAMP), A.longitude)           AS PRV_LONG,
-
-
-		A.route_id                                                                                                 AS ROUTE_ID,
-		A.trip_id                                                                                                  AS TRIP_ID,
-		A.id                                                                                                       AS ID,
+		A.latitude                                                                                                 AS C_LAT,
+		A.longitude                                                                                                AS C_LONG,
 
 		A.stop_id                                                                                                  AS NXT_STP_ID,
 		COALESCE(LAG(A.stop_id) OVER (PARTITION BY A.TRIP_ID, A.ID ORDER BY A.TIMESTAMP), A.stop_id)               AS PRV_STP_ID
@@ -81,19 +73,20 @@ RawData AS (
 ),
 
 
-
 -- Step #2: Merge Bus Stop Information Onto Main Table
 WithStopData AS (
 	SELECT
 		A.*,
 
-		B1.stop_name                                                     AS NXT_STP_NAME,
-		B1.stop_lat                                                      AS NXT_STP_LAT,
-		B1.stop_lon                                                      AS NXT_STP_LONG,
-
 		B2.stop_name                                                     AS PRV_STP_NAME,
 		B2.stop_lat                                                      AS PRV_STP_LAT,
-		B2.stop_lon                                                      AS PRV_STP_LONG
+		B2.stop_lon                                                      AS PRV_STP_LONG,
+
+		B1.stop_name                                                     AS NXT_STP_NAME,
+		B1.stop_lat                                                      AS NXT_STP_LAT,
+		B1.stop_lon                                                      AS NXT_STP_LONG
+
+
 
 
 	FROM RawData AS A
@@ -104,210 +97,37 @@ WithStopData AS (
 
 SELECT *
 FROM WithStopData AS A
-WHERE A.ROUTE_ID = '501-295'
-AND A.TRIP_ID = '16829122-210426-MULTI-Weekday-01'
-AND A.ID = 1483
 
 '''
+
+
 # Pull A Small Subset Of Data For A Certain Bus Route
 transit_df = pd.read_sql_query(sql_query, con)
 out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/Attempt_2/Misc/Test_Data.csv"
-transit_df.to_csv(out_path, index=False)
-print(transit_df)
-
-#
-# # Determine Previous Bus Stop
-# for col in ["PRV_STP_NAME", "PRV_STP_LAT", "PRV_STP_LONG"]:
-# 	transit_df[col] = transit_df.groupby(["ROUTE_ID", "TRIP_ID", "ID", "AVG_DIR"])[col].ffill()
-# print("Finished FFilling Data")
-#
-#
-# # Determine Distance From Previous & Next Bus Stop
-# transit_df["DST_2_NBSTP"] = round(transit_df.apply(lambda x: vec_haversine((x["STP_LAT"], x["STP_LONG"]), (x["C_LAT"], x["C_LONG"])), axis=1), 4)
-# transit_df["DST_2_PBSTP"] = round(transit_df.apply(lambda x: vec_haversine((x["PRV_STP_LAT"], x["PRV_STP_LONG"]), (x["C_LAT"], x["C_LONG"])), axis=1), 4)
-# transit_df["DST_2_PLOC"] = round(transit_df.apply(lambda x: vec_haversine((x["PRV_LAT"], x["PRV_LONG"]), (x["C_LAT"], x["C_LONG"])), axis=1), 4)
-# print("Finished Calculating Distances")
-#
-#
-# # Determine The Speed Travelled For Entire Duration
-# speed_df = transit_df.groupby(["ROUTE_ID", "TRIP_ID", "ID", "AVG_DIR"], as_index=False).agg(
-# 			TRIP_TIME = ("TRIP_TIME", "last"),
-# 			TRIP_LEN = ("DST_2_PLOC", "sum"),
-# )
-# speed_df["TRIP_TIME"] = speed_df["TRIP_TIME"].astype("float")
-# speed_df["TRIP_SPD"] = round(speed_df["TRIP_LEN"] / speed_df["TRIP_TIME"] / 60, 2)
-# print("Finished Calculating Trip Speed")
-#
-#
-# transit_df = transit_df.merge(speed_df, how="left", on=["ROUTE_ID", "TRIP_ID", "ID", "AVG_DIR"])
-# transit_df["TME_2_PBSTP"] = round(((transit_df["DST_2_PBSTP"] / transit_df["TRIP_SPD"])*60)*60)
-# transit_df["TME_2_NBSTP"] = round(((transit_df["DST_2_NBSTP"] / transit_df["TRIP_SPD"])*60)*60)
-# transit_df["ARV_TME_PBSTP"] = transit_df["EP_TIME"] - transit_df["TME_2_PBSTP"]
-# print("Finished Determining Arrival Time ")
-#
-#
-# cleaned_df = transit_df.loc[:, ['ROUTE_ID', 'TRIP_ID', 'ID', 'AVG_DIR', 'PRV_STP_NAME', 'PRV_STP_LAT', 'PRV_STP_LONG', 'ARV_TME_PBSTP']]
-# cleaned_df.dropna(inplace=True)
-# cleaned_df.drop_duplicates(subset=['ROUTE_ID', 'TRIP_ID', 'ID', 'AVG_DIR', 'PRV_STP_NAME', 'PRV_STP_LAT', 'PRV_STP_LONG'], inplace=True)
-# cleaned_df.sort_values(['ROUTE_ID', 'TRIP_ID', 'ID', 'ARV_TME_PBSTP'], inplace=True)
-#
-#
-# out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/Attempt_2/Misc/Test_Data.csv"
-# cleaned_df.to_csv(out_path, index=False)
-# print("Finished Writing Data")
-#
-#
 
 
+# If Next Stop Is Equal To Previous Stop, Replace With Blank, Foward Fill Next Stop Values & Replace First
+for n_col, p_col in zip(["NXT_STP_NAME", "NXT_STP_LAT", "NXT_STP_LONG"], ["PRV_STP_NAME", "PRV_STP_LAT", "PRV_STP_LONG"]):
+	transit_df.loc[transit_df[n_col] == transit_df[p_col], p_col] = np.nan
+	transit_df[p_col] = transit_df.groupby(["ROUTE_ID", "TRIP_ID", "ID", "AVG_DIR"])[p_col].ffill()
+	transit_df[p_col] = transit_df[p_col].fillna(transit_df[n_col])
+transit_df = transit_df.drop_duplicates(subset=["NXT_STP_NAME", "PRV_STP_NAME"], keep="last")
 
 
+# Determine Distance Between Previous Location  & Current Location
+transit_df["DST_PSTP_NXTSTP"] = round(transit_df.apply(lambda x: vec_haversine((x["PRV_STP_LAT"], x["PRV_STP_LONG"]), (x["NXT_STP_LAT"], x["NXT_STP_LONG"])), axis=1), 4)
+transit_df["DST_2_PBSTP"] = round(transit_df.apply(lambda x: vec_haversine((x["PRV_STP_LAT"], x["PRV_STP_LONG"]), (x["C_LAT"], x["C_LONG"])), axis=1), 4)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# plt.plot(transit_df["TRIP_TIME"], transit_df["DST_FROM_STRT"])
-# plt.show()
-
-
-# # Make A Plot To View Bus Locations
-# fig, ax = plt.subplots(figsize=(10, 6))
-# ax.scatter(transit_df["LONG"].tolist(), transit_df["LAT"].tolist())
-# plt.show()
-
-
-
-
-
-
-
-"""
-General Notes:
-	+ Displaying Table Names In Sqlite3
-		SELECT * FROM sqlite_master
-
-
-sql_query = f'''
--- Step #1: Pull Certain Fields, And Create New Ones
-WITH
-RawData AS (
-	SELECT
-		A.timestamp                                                                                                AS EP_TIME,
-
-		printf("%.2f", CAST(A.TIMESTAMP - MIN(A.TIMESTAMP)
-		OVER (PARTITION BY A.TRIP_ID, A.ID) AS DECIMAL) / 60.0)                                                    AS TRIP_TIME,
-
-		printf("%.2f", CAST(A.TIMESTAMP - COALESCE(LAG(A.TIMESTAMP)
-		OVER (PARTITION BY A.TRIP_ID, A.ID ORDER BY A.TIMESTAMP), A.TIMESTAMP) AS DECIMAL) / 60.0)                 AS LST_UPDT,
-
-		A.latitude                                                                                                 AS C_LAT,
-		A.longitude                                                                                                AS C_LONG,
-		CAST(A.bearing AS INTERGER)                                                                                AS DIR,
-		CAST(AVG(A.bearing)
-		OVER (PARTITION BY A.TRIP_ID, A.ID) AS INTERGER)                                                           AS AVG_DIR,
-
-
-		LAG(A.latitude) OVER (PARTITION BY A.TRIP_ID, A.ID ORDER BY A.TIMESTAMP)                                   AS PRV_LAT,
-		LAG(A.longitude) OVER (PARTITION BY A.TRIP_ID, A.ID ORDER BY A.TIMESTAMP)                                  AS PRV_LONG,
-
-
-		A.route_id                                                                                                 AS ROUTE_ID,
-		A.trip_id                                                                                                  AS TRIP_ID,
-		A.id                                                                                                       AS ID,
-		A.stop_id                                                                                                  AS STOP_ID
-
-	FROM TRANSIT_LOCATION_DB AS A
-	ORDER BY A.TRIP_ID, A.ID, A.TIMESTAMP
-),
-
-
-
-
--- Step #2: Format Bus Stop Data Before Merge Onto Final Table
-StopLoc AS (
-	SELECT
-		stop_id                                                          AS STP_ID,
-		stop_name                                                        AS STP_NAME,
-		stop_lat                                                         AS STP_LAT,
-		stop_lon                                                         AS STP_LONG
-
-	FROM BusStops
-),
-
-
-
-
--- Step #3: Merge Stop Information Onto Main Data
-CleanedData AS (
-	SELECT
-		RawData.*,
-		StopLoc.*,
-		LAG(StopLoc.STP_NAME) OVER (PARTITION BY RawData.TRIP_ID, RawData.ID ORDER BY RawData.EP_TIME)      AS PRV_STP_NAME,
-		LAG(StopLoc.STP_LAT) OVER (PARTITION BY RawData.TRIP_ID, RawData.ID ORDER BY RawData.EP_TIME)       AS PRV_STP_LAT,
-		LAG(StopLoc.STP_LONG) OVER (PARTITION BY RawData.TRIP_ID, RawData.ID ORDER BY RawData.EP_TIME)      AS PRV_STP_LONG
-
-	FROM RawData LEFT JOIN StopLoc ON (CAST(RawData.STOP_ID AS VARCHAR) = CAST(StopLoc.STP_ID AS VARCHAR))
-),
-
-
-
-
--- Step #4: Clean Up Erronious Data
-Cleaner_Data AS (
-	SELECT
-		CleanedData.EP_TIME,
-		CleanedData.TRIP_TIME,
-		CleanedData.LST_UPDT,
-		CleanedData.C_LAT,
-		CleanedData.C_LONG,
-		CleanedData.PRV_LAT,
-		CleanedData.PRV_LONG,
-		CleanedData.DIR,
-		CleanedData.AVG_DIR,
-		CleanedData.ROUTE_ID,
-		CleanedData.TRIP_ID,
-		CleanedData.ID,
-		CleanedData.STP_ID,
-		CleanedData.STP_NAME,
-		CleanedData.STP_LAT,
-		CleanedData.STP_LONG,
-
-		CASE WHEN CleanedData.PRV_STP_NAME == CleanedData.STP_NAME THEN CleanedData.PRV_STP_NAME = NULL
-		ELSE CleanedData.PRV_STP_NAME
-		END AS PRV_STP_NAME,
-
-		CASE WHEN CleanedData.PRV_STP_LAT == CleanedData.STP_LAT THEN CleanedData.PRV_STP_LAT = NULL
-		ELSE CleanedData.PRV_STP_LAT
-		END AS PRV_STP_LAT,
-
-		CASE WHEN CleanedData.PRV_STP_LONG == CleanedData.STP_LONG THEN CleanedData.PRV_STP_LONG = NULL
-		ELSE CleanedData.PRV_STP_LONG
-		END AS PRV_STP_LONG
-
-	FROM CleanedData
+speed_df = transit_df.groupby(["ROUTE_ID", "TRIP_ID", "ID", "AVG_DIR"], as_index=False).agg(
+			TRIP_DUR = ("EP_TIME", lambda s: round((((s.iloc[-1] - s.iloc[0])/60))/60, 2)),
+			TRIP_LEN = ("DST_PSTP_NXTSTP", lambda s: round(s.sum(), 2)),
 )
+speed_df["TRIP_SPD"] = round(speed_df["TRIP_LEN"] / speed_df["TRIP_DUR"], 2)
+transit_df = transit_df.merge(speed_df, how="left", on=["ROUTE_ID", "TRIP_ID", "ID", "AVG_DIR"])
+transit_df["TME_2_PBSTP"] = round(((transit_df["DST_2_PBSTP"] / transit_df["TRIP_SPD"])*60)*60)
+transit_df["ARV_TME_PBSTP"] = transit_df["EP_TIME"] - transit_df["TME_2_PBSTP"]
+cleaned_df = transit_df.loc[:, ["ID", "ROUTE_ID", "TRIP_ID", "AVG_DIR", "PRV_STP_NAME", "PRV_STP_LAT", "PRV_STP_LONG", "TRIP_DUR", "TRIP_LEN", "TRIP_SPD", "ARV_TME_PBSTP"]]
+cleaned_df = cleaned_df.drop_duplicates(subset=["PRV_STP_NAME"], keep="last")
 
-
-
-SELECT *
-FROM Cleaner_Data AS A
-WHERE A.ROUTE_ID = '501-295'
-AND A.TRIP_ID = '16829122-210426-MULTI-Weekday-01'
-AND A.ID = 1483
-
-'''
-"""
+cleaned_df.sort_values(['ROUTE_ID', 'TRIP_ID', 'ID', 'ARV_TME_PBSTP'], inplace=True)
+cleaned_df.to_csv(out_path, index=False)
