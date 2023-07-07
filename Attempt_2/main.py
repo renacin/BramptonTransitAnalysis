@@ -59,14 +59,22 @@ RawData AS (
 		A.trip_id                                                                                                  AS TRIP_ID,
 		CAST(A.bearing AS INTERGER)                                                                                AS DIR,
 		CAST(AVG(A.bearing)
-		OVER (PARTITION BY A.TRIP_ID, A.ID) AS INTERGER)                                                           AS AVG_DIR,
-		COALESCE(LAG(A.latitude) OVER (PARTITION BY A.TRIP_ID, A.ID ORDER BY A.TIMESTAMP), A.latitude)             AS PRV_LAT,
-		COALESCE(LAG(A.longitude) OVER (PARTITION BY A.TRIP_ID, A.ID ORDER BY A.TIMESTAMP), A.longitude)           AS PRV_LONG,
+		OVER (PARTITION BY A.ROUTE_ID, A.TRIP_ID, A.ID) AS INTERGER)                                               AS AVG_DIR,
+
+		COALESCE(LAG(A.latitude)
+		OVER (PARTITION BY A.ROUTE_ID, A.TRIP_ID, A.ID ORDER BY A.TIMESTAMP),
+		A.latitude)                                                                                                AS PRV_LAT,
+
+		COALESCE(LAG(A.longitude)
+		OVER (PARTITION BY A.ROUTE_ID, A.TRIP_ID, A.ID ORDER BY A.TIMESTAMP),
+		A.latitude)                                                                                                AS PRV_LONG,
+
 		A.latitude                                                                                                 AS C_LAT,
 		A.longitude                                                                                                AS C_LONG,
 
 		A.stop_id                                                                                                  AS NXT_STP_ID,
-		COALESCE(LAG(A.stop_id) OVER (PARTITION BY A.TRIP_ID, A.ID ORDER BY A.TIMESTAMP), A.stop_id)               AS PRV_STP_ID
+		COALESCE(LAG(A.stop_id)
+		OVER (PARTITION BY A.ROUTE_ID, A.TRIP_ID, A.ID ORDER BY A.TIMESTAMP), A.stop_id)                           AS PRV_STP_ID
 
 	FROM TRANSIT_LOCATION_DB AS A
 	ORDER BY A.TRIP_ID, A.ID, A.TIMESTAMP
@@ -87,8 +95,6 @@ WithStopData AS (
 		B1.stop_lon                                                      AS NXT_STP_LONG
 
 
-
-
 	FROM RawData AS A
 	LEFT JOIN BusStops AS B1 ON (A.NXT_STP_ID = B1.stop_id)
 	LEFT JOIN BusStops AS B2 ON (A.PRV_STP_ID = B2.stop_id)
@@ -97,12 +103,14 @@ WithStopData AS (
 
 SELECT *
 FROM WithStopData AS A
+WHERE A.ROUTE_ID = '30-295'
 
 '''
 
 
 # Pull A Small Subset Of Data For A Certain Bus Route
 transit_df = pd.read_sql_query(sql_query, con)
+transit_df.sort_values(['ROUTE_ID', 'TRIP_ID', 'ID', 'EP_TIME'], inplace=True)
 out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/Attempt_2/Misc/Test_Data.csv"
 
 
@@ -126,8 +134,9 @@ speed_df["TRIP_SPD"] = round(speed_df["TRIP_LEN"] / speed_df["TRIP_DUR"], 2)
 transit_df = transit_df.merge(speed_df, how="left", on=["ROUTE_ID", "TRIP_ID", "ID", "AVG_DIR"])
 transit_df["TME_2_PBSTP"] = round(((transit_df["DST_2_PBSTP"] / transit_df["TRIP_SPD"])*60)*60)
 transit_df["ARV_TME_PBSTP"] = transit_df["EP_TIME"] - transit_df["TME_2_PBSTP"]
+
 cleaned_df = transit_df.loc[:, ["ID", "ROUTE_ID", "TRIP_ID", "AVG_DIR", "PRV_STP_NAME", "PRV_STP_LAT", "PRV_STP_LONG", "TRIP_DUR", "TRIP_LEN", "TRIP_SPD", "ARV_TME_PBSTP"]]
 cleaned_df = cleaned_df.drop_duplicates(subset=["PRV_STP_NAME"], keep="last")
-
 cleaned_df.sort_values(['ROUTE_ID', 'TRIP_ID', 'ID', 'ARV_TME_PBSTP'], inplace=True)
-cleaned_df.to_csv(out_path, index=False)
+
+transit_df.to_csv(out_path, index=False)
