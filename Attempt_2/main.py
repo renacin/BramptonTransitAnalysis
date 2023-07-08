@@ -87,106 +87,89 @@ data_pull.drop_duplicates(inplace=True)
 
 
 # Remove Entries Where Bus Is Idling, Or Has Kept Transponder Running After The First Occurence At The Last Stop | Append All Dta To New Dataframe
-transit_df = pd.DataFrame()
-for uname in data_pull["U_NAME"].unique().tolist():
+gb = data_pull.groupby("U_NAME")
+transit_df = pd.concat([x[1].loc[x[1]["NXT_STP_NAME"].where(x[1]["NXT_STP_NAME"]==x[1]["NXT_STP_NAME"].iloc[0]).last_valid_index():x[1]["PRV_STP_NAME"].where(x[1]["PRV_STP_NAME"]==x[1]["PRV_STP_NAME"].iloc[-1]).first_valid_index()] for x in gb])
 
-	# Look At Subset Of Data
-	temp_df = data_pull[data_pull["U_NAME"] == uname]
 
-	# Slice Data | Get Last Occurence Of First Stop, And First Occurence Of Last Stop | Append To Main Dataframe
-	idx_1 = temp_df["NXT_STP_NAME"].where(temp_df["NXT_STP_NAME"]==temp_df["NXT_STP_NAME"].iloc[0]).last_valid_index()
-	idx_2 = temp_df["PRV_STP_NAME"].where(temp_df["PRV_STP_NAME"]==temp_df["PRV_STP_NAME"].iloc[-1]).first_valid_index()
-
-	temp_df = temp_df.loc[idx_1:idx_2]
-	transit_df = pd.concat([transit_df, temp_df])
-#
-# # Calculate Distance Between Current Location & Previous Location | Create A Dataframe Elaborating Distance Traveled & Speed
-# transit_df["DST_BTW_LOCS"] = round(transit_df.apply(lambda x: vec_haversine((x["P_LAT"], x["P_LONG"]), (x["C_LAT"], x["C_LONG"])), axis=1), 4)
-# speed_df = transit_df.groupby(["ID", "ROUTE_ID", "TRIP_ID", "AVG_DIR"], as_index=False).agg(
-# 			TRIP_DUR = ("EP_TIME", lambda s: round((((s.iloc[-1] - s.iloc[0])/60))/60, 2)),
-# 			TRIP_LEN = ("DST_BTW_LOCS", lambda s: round(s.sum(), 2)),
-# )
-# speed_df["TRIP_SPD"] = speed_df["TRIP_LEN"] / speed_df["TRIP_DUR"]
-#
-#
-#
-# #===============================================================================
-# # Step #2: Do Additional Formating Before Column Calculation
-# #===============================================================================
-# # If Next Stop Is Equal To Previous Stop, Replace With Blank, Foward Fill Next Stop Values & Replace First
-# for n_col, p_col in zip(["NXT_STP_ID", "NXT_STP_NAME", "NXT_STP_LAT", "NXT_STP_LONG"], ["PRV_STP_ID", "PRV_STP_NAME", "PRV_STP_LAT", "PRV_STP_LONG"]):
-# 	transit_df.loc[transit_df[n_col] == transit_df[p_col], p_col] = np.nan
-# 	transit_df[p_col] = transit_df.groupby(["ID", "ROUTE_ID", "TRIP_ID", "AVG_DIR"])[p_col].ffill()
-# 	transit_df[p_col] = transit_df[p_col].fillna(transit_df[n_col])
-# transit_df = transit_df.drop_duplicates(subset=["ID", "ROUTE_ID", "TRIP_ID", "AVG_DIR", "NXT_STP_ID", "PRV_STP_ID"], keep="last")
-#
-#
-#
-# #===============================================================================
-# # Step #3: Determine Distance Between, As Well As Speed
-# #===============================================================================
-# transit_df["DST_PSTP_NXTSTP"] = round(transit_df.apply(lambda x: vec_haversine((x["PRV_STP_LAT"], x["PRV_STP_LONG"]), (x["NXT_STP_LAT"], x["NXT_STP_LONG"])), axis=1), 4)
-# transit_df["DST_2_PBSTP"] = round(transit_df.apply(lambda x: vec_haversine((x["PRV_STP_LAT"], x["PRV_STP_LONG"]), (x["C_LAT"], x["C_LONG"])), axis=1), 4)
-#
-# transit_df = transit_df.merge(speed_df, how="left", on=["ROUTE_ID", "TRIP_ID", "ID", "AVG_DIR"])
-# transit_df["TME_2_PBSTP"] = ((transit_df["DST_2_PBSTP"] / transit_df["TRIP_SPD"])*60)*60
-# transit_df["ARV_TME_PBSTP"] = transit_df["EP_TIME"] - transit_df["TME_2_PBSTP"]
-#
-#
-#
-# #===============================================================================
-# # Step #4: Reorganize Data
-# #===============================================================================
-# con = sqlite3.connect(":memory:")
-# transit_df.to_sql("main_data", con, index=False)
-#
-# sql_query = f'''
-# -- Step #1: Reorganize Data & Keep Only Needed Columns
-# SELECT
-# 	A.ID,
-# 	A.ROUTE_ID,
-# 	A.TRIP_ID,
-# 	A.DIR,
-# 	A.AVG_DIR,
-#
-# 	A.DST_PSTP_NXTSTP                                                                             AS DST_BTW_STPS,
-# 	A.PRV_STP_ID                                                                                  AS CUR_STP_ID,
-# 	A.PRV_STP_NAME                                                                                AS CUR_STP_NM,
-# 	A.PRV_STP_LAT                                                                                 AS CUR_STP_LAT,
-# 	A.PRV_STP_LONG                                                                                AS CUR_STP_LONG,
-# 	A.ARV_TME_PBSTP                                                                               AS CUR_STP_TIME,
-#
-# 	A.PRV_STP_NAME || ' -- TO -- ' || A.NXT_STP_NAME                                              AS SEGMENT_NAME,
-#
-# 	A.NXT_STP_ID,
-# 	A.NXT_STP_NAME,
-# 	A.NXT_STP_LAT,
-# 	A.NXT_STP_LONG,
-# 	LEAD(A.ARV_TME_PBSTP)
-# 	OVER (PARTITION BY A.ID, A.ROUTE_ID, A.TRIP_ID, A.AVG_DIR ORDER BY A.EP_TIME)                 AS NXT_STP_TIME
-#
-# FROM main_data AS A
-# WHERE A.DST_PSTP_NXTSTP > 0
-# '''
-# main_data = pd.read_sql_query(sql_query, con).dropna()
-# con.close()
-# main_data["TRVL_TIME"] = round((main_data["NXT_STP_TIME"] - main_data["CUR_STP_TIME"]) / 60, 2)
-# main_data = main_data[main_data["TRVL_TIME"] > 0]
-#
-#
-#
-# #===============================================================================
-# # Step #5: Output Results
-# #===============================================================================
-# main_data = main_data[main_data["SEGMENT_NAME"] == "McMurchy - Zum Steeles Station Stop WB -- TO -- Sheridan College Term - 3/3A/4/4A/11/51/511/104 WB"]
+# Calculate Distance Between Current Location & Previous Location | Create A Dataframe Elaborating Distance Traveled & Speed
+transit_df["DST_BTW_LOCS"] = round(transit_df.apply(lambda x: vec_haversine((x["P_LAT"], x["P_LONG"]), (x["C_LAT"], x["C_LONG"])), axis=1), 4)
+speed_df = transit_df.groupby(["ID", "ROUTE_ID", "TRIP_ID", "AVG_DIR"], as_index=False).agg(
+			TRIP_DUR = ("EP_TIME", lambda s: round((((s.iloc[-1] - s.iloc[0])/60))/60, 2)),
+			TRIP_LEN = ("DST_BTW_LOCS", lambda s: round(s.sum(), 2)),
+)
+speed_df["TRIP_SPD"] = speed_df["TRIP_LEN"] / speed_df["TRIP_DUR"]
 
 
 
+#===============================================================================
+# Step #2: Do Additional Formating Before Column Calculation
+#===============================================================================
+# If Next Stop Is Equal To Previous Stop, Replace With Blank, Foward Fill Next Stop Values & Replace First
+for n_col, p_col in zip(["NXT_STP_ID", "NXT_STP_NAME", "NXT_STP_LAT", "NXT_STP_LONG"], ["PRV_STP_ID", "PRV_STP_NAME", "PRV_STP_LAT", "PRV_STP_LONG"]):
+	transit_df.loc[transit_df[n_col] == transit_df[p_col], p_col] = np.nan
+	transit_df[p_col] = transit_df.groupby(["ID", "ROUTE_ID", "TRIP_ID", "AVG_DIR"])[p_col].ffill()
+	transit_df[p_col] = transit_df[p_col].fillna(transit_df[n_col])
+transit_df = transit_df.drop_duplicates(subset=["ID", "ROUTE_ID", "TRIP_ID", "AVG_DIR", "NXT_STP_ID", "PRV_STP_ID"], keep="last")
 
 
 
+#===============================================================================
+# Step #3: Determine Distance Between, As Well As Speed
+#===============================================================================
+transit_df["DST_PSTP_NXTSTP"] = round(transit_df.apply(lambda x: vec_haversine((x["PRV_STP_LAT"], x["PRV_STP_LONG"]), (x["NXT_STP_LAT"], x["NXT_STP_LONG"])), axis=1), 4)
+transit_df["DST_2_PBSTP"] = round(transit_df.apply(lambda x: vec_haversine((x["PRV_STP_LAT"], x["PRV_STP_LONG"]), (x["C_LAT"], x["C_LONG"])), axis=1), 4)
+
+transit_df = transit_df.merge(speed_df, how="left", on=["ROUTE_ID", "TRIP_ID", "ID", "AVG_DIR"])
+transit_df["TME_2_PBSTP"] = ((transit_df["DST_2_PBSTP"] / transit_df["TRIP_SPD"])*60)*60
+transit_df["ARV_TME_PBSTP"] = transit_df["EP_TIME"] - transit_df["TME_2_PBSTP"]
 
 
+
+#===============================================================================
+# Step #4: Reorganize Data
+#===============================================================================
+con = sqlite3.connect(":memory:")
+transit_df.to_sql("main_data", con, index=False)
+
+sql_query = f'''
+-- Step #1: Reorganize Data & Keep Only Needed Columns
+SELECT
+	A.ID,
+	A.ROUTE_ID,
+	A.TRIP_ID,
+	A.DIR,
+	A.AVG_DIR,
+
+	A.DST_PSTP_NXTSTP                                                                             AS DST_BTW_STPS,
+	A.PRV_STP_ID                                                                                  AS CUR_STP_ID,
+	A.PRV_STP_NAME                                                                                AS CUR_STP_NM,
+	A.PRV_STP_LAT                                                                                 AS CUR_STP_LAT,
+	A.PRV_STP_LONG                                                                                AS CUR_STP_LONG,
+	A.ARV_TME_PBSTP                                                                               AS CUR_STP_TIME,
+
+	A.PRV_STP_NAME || ' -- TO -- ' || A.NXT_STP_NAME                                              AS SEGMENT_NAME,
+
+	A.NXT_STP_ID,
+	A.NXT_STP_NAME,
+	A.NXT_STP_LAT,
+	A.NXT_STP_LONG,
+	LEAD(A.ARV_TME_PBSTP)
+	OVER (PARTITION BY A.ID, A.ROUTE_ID, A.TRIP_ID, A.AVG_DIR ORDER BY A.EP_TIME)                 AS NXT_STP_TIME
+
+FROM main_data AS A
+WHERE A.DST_PSTP_NXTSTP > 0
+'''
+main_data = pd.read_sql_query(sql_query, con).dropna()
+con.close()
+main_data["TRVL_TIME"] = round((main_data["NXT_STP_TIME"] - main_data["CUR_STP_TIME"]) / 60, 2)
+main_data = main_data[main_data["TRVL_TIME"] > 0]
+
+
+
+#===============================================================================
+# Step #5: Output Results
+#===============================================================================
+main_data = main_data[main_data["SEGMENT_NAME"] == "McMurchy - Zum Steeles Station Stop WB -- TO -- Sheridan College Term - 3/3A/4/4A/11/51/511/104 WB"]
 main_data.to_csv(out_path, index=False)
 
 
