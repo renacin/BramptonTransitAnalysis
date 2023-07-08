@@ -19,7 +19,7 @@ class WebCrawler:
 
 
     def __init__(self):
-        self.transit_url = "http://nextride.brampton.ca:81/API/VehiclePositions?format=json"
+        self.transit_url = "https://nextride.brampton.ca:81/API/VehiclePositions?format=json"
         self.weather_url = "https://forecast.weather.gov/data/obhistory/metric/CYYZ.html"
 
 
