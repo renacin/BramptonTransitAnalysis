@@ -114,7 +114,7 @@ transit_df = transit_df.drop_duplicates(subset=["ID", "ROUTE_ID", "TRIP_ID", "AV
 
 
 #===============================================================================
-# Step #3: Determine Distance Between, As Well As Speed
+# Step #3: Determine Distance, Speed, and Bearing Between Stops
 #===============================================================================
 transit_df["DST_PSTP_NXTSTP"] = round(transit_df.apply(lambda x: vec_haversine((x["PRV_STP_LAT"], x["PRV_STP_LONG"]), (x["NXT_STP_LAT"], x["NXT_STP_LONG"])), axis=1), 4)
 transit_df["DST_2_PBSTP"] = round(transit_df.apply(lambda x: vec_haversine((x["PRV_STP_LAT"], x["PRV_STP_LONG"]), (x["C_LAT"], x["C_LONG"])), axis=1), 4)
@@ -123,6 +123,7 @@ transit_df = transit_df.merge(speed_df, how="left", on=["ROUTE_ID", "TRIP_ID", "
 transit_df["TME_2_PBSTP"] = ((transit_df["DST_2_PBSTP"] / transit_df["TRIP_SPD"])*60)*60
 transit_df["ARV_TME_PBSTP"] = transit_df["EP_TIME"] - transit_df["TME_2_PBSTP"]
 
+transit_df["SEG_BEARING"] = round(transit_df.apply(lambda x: get_bearing((x["PRV_STP_LAT"], x["PRV_STP_LONG"]), (x["NXT_STP_LAT"], x["NXT_STP_LONG"])), axis=1), 0)
 
 
 #===============================================================================
@@ -138,8 +139,6 @@ SELECT
 	A.ID,
 	A.ROUTE_ID,
 	A.TRIP_ID,
-	A.DIR,
-	A.AVG_DIR,
 
 	A.DST_PSTP_NXTSTP                                                                             AS DST_BTW_STPS,
 	A.PRV_STP_ID                                                                                  AS CUR_STP_ID,
@@ -149,6 +148,8 @@ SELECT
 	A.ARV_TME_PBSTP                                                                               AS CUR_STP_TIME,
 
 	A.PRV_STP_NAME || ' -- TO -- ' || A.NXT_STP_NAME                                              AS SEGMENT_NAME,
+	CAST(AVG(A.SEG_BEARING)
+	OVER (PARTITION BY A.U_NAME) AS INTERGER)                                                     AS AVG_DIR,
 
 	A.NXT_STP_ID,
 	A.NXT_STP_NAME,
@@ -162,6 +163,8 @@ WHERE A.DST_PSTP_NXTSTP > 0
 '''
 main_data = pd.read_sql_query(sql_query, con).dropna()
 con.close()
+for col in ["CUR_STP_TIME", "NXT_STP_TIME"]:
+	main_data[col] = main_data[col].astype(int)
 main_data["TRVL_TIME"] = round((main_data["NXT_STP_TIME"] - main_data["CUR_STP_TIME"]) / 60, 2)
 main_data = main_data[main_data["TRVL_TIME"] > 0]
 

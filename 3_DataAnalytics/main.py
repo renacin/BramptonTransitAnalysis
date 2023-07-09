@@ -11,7 +11,7 @@ in_data_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/2_DataFormatti
 segment_data = pd.read_csv(in_data_path)
 
 # Focus On One Specific Route
-segment_data = segment_data[segment_data["ROUTE_ID"] == '52-295']
+segment_data = segment_data[segment_data["ROUTE_ID"] == '1-295']
 seg_dir = segment_data[["U_NAME", "AVG_DIR"]].drop_duplicates()
 plt.hist(segment_data["AVG_DIR"], bins=20, edgecolor='black')
 plt.show()
