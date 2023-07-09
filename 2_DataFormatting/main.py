@@ -134,6 +134,7 @@ transit_df.to_sql("main_data", con, index=False)
 sql_query = f'''
 -- Step #1: Reorganize Data & Keep Only Needed Columns
 SELECT
+	A.U_NAME,
 	A.ID,
 	A.ROUTE_ID,
 	A.TRIP_ID,
