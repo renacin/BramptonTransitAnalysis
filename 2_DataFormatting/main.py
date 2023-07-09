@@ -8,9 +8,9 @@ from Funcs.func import *
 #===============================================================================
 # Step #1: Read In DataBase Using A Sqlite3 Connection & Any Additional Data
 #===============================================================================
-out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/Attempt_2/Misc/Test_Data.csv"
-db_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/Attempt_2/Data/DataStorage.db"
-bus_stops_csv = r"/Users/renacin/Documents/BramptonTransitAnalysis/Attempt_2/Data/Data_Bus_Stops.csv"
+out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/2_DataFormatting/Misc/Test_Data.csv"
+db_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/2_DataFormatting/Data/DataStorage.db"
+bus_stops_csv = r"/Users/renacin/Documents/BramptonTransitAnalysis/2_DataFormatting/Data/Data_Bus_Stops.csv"
 bus_stops = pd.read_csv(bus_stops_csv)
 
 con = sqlite3.connect(db_path)
@@ -169,16 +169,7 @@ main_data = main_data[main_data["TRVL_TIME"] > 0]
 #===============================================================================
 # Step #5: Output Results
 #===============================================================================
-main_data = main_data[main_data["SEGMENT_NAME"] == "McMurchy - Zum Steeles Station Stop WB -- TO -- Sheridan College Term - 3/3A/4/4A/11/51/511/104 WB"]
 main_data.to_csv(out_path, index=False)
-
-print(main_data["TRVL_TIME"].describe())
-plt.hist(main_data["TRVL_TIME"], bins=21)
-plt.show()
-
-
-
-
 
 
 """
