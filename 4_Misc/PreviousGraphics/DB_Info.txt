@@ -1,0 +1,111 @@
+General Information About Data Collected:
+
+---> Span Of Data Collection
+1st Timestamp: 1619791245
+Last Timestamp: 1620159434
+
+Time Between: 4.2 Days (102 Hours)
+
+--> Transit Data As A Pandas DF:
+RangeIndex: 404763 entries, 0 to 404762
+Data columns (total 19 columns):
+congestion_level         404763 non-null int64
+current_status           404763 non-null int64
+current_stop_sequence    404763 non-null int64
+stop_id                  404763 non-null object
+timestamp                404763 non-null int64
+latitude                 404763 non-null float64
+longitude                404763 non-null float64
+bearing                  404763 non-null float64
+odometer                 404763 non-null float64
+speed                    404763 non-null float64
+trip_id                  404763 non-null object
+start_time               404763 non-null object
+start_date               404763 non-null object
+schedule_relationship    404763 non-null int64
+route_id                 404763 non-null object
+id                       404763 non-null object
+label                    404763 non-null object
+license_plate            404763 non-null object
+weather_id               404763 non-null object
+dtypes: float64(5), int64(5), object(9)
+memory usage: 58.7+ MB
+
+
+--> Weather Data As A Pandas DF:
+RangeIndex: 101 entries, 0 to 100
+Data columns (total 21 columns):
+weather_id    101 non-null object
+Year          101 non-null object
+Month         101 non-null object
+Date          101 non-null object
+Time          101 non-null object
+Wind          101 non-null object
+Visib         101 non-null object
+Weather       101 non-null object
+SkyCond       101 non-null object
+AirTemp       101 non-null object
+DewPoint      101 non-null object
+HrMax6        0 non-null object
+HrMin6        0 non-null object
+RelHum        101 non-null object
+WindChill     47 non-null object
+HeatIndex     0 non-null object
+AltPres       101 non-null object
+SeaPres       101 non-null object
+Precip1hr     0 non-null object
+Precitp3hr    0 non-null object
+Precip6hr     0 non-null object
+dtypes: object(21)
+memory usage: 16.6+ KB
+
+
+--> Number Of Observations Per Bus Route:
+Route Name: 11-295,      Num Points 20705
+Route Name: 1-295,       Num Points 29225
+Route Name: 35-295,      Num Points 5027
+Route Name: 2-295,       Num Points 10851
+Route Name: 6-295,       Num Points 3191
+Route Name: 8-295,       Num Points 5664
+Route Name: 30-295,      Num Points 14713
+Route Name: 31-295,      Num Points 1963
+Route Name: 115-295,     Num Points 6046
+Route Name: 52-295,      Num Points 2193
+Route Name: 502-295,     Num Points 30129   *MOST
+Route Name: 505-295,     Num Points 12717
+Route Name: 3-295,       Num Points 10393
+Route Name: 5-295,       Num Points 21400
+Route Name: 7-295,       Num Points 24769
+Route Name: 9-295,       Num Points 3565
+Route Name: 14-295,      Num Points 15966
+Route Name: 15-295,      Num Points 13528
+Route Name: 4-295,       Num Points 22770
+Route Name: 12-295,      Num Points 1877
+Route Name: 16-295,      Num Points 1072
+Route Name: 17-295,      Num Points 1158
+Route Name: 19-295,      Num Points 1800
+Route Name: 23-295,      Num Points 16745
+Route Name: 29-295,      Num Points 10857
+Route Name: 32-295,      Num Points 1940
+Route Name: 50-295,      Num Points 11488
+Route Name: 53-295,      Num Points 3791
+Route Name: 57-295,      Num Points 4681
+Route Name: 54-295,      Num Points 2560
+Route Name: 501-295,     Num Points 24809
+Route Name: 27-295,      Num Points 1041
+Route Name: 13-295,      Num Points 1414
+Route Name: 33-295,      Num Points 1214
+Route Name: 10-295,      Num Points 1303
+Route Name: 20-295,      Num Points 1502
+Route Name: 24-295,      Num Points 2917
+Route Name: 511-295,     Num Points 26857
+Route Name: 55-295,      Num Points 1189
+Route Name: 26-295,      Num Points 1465
+Route Name: 18-295,      Num Points 19898
+Route Name: 56-295,      Num Points 2488
+Route Name: 21-295,      Num Points 70      *LEAST
+Route Name: 51-295,      Num Points 2351
+Route Name: 25-295,      Num Points 1564
+Route Name: 28-295,      Num Points 788
+Route Name: 81-295,      Num Points 427
+Route Name: 60-295,      Num Points 682
