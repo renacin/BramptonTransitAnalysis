@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import sqlite3
 import numpy as np
 
+import networkx as nx
 
 #===============================================================================
 # Step #1: Read In Cleaned Data
@@ -12,9 +13,18 @@ segment_data = pd.read_csv(in_data_path)
 
 # Focus On One Specific Route
 segment_data = segment_data[segment_data["ROUTE_ID"] == '1-295']
-seg_dir = segment_data[["U_NAME", "AVG_DIR"]].drop_duplicates()
-plt.hist(segment_data["AVG_DIR"], bins=20, edgecolor='black')
+
+# Create A Network Map
+edge_list = [(x, y) for x, y in zip(segment_data["CUR_STP_NM"].to_list(), segment_data["NXT_STP_NAME"].to_list())]
+G = nx.from_edgelist(edge_list)
+nx.draw_spring(G, with_labels=True, font_size=8)
 plt.show()
+
+
+# print(len(unique_values))
+# seg_dir = segment_data[["CUR_STP_NM", "NXT_STP_NAME"]].drop_duplicates()
+# print(seg_dir)
+
 
 """
 Example Routes:
