@@ -13,6 +13,13 @@ segment_data = pd.read_csv(in_data_path)
 
 # Focus On One Specific Route
 segment_data = segment_data[segment_data["ROUTE_ID"] == '1-295']
+segment_data = segment_data[segment_data["DST_BTW_STPS"] < (segment_data["DST_BTW_STPS"].mean() + segment_data["DST_BTW_STPS"].std())]
+
+
+
+# plt.hist(segment_data["DST_BTW_STPS"], bins=15)
+# plt.show()
+# print(segment_data.columns)
 
 # Create A Network Map
 edge_list = [(x, y) for x, y in zip(segment_data["CUR_STP_NM"].to_list(), segment_data["NXT_STP_NAME"].to_list())]
