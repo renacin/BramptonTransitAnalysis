@@ -12,8 +12,30 @@ in_data_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/2_DataFormatti
 segment_data = pd.read_csv(in_data_path)
 
 # Focus On One Specific Route
-segment_data = segment_data[segment_data["ROUTE_ID"] == '1-295']
-segment_data = segment_data[segment_data["DST_BTW_STPS"] < (segment_data["DST_BTW_STPS"].mean() + segment_data["DST_BTW_STPS"].std())]
+segment_data = segment_data[(segment_data["ROUTE_ID"] == '502-295') & (segment_data["U_NAME"].str.contains("Weekday"))]
+test_df = segment_data.groupby(["U_NAME"], as_index=False).agg(
+			FIRST_STP  = ("CUR_STP_NM", "first"),
+			LAST_STP   = ("CUR_STP_NM", "last"),
+			NUM_STP    = ("CUR_STP_NM", lambda s: len(s)),
+			TRVL_DIST  = ("DST_BTW_STPS", lambda s: round(s.sum(), 2)),
+			TRVL_TME   = ("TRVL_TIME", lambda s: round(s.sum(), 2)),
+
+)
+print(test_df)
+
+test_first = test_df.value_counts("FIRST_STP").rename_axis().reset_index(name='COUNT')
+plt.bar(x=test_first['FIRST_STP'], height=test_first['COUNT'])
+plt.show()
+print(test_first)
+
+# out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/2_DataFormatting/Misc/Test_Data_Misc.csv"
+# test.to_csv(out_path, index=False)
+
+# data = [23, 45, 56, 78, 213]
+# plt.bar([1,2,3,4,5], data)
+# plt.show()
+
+# segment_data = segment_data[segment_data["DST_BTW_STPS"] < (segment_data["DST_BTW_STPS"].mean() + segment_data["DST_BTW_STPS"].std())]
 
 
 
@@ -21,11 +43,11 @@ segment_data = segment_data[segment_data["DST_BTW_STPS"] < (segment_data["DST_BT
 # plt.show()
 # print(segment_data.columns)
 
-# Create A Network Map
-edge_list = [(x, y) for x, y in zip(segment_data["CUR_STP_NM"].to_list(), segment_data["NXT_STP_NAME"].to_list())]
-G = nx.from_edgelist(edge_list)
-nx.draw_spring(G, with_labels=True, font_size=8)
-plt.show()
+# # Create A Network Map
+# edge_list = [(x, y) for x, y in zip(segment_data["CUR_STP_NM"].to_list(), segment_data["NXT_STP_NAME"].to_list())]
+# G = nx.from_edgelist(edge_list)
+# nx.draw_spring(G, with_labels=True, font_size=8)
+# plt.show()
 
 
 # print(len(unique_values))
