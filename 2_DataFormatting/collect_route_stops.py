@@ -21,13 +21,16 @@ test_df = segment_data.groupby(["U_NAME"], as_index=False).agg(
 			TRVL_TME   = ("TRVL_TIME", lambda s: round(s.sum(), 2)),
 
 )
-print(test_df)
 
 test_first = test_df.value_counts("FIRST_STP").rename_axis().reset_index(name='COUNT')
-plt.bar(x=test_first['FIRST_STP'], height=test_first['COUNT'])
-plt.show()
+print(test_df)
 print(test_first)
 
+
+"""
+plt.bar(x=test_first['FIRST_STP'], height=test_first['COUNT'])
+plt.show()
+"""
 # out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/2_DataFormatting/Misc/Test_Data_Misc.csv"
 # test.to_csv(out_path, index=False)
 
