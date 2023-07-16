@@ -176,7 +176,7 @@ transit_df = pd.concat([x[1].loc[x[1]["NXT_STP_NAME"].where(x[1]["NXT_STP_NAME"]
 
 
 # Calculate Distance Between Current Location & Previous Location | Create A Dataframe Elaborating Distance Traveled & Speed
-transit_df["DST_BTW_LOCS"] = round(vec_haversine((transit_df["P_LAT"], transit_df["P_LONG"]), (transit_df["C_LAT"], transit_df["C_LONG"])), 4)
+transit_df["DST_BTW_LOCS"] = vec_haversine((transit_df["P_LAT"].values, transit_df["P_LONG"].values), (transit_df["C_LAT"].values, transit_df["C_LONG"].values))
 speed_df = transit_df.groupby(["ID", "ROUTE_ID", "TRIP_ID", "AVG_DIR"], as_index=False).agg(
 			TRIP_DUR = ("EP_TIME", lambda s: round((((s.iloc[-1] - s.iloc[0])/60))/60, 2)),
 			TRIP_LEN = ("DST_BTW_LOCS", lambda s: round(s.sum(), 2)),
@@ -195,14 +195,16 @@ transit_df = transit_df.drop_duplicates(subset=["ID", "ROUTE_ID", "TRIP_ID", "AV
 #===============================================================================
 # Step #4: Determine Distance, Speed, and Bearing Between Stops, Determine Trip Type (Weekend, Weekday, Holiday Etc...)
 #===============================================================================
-transit_df["DST_PSTP_NXTSTP"] = round(vec_haversine((transit_df["PRV_STP_LAT"], transit_df["PRV_STP_LONG"]), (transit_df["NXT_STP_LAT"], transit_df["NXT_STP_LONG"])), 4)
-transit_df["DST_2_PBSTP"] = round(vec_haversine((transit_df["PRV_STP_LAT"], transit_df["PRV_STP_LONG"]), (transit_df["C_LAT"], transit_df["C_LONG"])), 4)
+transit_df["DST_PSTP_NXTSTP"] = vec_haversine((transit_df["PRV_STP_LAT"].values, transit_df["PRV_STP_LONG"].values), (transit_df["NXT_STP_LAT"].values, transit_df["NXT_STP_LONG"].values))
+transit_df["DST_2_PBSTP"] = vec_haversine((transit_df["PRV_STP_LAT"].values, transit_df["PRV_STP_LONG"].values), (transit_df["C_LAT"].values, transit_df["C_LONG"].values))
+
+
 
 transit_df = transit_df.merge(speed_df, how="left", on=["ROUTE_ID", "TRIP_ID", "ID", "AVG_DIR"])
 transit_df["TME_2_PBSTP"] = ((transit_df["DST_2_PBSTP"] / transit_df["TRIP_SPD"])*60)*60
 transit_df["ARV_TME_PBSTP"] = transit_df["EP_TIME"] - transit_df["TME_2_PBSTP"]
 
-transit_df["SEG_BEARING"] = round(get_bearing((transit_df["PRV_STP_LAT"], transit_df["PRV_STP_LONG"]), (transit_df["NXT_STP_LAT"], transit_df["NXT_STP_LONG"])), 0)
+transit_df["SEG_BEARING"] = round(transit_df.apply(lambda x: get_bearing((x["PRV_STP_LAT"], x["PRV_STP_LONG"]), (x["NXT_STP_LAT"], x["NXT_STP_LONG"])), axis=1), 0)
 
 transit_df["TRIP_TYPE"] = transit_df["TRIP_ID"].str.split("-").str[-2]
 
