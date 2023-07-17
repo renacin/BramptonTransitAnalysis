@@ -8,10 +8,9 @@ from Funcs.func import *
 #===============================================================================
 # Step #0: Define The Location Of Data & Read Bus Stops As CSV
 #===============================================================================
-out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/2_DataFormatting/Misc/main_data.csv"
 db_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/2_DataFormatting/Data/DataStorage.db"
 bus_stops_csv = r"/Users/renacin/Documents/BramptonTransitAnalysis/2_DataFormatting/Data/Data_Bus_Stops.csv"
-bus_stops = pd.read_csv(bus_stops_csv)
+out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/2_DataFormatting/Data"
 
 
 
@@ -22,6 +21,8 @@ bus_stops = pd.read_csv(bus_stops_csv)
 # Find Bus Stops That Are Located At A Main Terminal, Find The Associated Main Bus Terminal
 # Columns Needed stop_id where value is non-numeric, and parent_station where value is not null
 # Find Main Bus Stops In Different Location Types
+
+bus_stops = pd.read_csv(bus_stops_csv)
 parent_bus_terminals = bus_stops[~bus_stops["stop_id"].str.isnumeric()]
 stops_in_terminals = bus_stops[~bus_stops["parent_station"].isnull()]
 stops_not_terminals = bus_stops[bus_stops["parent_station"].isnull() & bus_stops["stop_id"].str.isnumeric()]
@@ -87,6 +88,9 @@ bus_stops = pd.read_sql_query(sql_query, con)
 for col in ["CLEANED_STOP_NAME", "CLEANED_STOP_LAT", "CLEANED_STOP_LON"]:
 	del bus_stops[col]
 con.close()
+
+BusStops_out_path = out_path + "/BramptonTransit_BusStops.csv"
+bus_stops.to_csv(BusStops_out_path, index=False)
 
 
 
@@ -167,6 +171,7 @@ data_pull.sort_values(["ID", "ROUTE_ID", "TRIP_ID", "EP_TIME"], inplace=True)
 data_pull.drop_duplicates(inplace=True)
 
 
+
 #===============================================================================
 # Step #3: Remove Unneeded Information - Clean Up Dataset!
 #===============================================================================
@@ -207,6 +212,7 @@ transit_df["ARV_TME_PBSTP"] = transit_df["EP_TIME"] - transit_df["TME_2_PBSTP"]
 transit_df["SEG_BEARING"] = round(transit_df.apply(lambda x: get_bearing((x["PRV_STP_LAT"], x["PRV_STP_LONG"]), (x["NXT_STP_LAT"], x["NXT_STP_LONG"])), axis=1), 0)
 
 transit_df["TRIP_TYPE"] = transit_df["TRIP_ID"].str.split("-").str[-2]
+
 
 
 #===============================================================================
@@ -257,30 +263,5 @@ main_data = main_data[main_data["TRVL_TIME"] > 0]
 #===============================================================================
 # Step #6: Output Results
 #===============================================================================
-main_data.to_csv(out_path, index=False)
-
-
-
-
-
-
-
-
-
-
-
-# """
-# Notes:
-#
-# 	(Most Common Bus Stop Segments)
-# 	McMurchy - Zum Steeles Station Stop WB -- TO -- Sheridan College Term - 3/3A/4/4A/11/51/511/104 WB      536
-# 	Airport Road - Zum Steeles Station Stop WB -- TO -- Torbram - Zum Steeles Station Stop WB               488
-# 	Williams - Zum Main Station Stop SB -- TO -- Vodden - Zum Main Station Stop SB                          392
-# 	Torbram - Zum Steeles Station Stop EB -- TO -- Airport Road - Zum Steeles Station Stop EB               384
-# 	Bramalea - Zum Steeles Station Stop EB -- TO -- Torbram - Zum Steeles Station Stop EB                   383
-# 	County Court South - Zum Main Station Stop NB -- TO -- County Court North - Zum Main Station Stop NB    374
-# 	Torbram - Zum Queen Station Stop WB -- TO -- Glenvale - Zum Queen Station Stop WB                       370
-# 	Vodden - Zum Main Station Stop SB -- TO -- Nelson - Zum Main Station Stop SB                            367
-# 	Bramalea - Zum Steeles Station Stop WB -- TO -- Dixie - Zum Steeles Station Stop WB                     366
-# 	Bovaird - Zum Main Station Stop SB -- TO -- Williams - Zum Main Station Stop SB                         366
-# """
+main_out_path = out_path + "/main_data.csv"
+main_data.to_csv(main_out_path, index=False)
