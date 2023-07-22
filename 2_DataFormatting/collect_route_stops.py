@@ -2,14 +2,34 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import sqlite3
 import numpy as np
-import difflib
+import networkx as nx
+import jenkspy as jp
 
 
 #===============================================================================
-# Step #1: Read In Bus Stops Within A Given Route Segment
+# Step #0: Testing Methodologies
 #===============================================================================
-in_data_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/2_DataFormatting/Data/185_501_BusStops.csv"
-segment_data = pd.read_csv(in_data_path)
+
+# Read In Data
+in_data_path_1 = r"/Users/renacin/Documents/BramptonTransitAnalysis/2_DataFormatting/Data/185_501_BusStops.csv"
+bus_stops_in_segment = pd.read_csv(in_data_path_1, usecols=["stop_name"])["stop_name"].tolist()
+
+in_data_path_2 = r"/Users/renacin/Desktop/Misc/main_data.csv"
+bus_data = pd.read_csv(in_data_path_2)
+bus_data = bus_data[(bus_data["ROUTE_ID"] == "501-295") & (bus_data["CUR_STP_NM"].isin(bus_stops_in_segment)) & (bus_data["NXT_STP_NAME"].isin(bus_stops_in_segment))]
+
+# Apply Fisher-Jenk Algorithm To Find Natural Breaks In Data
+test_df = bus_data["SEGMENT_NAME"].value_counts().rename_axis("SEGMENT_NAME").reset_index(name="COUNT")
+breaks = jp.jenks_breaks(test_df["COUNT"], 2)
+test_df = test_df[test_df["COUNT"] > breaks[1]]
+bus_data = bus_data[bus_data["SEGMENT_NAME"].isin(test_df["SEGMENT_NAME"])]
+
+# Make A Connection Graph
+edge_list = [(x, y) for x, y in zip(bus_data["CUR_STP_NM"].to_list(), bus_data["NXT_STP_NAME"].to_list())]
+G = nx.from_edgelist(edge_list)
+nx.draw_spring(G, with_labels=True, font_size=8)
+plt.show()
+
 
 
 
