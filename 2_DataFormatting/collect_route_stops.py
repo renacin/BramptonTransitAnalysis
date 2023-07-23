@@ -24,6 +24,7 @@ breaks = jp.jenks_breaks(test_df["COUNT"], 2)
 test_df = test_df[test_df["COUNT"] > breaks[1]]
 bus_data = bus_data[bus_data["SEGMENT_NAME"].isin(test_df["SEGMENT_NAME"])]
 
+
 # Make A Connection Graph
 edge_list = [(x, y) for x, y in zip(bus_data["CUR_STP_NM"].to_list(), bus_data["NXT_STP_NAME"].to_list())]
 G = nx.from_edgelist(edge_list)
@@ -32,17 +33,37 @@ G = nx.from_edgelist(edge_list)
 start_end = [x[0] for x in G.degree if x[1] == 1]
 paths = [path for path in nx.all_simple_paths(G, source=start_end[0], target=start_end[1])]
 
+
+# Define A Function That Takes In A List Of Bus Stops & Determines If It's The Right Order Given Segment Names From A Dataframe
+def true_order(bus_stops_list, unq_segments):
+
+	# From The List Provided Create A Dataframe & Create A Column That Mimics A Complete Segment Name
+	data = {"CUR": bus_stops_list}
+	temp_df = pd.DataFrame.from_dict(data)
+	temp_df["NXT"] = temp_df["CUR"].shift(-1).ffill()
+	temp_df["SEG_NM"] =  temp_df["CUR"] + " -- TO -- " + temp_df["NXT"]
+
+	if temp_df["SEG_NM"].isin(bus_data["SEGMENT_NAME"].unique()).any() == False:
+		data = {"CUR": bus_stops_list[::-1]}
+		temp_df = pd.DataFrame.from_dict(data)
+		temp_df["NXT"] = temp_df["CUR"].shift(-1).ffill()
+		temp_df["SEG_NM"] =  temp_df["CUR"] + " -- TO -- " + temp_df["NXT"]
+
+	return temp_df["SEG_NM"].to_list()
+
+
+
+
 # Segment Has 2 Routes With A Common Bus Stop
 if len(paths) == 1:
 
 	# Now That We Have Each Route, We Need To Figure Out The Effective Directions of Each
-	route_1 = paths[0][0:(len(paths[0])//2) + 1]
-	route_2 = paths[0][(len(paths[0])//2):]
+	route_1 = true_order(paths[0][0:(len(paths[0])//2) + 1], list(bus_data["SEGMENT_NAME"].unique()))
+	route_2 = true_order(paths[0][(len(paths[0])//2):], list(bus_data["SEGMENT_NAME"].unique()))
 
 	print(route_1)
 	print(route_2)
-
-
+	print(list(bus_data["SEGMENT_NAME"].unique()))
 
 
 
