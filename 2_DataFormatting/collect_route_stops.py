@@ -27,18 +27,21 @@ bus_data = bus_data[bus_data["SEGMENT_NAME"].isin(test_df["SEGMENT_NAME"])]
 # Make A Connection Graph
 edge_list = [(x, y) for x, y in zip(bus_data["CUR_STP_NM"].to_list(), bus_data["NXT_STP_NAME"].to_list())]
 G = nx.from_edgelist(edge_list)
-nx.draw_spring(G, with_labels=True, font_size=8)
 
-# Print All Unique Nodes In Graphs
-edges_ = nx.edges(G)
-
-# Find The Number Of
+# Find The Number Of Start/End Points What Kind Of A Segment Is This?
 start_end = [x[0] for x in G.degree if x[1] == 1]
+paths = [path for path in nx.all_simple_paths(G, source=start_end[0], target=start_end[1])]
 
-for path in nx.all_simple_paths(G, source=start_end[0], target=start_end[1]):
-    print(path)
+# Segment Has 2 Routes With A Common Bus Stop
+if len(paths) == 1:
 
-plt.show()
+	# Now That We Have Each Route, We Need To Figure Out The Effective Directions of Each
+	route_1 = paths[0][0:(len(paths[0])//2) + 1]
+	route_2 = paths[0][(len(paths[0])//2):]
+
+	print(route_1)
+	print(route_2)
+
 
 
 
