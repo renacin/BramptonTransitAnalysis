@@ -28,7 +28,19 @@ bus_data = bus_data[bus_data["SEGMENT_NAME"].isin(test_df["SEGMENT_NAME"])]
 edge_list = [(x, y) for x, y in zip(bus_data["CUR_STP_NM"].to_list(), bus_data["NXT_STP_NAME"].to_list())]
 G = nx.from_edgelist(edge_list)
 nx.draw_spring(G, with_labels=True, font_size=8)
-plt.show()
+
+# Print All Unique Nodes In Graphs
+edges_ = nx.edges(G)
+
+# Find The Number Of
+start_end = [x[0] for x in G.degree if x[1] == 1]
+
+
+
+# for path in nx.all_simple_paths(G):
+#     print(path)
+
+# plt.show()
 
 
 
