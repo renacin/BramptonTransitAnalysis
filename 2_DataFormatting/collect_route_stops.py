@@ -35,12 +35,10 @@ edges_ = nx.edges(G)
 # Find The Number Of
 start_end = [x[0] for x in G.degree if x[1] == 1]
 
+for path in nx.all_simple_paths(G, source=start_end[0], target=start_end[1]):
+    print(path)
 
-
-# for path in nx.all_simple_paths(G):
-#     print(path)
-
-# plt.show()
+plt.show()
 
 
 
