@@ -77,7 +77,11 @@ if len(paths) == 1:
 	plt.plot(temp_df_1["SEGMENT_NAME"], temp_df_1["RN_TM_MEAN"], color='#CC4F1B')
 	plt.fill_between(temp_df_1["SEGMENT_NAME"], temp_df_1["RN_TM_MEAN_-STD"], temp_df_1["RN_TM_MEAN_+STD"], alpha=0.5, edgecolor='#CC4F1B', facecolor='#FF9848')
 	plt.xticks(rotation=90)
-	plt.show()
+
+	out_location = r"/Users/renacin/Documents/Test.pdf"
+	plt.savefig(out_location, bbox_inches='tight')
+
+
 
 
 
