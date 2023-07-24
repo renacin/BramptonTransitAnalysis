@@ -41,15 +41,15 @@ def true_order(bus_stops_list, unq_segments):
 	data = {"CUR": bus_stops_list}
 	temp_df = pd.DataFrame.from_dict(data)
 	temp_df["NXT"] = temp_df["CUR"].shift(-1).ffill()
-	temp_df["SEG_NM"] =  temp_df["CUR"] + " -- TO -- " + temp_df["NXT"]
+	temp_df["SEGMENT_NAME"] =  temp_df["CUR"] + " -- TO -- " + temp_df["NXT"]
 
-	if temp_df["SEG_NM"].isin(bus_data["SEGMENT_NAME"].unique()).any() == False:
+	if temp_df["SEGMENT_NAME"].isin(bus_data["SEGMENT_NAME"].unique()).any() == False:
 		data = {"CUR": bus_stops_list[::-1]}
 		temp_df = pd.DataFrame.from_dict(data)
 		temp_df["NXT"] = temp_df["CUR"].shift(-1).ffill()
-		temp_df["SEG_NM"] =  temp_df["CUR"] + " -- TO -- " + temp_df["NXT"]
+		temp_df["SEGMENT_NAME"] =  temp_df["CUR"] + " -- TO -- " + temp_df["NXT"]
 
-	return temp_df["SEG_NM"].to_list()
+	return temp_df["SEGMENT_NAME"].to_list()
 
 
 
@@ -61,9 +61,23 @@ if len(paths) == 1:
 	route_1 = true_order(paths[0][0:(len(paths[0])//2) + 1], list(bus_data["SEGMENT_NAME"].unique()))
 	route_2 = true_order(paths[0][(len(paths[0])//2):], list(bus_data["SEGMENT_NAME"].unique()))
 
-	print(route_1)
-	print(route_2)
-	print(list(bus_data["SEGMENT_NAME"].unique()))
+	# Create A Dataframe For Both & Find Average & Standard Deviation Measures
+	temp_df_1 = pd.DataFrame.from_dict({"ORDER": [x+1 for x in range(len(route_1))], "SEGMENT_NAME": route_1})
+	temp_bus_data = bus_data[bus_data["SEGMENT_NAME"].isin(temp_df_1["SEGMENT_NAME"])]
+	temp_bus_data = temp_bus_data.groupby(["SEGMENT_NAME"], as_index=False).agg(
+				TM_MEAN = ("TRVL_TIME", lambda s: s.mean()),
+				TM_STD = ("TRVL_TIME", lambda s: s.std()),
+	)
+
+	temp_df_1 = temp_df_1.merge(temp_bus_data, how="left", on=["SEGMENT_NAME"]).dropna()
+	temp_df_1["RN_TM_MEAN"] = temp_df_1["TM_MEAN"].cumsum()
+	temp_df_1["RN_TM_MEAN_-STD"] = temp_df_1["RN_TM_MEAN"] - temp_df_1["TM_STD"]
+	temp_df_1["RN_TM_MEAN_+STD"] = temp_df_1["RN_TM_MEAN"] + temp_df_1["TM_STD"]
+
+	plt.plot(temp_df_1["SEGMENT_NAME"], temp_df_1["RN_TM_MEAN"], color='#CC4F1B')
+	plt.fill_between(temp_df_1["SEGMENT_NAME"], temp_df_1["RN_TM_MEAN_-STD"], temp_df_1["RN_TM_MEAN_+STD"], alpha=0.5, edgecolor='#CC4F1B', facecolor='#FF9848')
+	plt.xticks(rotation=90)
+	plt.show()
 
 
 
