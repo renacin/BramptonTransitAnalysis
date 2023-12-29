@@ -1,5 +1,6 @@
 # Transit GTFS Data Project: Collection & Analysis
 
+
 ## Introduction:
 This project is ever growing, and expanding as time goes on.
 
@@ -16,12 +17,18 @@ Time went on, and I kept coming back to this project. The more I poked at it, th
 And so here we are. This is my 4th attempt at this project?
 
 
-## Observations And Questions
+## Observations And Questions:
 * [12-29-2023] - Can I interpret traffic patterns from transit GTFS data?
 
 
 ## Procedure:
-* [12-29-2023] - For All Routes In A Given Transit System, Determine Which Stops A Bus Visits
-* [00-00-0000] - Create A System That Can Effectively Parse, And Store GTFS Data Into A Database
-* [00-00-0000] - For A Given Period Of Time, Run System - Gather GTFS Data On A Headless Computer. Build In Contingencies!
-* [00-00-0000] - Having Collected Data, Can I Interpret Traffic Patterns From GTFS Data Collected?
+1. [12-29-2023] - For All Routes In A Given Transit System, Determine Which Stops A Bus Visits
+2. [00-00-0000] - Create A System That Can Effectively Parse, And Store GTFS Data Into A Database
+3. [00-00-0000] - For A Given Period Of Time, Run System - Gather GTFS Data On A Headless Computer. Build In Contingencies!
+4. [00-00-0000] - Having Collected Data, Can I Interpret Traffic Patterns From GTFS Data Collected?
+
+
+## Overview Of Code:
+
+### 1. Determining All Bus Routes, And The Order Of Bus Stop Arrivals
+ 
