@@ -17,11 +17,11 @@ And so here we are. This is my 4th attempt at this project?
 
 
 ## Observations And Questions
-[12-29-2023] - Can I interpret traffic patterns from transit GTFS data?
+* [12-29-2023] - Can I interpret traffic patterns from transit GTFS data?
 
 
 ## Procedure:
-[12-29-2023] - For All Routes In A Given Transit System, Determine Which Stops A Bus Visits
-[00-00-0000] - Create A System That Can Effectively Parse, And Store GTFS Data Into A Database
-[00-00-0000] - For A Given Period Of Time, Run System - Gather GTFS Data On A Headless Computer. Build In Contingencies!
-[00-00-0000] - Having Collected Data, Can I Interpret Traffic Patterns From GTFS Data Collected?
+* [12-29-2023] - For All Routes In A Given Transit System, Determine Which Stops A Bus Visits
+* [00-00-0000] - Create A System That Can Effectively Parse, And Store GTFS Data Into A Database
+* [00-00-0000] - For A Given Period Of Time, Run System - Gather GTFS Data On A Headless Computer. Build In Contingencies!
+* [00-00-0000] - Having Collected Data, Can I Interpret Traffic Patterns From GTFS Data Collected?
