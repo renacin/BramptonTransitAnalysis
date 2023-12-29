@@ -1,4 +1,4 @@
-# BramptonTransitAnalysis
+# Transit GTFS Data Project: Collection & Analysis
 
 ## Introduction:
 This project is ever growing, and expanding as time goes on.
