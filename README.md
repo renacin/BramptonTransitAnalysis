@@ -31,4 +31,5 @@ And so here we are. This is my 4th attempt at this project?
 ## Overview Of Code:
 
 ### 1. Determining All Bus Routes, And The Order Of Bus Stop Arrivals
- 
+	1. Navigate 2: https://www1.brampton.ca/EN/residents/transit/plan-your-trip/Pages/Schedules-andMaps.aspx. Parse all bus routes.
+	2. For each bus route, parse each bus stop. Try to find bus stop number.
