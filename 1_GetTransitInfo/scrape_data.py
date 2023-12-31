@@ -3,6 +3,7 @@
 # Title                                Gather Transit Route Info, Stops In A Route
 #
 # ---------------------------------------------------------------------------------------------------------------------
+import re
 import requests
 import pandas as pd
 from bs4 import BeautifulSoup
@@ -39,33 +40,36 @@ def get_rt_info(transit_url):
 
 
 
-def get_rt_stops(rt_list):
+def get_rt_stops(rt_links, rt_names):
 	"""
 	Given a list of links, this function navigates through each, pulling information
 	regarding each bus stop visited. This function returns a pandas dataframe.
 	"""
 
-	for rt in rt_list:
-		# Navigate To WebPage
-		page = requests.get(rt)
+	stp_data = []
+	for link, name in zip(rt_links, rt_names):
+
+		# Navigate To WebPage, Pull All HTML, Convert To String, Use Regex To Pull All Stop Names
+		page = requests.get(link)
 		soup = BeautifulSoup(page.content, "html.parser")
+		hrefs = soup.find_all(class_="link-to-stop")
 
-		# Parse All HTML Data, Find All HREF Tags
-		for tag in soup.find_all('a', href=True):
-			str_ref = str(tag)
-			if "StopSchedules/" in str_ref:
-				print(str_ref)
-
-		break
+		# Create A List Of The Bus Stops Found W/ Name For Join To Main Data
+		rw_bs = [name + "###" + str(x).split('">')[1].replace("</a>", "") for x in hrefs]
+		stp_data.extend(rw_bs)
 
 
-"""
+	# Return A Pandas Dataframe With Route Data
+	stp_df = pd.DataFrame(stp_data, columns=["RAW_DATA"])
+	stp_df[["RT_NM", "STP_NM"]] = stp_df["RAW_DATA"].str.split("###", n=1, expand=True)
+	stp_df.drop(["RAW_DATA"], axis=1, inplace=True)
 
-<a class="link-to-stop"
-href="/en/stop-schedules/28/StopSchedules/smart-vmc-terminal-route-501-zum-queen-wb/53762/zum-queen/510/501-zum-queen-eastbound-501c-zum-queen-east-407/1?Date=12%2F31%2F2023&amp;
-PhysicalId=807115">Smart VMC Terminal - Route 501 Zum Queen WB</a>
+	return stp_df
 
-"""
+
+
+
+
 
 
 
@@ -73,7 +77,7 @@ PhysicalId=807115">Smart VMC Terminal - Route 501 Zum Queen WB</a>
 # ---------------------------------------------------------------------------------------------------------------------
 def main():
 	rt_df = get_rt_info("https://www1.brampton.ca/EN/residents/transit/plan-your-trip/Pages/Schedules-and-Maps.aspx")
-	get_rt_stops(rt_df["RT_LINK"].to_list())
+	stp_df = get_rt_stops(rt_df["RT_LINK"].to_list(), rt_df["RT_NM"].to_list())
 
 
 # ---------------------------------------------------------------------------------------------------------------------
