@@ -5,6 +5,7 @@
 # ---------------------------------------------------------------------------------------------------------------------
 import re
 import requests
+import numpy as np
 import pandas as pd
 from bs4 import BeautifulSoup
 # ---------------------------------------------------------------------------------------------------------------------
@@ -73,20 +74,57 @@ def get_rt_stops(rt_links, rt_names):
 
 
 
+def comp_data(parsed_df, downld_df):
+	"""
+	Given bus stops parsed from Brampton Transit affiliated links (Gives Direction, & Order),
+	and data dowloaded from Brampton Transit's Bus Stop Open Data Catalogue (Gives Exact Location),
+	compare the two. Are there any Bus Stops from the parsed list that cannot be found in
+	Brampton Transit's Open Data Catalogue.
+
+	Identified Comparison Issues:
+		1) In some cases "&" is written as "&amp;"
+	"""
+
+	# Informed By Comparison, Make Changes
+	parsed_df["STP_NM"] = parsed_df["STP_NM"].str.replace('&amp;', '&')
+
+	# Get Unique Bus Stop Names From Parsed Dataframe
+	unq_parsed_stps = pd.DataFrame(parsed_df["STP_NM"].unique().tolist(), columns=["Parsed_Bus_Stps"])
+	unq_parsed_stps["In_OpenData"] = np.where(unq_parsed_stps["Parsed_Bus_Stps"].isin(downld_df["stop_name"]), "Y", "N")
+
+	# Which Bus Stops Are Missing?
+	misng_stps = unq_parsed_stps[unq_parsed_stps["In_OpenData"] == "N"]
+	print(f"Parsed DF Len: {len(parsed_df)}, Downloaded DF Len: {len(downld_df)}, Number Of Missing Stops: {len(misng_stps)}")
+
+	return parsed_df, downld_df
+
+
+
 # ---------------------------------------------------------------------------------------------------------------------
 def main():
 
-	# Define Needed Variables
+	# Define Needed Path Variables
 	out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/8_Data"
+	path_prsd_stp_data = out_path + "/routes_and_bus_stops.csv"
+	path_dwnld_stp_data = out_path + "/BT_BusStops.csv"
 
+	"""
 	# Gather All Needed Data
 	rt_df = get_rt_info("https://www1.brampton.ca/EN/residents/transit/plan-your-trip/Pages/Schedules-and-Maps.aspx")
 	stp_df = get_rt_stops(rt_df["RT_LINK"].to_list(), rt_df["RT_NM"].to_list())
 
-	# Using All Stops As Main Data, Left Join Route Information, Export As CSV
+	# Using All Stops As Main Data, Left Join Route Information, Export As CSV As CheckPoint
 	stp_data_df = stp_df.merge(rt_df, on='RT_NM', how='left')
-	main_out_path = out_path + "/routes_and_bus_stops.csv"
-	stp_data_df.to_csv(main_out_path, index=False)
+	stp_data_df.to_csv(path_prsd_stp_data, index=False)
+	"""
+
+	# Compare Data From Bus Stops Collected And Brampton Bus Stop Dataset. Which Are Missing?
+	prsd_stp_data_df = pd.read_csv(path_prsd_stp_data)
+	dwnld_stp_data_df = pd.read_csv(path_dwnld_stp_data)
+
+	prsd_stp_data_df, dwnld_stp_data_df = comp_data(prsd_stp_data_df, dwnld_stp_data_df)
+
+
 
 
 
