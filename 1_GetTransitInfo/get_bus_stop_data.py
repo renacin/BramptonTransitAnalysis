@@ -96,7 +96,7 @@ def comp_data(parsed_df, downld_df):
 	misng_stps = unq_parsed_stps[unq_parsed_stps["In_OpenData"] == "N"]
 	print(f"Parsed DF Len: {len(parsed_df)}, Downloaded DF Len: {len(downld_df)}, Number Of Missing Stops: {len(misng_stps)}")
 
-	return parsed_df, downld_df
+	return parsed_df
 
 
 
@@ -118,11 +118,14 @@ def main():
 	stp_data_df.to_csv(path_prsd_stp_data, index=False)
 	"""
 
-	# Compare Data From Bus Stops Collected And Brampton Bus Stop Dataset. Which Are Missing?
+	# Import Needed Data
 	prsd_stp_data_df = pd.read_csv(path_prsd_stp_data)
 	dwnld_stp_data_df = pd.read_csv(path_dwnld_stp_data)
 
-	prsd_stp_data_df, dwnld_stp_data_df = comp_data(prsd_stp_data_df, dwnld_stp_data_df)
+	# Compare Data From Bus Stops Collected And Brampton Bus Stop Dataset. Which Are Missing?
+	prsd_stp_data_df = comp_data(prsd_stp_data_df, dwnld_stp_data_df)
+
+	# Add Information From Brampton Transit Open Data Catalogue's Bus Stop Dataset
 
 
 
