@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 
 def get_rt_info(transit_url):
 	"""
-	Given a URL, thi function navigates to Brampton Transit's Routes & Map Page,
+	Given a URL, this function navigates to Brampton Transit's Routes & Map Page,
 	parses all hrefs related to routes, and returns a pandas dataframe with the
 	scraped data.
 	"""
@@ -43,8 +43,9 @@ def get_rt_info(transit_url):
 
 def get_rt_stops(rt_links, rt_names):
 	"""
-	Given a list of links, this function navigates through each, pulling information
-	regarding each bus stop visited. This function returns a pandas dataframe.
+	Given a list of links relating to bus stops visited on certain routes, this
+	function navigates through each, pulling information regarding each bus stop
+	visited. This function returns a pandas dataframe with all the parsed information.
 	"""
 
 	stp_data = []
@@ -69,6 +70,13 @@ def get_rt_stops(rt_links, rt_names):
 	stp_df = pd.DataFrame(stp_data, columns=["RAW_DATA"])
 	stp_df[["RT_NM", "STP_NM"]] = stp_df["RAW_DATA"].str.split("###", n=1, expand=True)
 	stp_df.drop(["RAW_DATA"], axis=1, inplace=True)
+
+	# Add A Column That Shows Row Number For Each Bus Stop In A Route
+	stp_df["RT_STP_NUM"] = stp_df.groupby(["RT_NM"]).cumcount() + 1
+
+	# Add A Column That Shows How Many Bus Stops Are In A Given Route
+	num_stps_df = stp_df.groupby("RT_NM", as_index=False).agg(RT_NUM_STPS = ("RT_NM", "count"))
+	stp_df = stp_df.merge(num_stps_df, on='RT_NM', how='left')
 
 	return stp_df
 
@@ -108,7 +116,6 @@ def main():
 	path_prsd_stp_data = out_path + "/routes_and_bus_stops.csv"
 	path_dwnld_stp_data = out_path + "/BT_BusStops.csv"
 
-	"""
 	# Gather All Needed Data
 	rt_df = get_rt_info("https://www1.brampton.ca/EN/residents/transit/plan-your-trip/Pages/Schedules-and-Maps.aspx")
 	stp_df = get_rt_stops(rt_df["RT_LINK"].to_list(), rt_df["RT_NM"].to_list())
@@ -116,7 +123,6 @@ def main():
 	# Using All Stops As Main Data, Left Join Route Information, Export As CSV As CheckPoint
 	stp_data_df = stp_df.merge(rt_df, on='RT_NM', how='left')
 	stp_data_df.to_csv(path_prsd_stp_data, index=False)
-	"""
 
 	# Import Needed Data
 	prsd_stp_data_df = pd.read_csv(path_prsd_stp_data)
