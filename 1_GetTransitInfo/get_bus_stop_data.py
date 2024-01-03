@@ -3,7 +3,7 @@
 # Title                                Gather Transit Route Info, Stops In A Route
 #
 # ---------------------------------------------------------------------------------------------------------------------
-import re
+import sqlite3
 import requests
 import numpy as np
 import pandas as pd
@@ -65,12 +65,6 @@ def get_rt_stops(rt_links, rt_names):
 		print(f"Parsed: {name}, Progress: {counter}/{num_rts}, Num Stops: {len(rw_bs)}")
 		counter += 1
 
-		"""
-		# For Testing Remove When Complete
-		if counter == 3:
-			break
-		"""
-
 	# Return A Pandas Dataframe With Route Data
 	stp_df = pd.DataFrame(stp_data, columns=["RAW_DATA"])
 	stp_df[["RT_NM", "STP_NM"]] = stp_df["RAW_DATA"].str.split("###", n=1, expand=True)
@@ -123,7 +117,7 @@ def main():
 	rt_df = get_rt_info("https://www1.brampton.ca/EN/residents/transit/plan-your-trip/Pages/Schedules-and-Maps.aspx")
 	stp_df = get_rt_stops(rt_df["RT_LINK"].to_list(), rt_df["RT_NM"].to_list())
 
-	# Using All Stops As Main Data, Left Join Route Information, Export As CSV As CheckPoint
+	# Using All Stops As Main Data, Left Join Route Information
 	stp_data_df = stp_df.merge(rt_df, on='RT_NM', how='left')
 
 	# Compare Data From Bus Stops Collected And Brampton Bus Stop Dataset. Which Are Missing?
@@ -131,12 +125,11 @@ def main():
 	dwnld_stp_data_df = pd.read_csv(path_dwnld_stp_data)
 	stp_data_df = comp_data(stp_data_df, dwnld_stp_data_df)
 
-	# Add Information From Brampton Transit Open Data Catalogue's Bus Stop Dataset
-	path_final_data = out_path + "/BusStopsAndRoutes.csv"
-
-	# Instead Of Writting To A CSV, I Should Make A SQLite Data Base, That Would Be More Efficient
-	stp_data_df = stp_df.merge(dwnld_stp_data_df, left_on = ['STP_NM'], right_on = ['stop_name'], how='left')
-	stp_data_df.to_csv(path_final_data, index=False)
+	# Add Information From Brampton Transit Open Data Catalogue's Bus Stop Dataset | Write To SQLite3 DB
+	db_path = out_path + "/DataStorage.db"
+	con = sqlite3.connect(db_path)
+	stp_data_df.to_sql("BusStopsInRoutes", con, if_exists="replace", index=False)
+	dwnld_stp_data_df.to_sql("BusStopsInformation", con, if_exists="replace", index=False)
 
 
 
@@ -145,17 +138,3 @@ def main():
 # Main Entry Point Into Python Code
 if __name__ == "__main__":
     main()
-
-	"""
-	TODO:
-		+ The final CSV isn't the most efficient. I'm creating a lot of redundant data.
-		  Need to switch to SQLite Database. I can have a table looking at bus stops in
-		  bus routes, and another table looking at detailed information about each bus
-		  stop.
-
-		+ It would be nice to have a live updating database. As we're collecting information
-		  in regards to bus GTFS data, we have another process downloading the most up to date
-		  bus location data from City Of Brampton's Open Data Catalogue, as well as downloading
-		  the most up to date bus stops for a given route. Keep newest data updated with a new
-		  data date.
-	"""
