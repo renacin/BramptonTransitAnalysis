@@ -31,8 +31,8 @@ And so here we are. This is my 4th attempt at this project?
 ## Overview Of Code:
 
 ### 1. Determining All Bus Routes, And The Order Of Bus Stop Arrivals
-	* Navigate 2: https://www1.brampton.ca/EN/residents/transit/plan-your-trip/Pages/Schedules-andMaps.aspx. Parse all bus routes.
-	* For each bus route, parse each bus stop. Try to find bus stop number.
-	* Possible Concern: The Bus Numbers On The Website Do Not Match The Data In Brampton Transits CSV. How Will I Fix This?
+	1.1 Navigate 2: https://www1.brampton.ca/EN/residents/transit/plan-your-trip/Pages/Schedules-andMaps.aspx. Parse all bus routes.
+	1.2 For each bus route, parse each bus stop. Try to find bus stop number.
+	1.3 Possible Concern: The Bus Numbers On The Website Do Not Match The Data In Brampton Transits CSV. How Will I Fix This?
 		* Wasn't too much of a concern. The bus stop names were pretty accurate as is. I just used those.
-	* All bus stops in a given route, as well as all bits of information regarding a given bus stop has been stored in a SQLite3 database
+	1.4 All bus stops in a given route, as well as all bits of information regarding a given bus stop has been stored in a SQLite3 database
