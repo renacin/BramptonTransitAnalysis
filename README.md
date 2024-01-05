@@ -41,6 +41,12 @@ And so here we are. This is my 4th attempt at this project?
 	+ Add bus stop location data from City Of Brampton Open Data
 	+ Store all data in a SQLite3 database
 
-### 2. Parse Realtime GTFS Data For Each Bus
+
+### 2. Parse Realtime GTFS Data For Each Bus, And Append To A Database
 	Layout Of Logic & Concerns:
-	+ Navigate 2: https://nextride.brampton.ca:81/API/VehiclePositions?format=json 
+	+ Navigate 2: https://nextride.brampton.ca:81/API/VehiclePositions?format=json
+	+ Collect bus data as a pandas dataframe
+	+ Upload data to a SQLite3 Database
+
+
+### 3. Incorporate Steps 1 & 2 Into An Automated System With Error Catching
