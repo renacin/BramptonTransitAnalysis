@@ -111,7 +111,7 @@ def comp_data(parsed_df, downld_df):
 def main():
 
 	# Define Needed Path Variables
-	out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/2_Data"
+	out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/3_Data"
 
 	# Gather All Needed Data
 	rt_df = get_rt_info("https://www1.brampton.ca/EN/residents/transit/plan-your-trip/Pages/Schedules-and-Maps.aspx")
