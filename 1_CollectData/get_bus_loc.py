@@ -101,6 +101,11 @@ def to_db(db_path, new_bus_lod_df):
 	# Upload Data
 	updt_bus_lod_df.to_sql("BUS_LOC_DB", conn, if_exists="replace", index=False)
 
+	# For Testing
+	out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/3_Data"
+	test_path = out_path + "/Test.csv"
+	updt_bus_lod_df.to_csv(test_path, index=False)
+
 
 def main():
 
