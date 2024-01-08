@@ -121,8 +121,8 @@ def main():
 	stp_data_df = stp_df.merge(rt_df, on='RT_NM', how='left')
 
 	# Compare Data From Bus Stops Collected And Brampton Bus Stop Dataset. Which Are Missing?
-	path_dwnld_stp_data = out_path + "/BT_BusStops.csv"
-	dwnld_stp_data_df = pd.read_csv(path_dwnld_stp_data)
+	opn_data_bus_stops_link = r'https://opendata.arcgis.com/api/v3/datasets/1c9869fd805e45339a9e3373fc10ce08_0/downloads/data?format=csv&spatialRefId=3857&where=1%3D1'
+	dwnld_stp_data_df = pd.read_csv(opn_data_bus_stops_link)
 	stp_data_df = comp_data(stp_data_df, dwnld_stp_data_df)
 
 	# Add Information From Brampton Transit Open Data Catalogue's Bus Stop Dataset | Write To SQLite3 DB
