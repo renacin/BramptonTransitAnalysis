@@ -48,7 +48,6 @@ def pull_data():
 
 	# Create A Datetime So We Know The Exact Time In Human Readable
 	bus_loc_df["dt_colc"] = pd.to_datetime(bus_loc_df["timestamp"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
-
 	return bus_loc_df
 
 
