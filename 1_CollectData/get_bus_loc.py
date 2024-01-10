@@ -46,7 +46,11 @@ def pull_data():
 		'vehicle.vehicle.label': 'label',
 		'vehicle.vehicle.license_plate': 'license_plate'})
 
+	# Create A Datetime So We Know The Exact Time In Human Readable
+	bus_loc_df["dt_colc"] = pd.to_datetime(bus_loc_df["timestamp"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
+
 	return bus_loc_df
+
 
 
 def to_db(db_path, new_bus_lod_df):
@@ -83,7 +87,8 @@ def to_db(db_path, new_bus_lod_df):
 		stop_id               TEXT,
 		vehicle_id            TEXT,
 		label                 TEXT,
-		license_plate         TEXT
+		license_plate         TEXT,
+		dt_colc               TEXT
 		);
 		''')
 
@@ -101,12 +106,8 @@ def to_db(db_path, new_bus_lod_df):
 	# Upload Data
 	updt_bus_lod_df.to_sql("BUS_LOC_DB", conn, if_exists="replace", index=False)
 
-	# For Testing
-	out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/3_Data"
-	test_path = out_path + "/Test.csv"
-	updt_bus_lod_df.to_csv(test_path, index=False)
 
-
+# ---------------------------------------------------------------------------------------------------------------------
 def main():
 
 	# Define Needed Path Variables
@@ -119,7 +120,6 @@ def main():
 
 
 # ---------------------------------------------------------------------------------------------------------------------
-
 # Main Entry Point Into Python Code
 if __name__ == "__main__":
     main()
