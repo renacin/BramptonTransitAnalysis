@@ -90,6 +90,6 @@ if __name__ == "__main__":
 	Order of operations for data collector:
 	1) Instantiate Needed Variables
 	2) On Instantiation Of Class, Given A Path, Create, Or Check Existence Of Database
-	3) On Instantiation Get Most Recent Version Of Routes, And Bus Stops. If Data Exists, Keep Larger Dataset
+	3) On Instantiation Get Most Recent Version Of Routes, And Bus Stops, Should Only Do This Once
 
 	"""
