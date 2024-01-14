@@ -43,8 +43,8 @@ class DataCollector:
 	# -------------------------- Private Function 1 ----------------------------
 	def __db_check(self):
 		""" On instantiation this function will be called. Create a database
-		that will store bus location data. This is a private function. It cannot
-		be called."""
+		that will store bus location data; as well as basic database functionality
+		data. This is a private function. It cannot be called."""
 
 		# Connect to database check if it has data in it | Create If Not There
 		try:
@@ -53,12 +53,27 @@ class DataCollector:
 			CREATE TABLE IF NOT EXISTS BUS_LOC_DB (
 			id                    TEXT, is_deleted            TEXT, trip_update           TEXT,
 			alert                 TEXT, trip_id               TEXT, start_time            TEXT,
-			start_date            TEXT, chedule_relationship  TEXT, route_id              TEXT,
+			start_date            TEXT, schedule_relationship TEXT, route_id              TEXT,
 			latitude              TEXT, longitude             TEXT, bearing               TEXT,
 			odometer              TEXT, speed                 TEXT, current_stop_sequence TEXT,
 			current_status        TEXT, timestamp             TEXT, congestion_level      TEXT,
 			stop_id               TEXT, vehicle_id            TEXT, label                 TEXT,
 			license_plate         TEXT, dt_colc               TEXT);
+			''')
+
+		except sqlite3.OperationalError as e:
+			print(e)
+
+
+		# Connect to database check if it has data in it | Create If Not There
+		try:
+			self.conn.execute(
+			'''
+			CREATE TABLE IF NOT EXISTS DB_META_DT (
+			time                    TEXT,
+			new_rows                TEXT,
+			all_rows                TEXT,
+			time_2_comp             TEXT);
 			''')
 
 		except sqlite3.OperationalError as e:
@@ -198,6 +213,9 @@ class DataCollector:
 		will merge old data found in the database keeping new and old records.
 		"""
 
+		# What Is The Start Time
+		start_time = time.time()
+
 		# Injest As JSON, and Load Into Pandas Dataframe
 		response = requests.get(self.bus_loc_url)
 		data = json.loads(response.text)
@@ -236,15 +254,29 @@ class DataCollector:
 		updt_bus_lod_df = pd.concat([old_bus_lod_df, bus_loc_df])
 		updt_bus_lod_df = updt_bus_lod_df.drop_duplicates(subset=["timestamp", "latitude", "longitude", "label", "id", "vehicle_id", "stop_id", "trip_id", "speed"])
 
-		# Print Size Of DB
-		now = datetime.now()
-		dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
-		print(f"Time: {dt_string}, Total New Rows: {len(updt_bus_lod_df) - len_before}, Total Rows {len(updt_bus_lod_df)}")
-
 		# Upload Data
 		updt_bus_lod_df = updt_bus_lod_df.astype(str)
 		updt_bus_lod_df.to_sql("BUS_LOC_DB", self.conn, if_exists="replace", index=False)
 
+		# Gather Details. How Are Things Going?
+		now = datetime.now()
+		dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+		time_to_comp_sec = round((time.time() - start_time), 2)
+		new_rows = len(updt_bus_lod_df) - len_before
+		tot_rows = len(updt_bus_lod_df)
+
+		# Print Details Of Datapull. How Are Things Going?
+		print(f"Time: {dt_string}, Total New Rows: {new_rows}, Total Rows {tot_rows}, Time To Complete: {time_to_comp_sec} Seconds")
+
+		# Append Metadata
+		old_db_meta = pd.read_sql_query("SELECT * FROM DB_META_DT", self.conn)
+		new_db_meta = pd.DataFrame.from_dict({"time": [dt_string], "new_rows": [new_rows], "all_rows": [tot_rows], "time_2_comp": [time_to_comp_sec]})
+		updt_db_meta = pd.concat([old_db_meta, new_db_meta])
+
+		updt_db_meta = updt_db_meta.drop_duplicates(subset=["time", "new_rows", "all_rows", "time_2_comp"])
+		updt_db_meta = updt_db_meta.astype(str)
+
+		updt_db_meta.to_sql("DB_META_DT", self.conn, if_exists="replace", index=False)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -259,10 +291,18 @@ if __name__ == "__main__":
 	# Create An Instance Of The Data Collector
 	Collector = DataCollector(db_path, skp_rte_dwn=True, skp_stp_dwn=True)
 
-	# Collect Bus Location Data
+	# Keept Collecting Data, Make Exceptions For Error Catching
 	while True:
 		try:
 			Collector.get_bus_loc()
-			time.sleep(30)
-		except:
+			time.sleep(15)
+
+		except KeyboardInterrupt:
+			now = datetime.now()
+			dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+			print(f" Stoped By User: {dt_string}")
+			break
+
+		except Exception as e:
+			print(f"Error: {e}")
 			break
