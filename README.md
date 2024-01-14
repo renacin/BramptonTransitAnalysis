@@ -42,11 +42,20 @@ And so here we are. This is my 4th attempt at this project?
 	+ Store all data in a SQLite3 database
 
 
-### 2. Parse Realtime GTFS Data For Each Bus, And Append To A Database
+### 2. Parse Realtime GTFS Data For Each Bus, And Append To A Live Database
 	Layout Of Logic & Concerns:
-	+ Navigate 2: https://nextride.brampton.ca:81/API/VehiclePositions?format=json
-	+ Collect bus data as a pandas dataframe
-	+ Upload data to a SQLite3 Database
+	+ Instantiate A Class That Stores The Following Logic:
+		+ Checks The Validity Of Needed Database Tables
+		+ Pulls Needed Bus Routes, And Details Bus Stop Details, Uploads To The Database
+		+ Pulls GTFS Data From JSON API
+
+	+ Every 15 Seconds Rerun The Last Step From Above
+	+ Ensure All Data Is Valid, An Error Catching Is Present
 
 
-### 3. Incorporate Steps 1 & 2 Into An Automated System With Error Catching
+### 3. Move To RaspBerry PI & Run For A Short Test Period (Can It Run For A Week?)
+
+
+### 4. Analyzing Test Data. How Can We Visualize The Data That We Have Collected?
+	Possible Research Questions:
+	+ How Much Data Are We Collecting, Does The Amount Of Data Vary By Time?
