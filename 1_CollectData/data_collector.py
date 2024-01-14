@@ -184,6 +184,55 @@ class DataCollector:
 		stp_data_df.to_sql("BUS_RTE_DB", self.conn, if_exists="replace", index=False)
 
 
+	# -------------------------- Public Function 1 -----------------------------
+	def get_bus_loc(self):
+		"""
+		When called, this function will navigate to Brampton Transit JSON GTFS
+		link, scrape, format, and then upload data to the linked database. It
+		will merge old data found in the database keeping new and old records.
+		"""
+
+		# Injest As JSON, and Load Into Pandas Dataframe
+		response = requests.get(self.bus_loc_url)
+		data = json.loads(response.text)
+		resp_tsmp = data["header"]["timestamp"]
+		bus_loc_df = pd.json_normalize(data["entity"])
+
+		# Rename Columns With Periods In Name
+		bus_loc_df = bus_loc_df.rename(columns={
+			'vehicle.trip.trip_id': 'trip_id',
+			'vehicle.trip.start_time': 'start_time',
+			'vehicle.trip.start_date': 'start_date',
+			'vehicle.trip.schedule_relationship': 'schedule_relationship',
+			'vehicle.trip.route_id': 'route_id',
+			'vehicle.position.latitude': 'latitude',
+			'vehicle.position.longitude': 'longitude',
+			'vehicle.position.bearing': 'bearing',
+			'vehicle.position.odometer': 'odometer',
+			'vehicle.position.speed': 'speed',
+			'vehicle.current_stop_sequence': 'current_stop_sequence',
+			'vehicle.current_status': 'current_status',
+			'vehicle.timestamp': 'timestamp',
+			'vehicle.congestion_level': 'congestion_level',
+			'vehicle.stop_id': 'stop_id',
+			'vehicle.vehicle.id': 'vehicle_id',
+			'vehicle.vehicle.label': 'label',
+			'vehicle.vehicle.license_plate': 'license_plate'})
+
+		# Create A Datetime So We Know The Exact Time In Human Readable
+		bus_loc_df["dt_colc"] = pd.to_datetime(bus_loc_df["timestamp"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
+
+		# Gather Old Data
+		old_bus_lod_df = pd.read_sql_query("SELECT * FROM BUS_LOC_DB", self.conn)
+
+		# Merge Data
+		updt_bus_lod_df = pd.concat([old_bus_lod_df, bus_loc_df])
+		updt_bus_lod_df = updt_bus_lod_df.drop_duplicates(subset=["timestamp", "latitude", "longitude", "label", "id", "vehicle_id", "stop_id", "trip_id", "speed"])
+
+		# Upload Data
+		updt_bus_lod_df.to_sql("BUS_LOC_DB", self.conn, if_exists="replace", index=False)
+
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 
@@ -196,3 +245,6 @@ if __name__ == "__main__":
 
 	# Create An Instance Of The Data Collector
 	Collector = DataCollector(db_path)
+
+	# Collect Bus Location Data
+	Collector.get_bus_loc()
