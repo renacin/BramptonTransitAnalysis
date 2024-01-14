@@ -230,6 +230,7 @@ class DataCollector:
 
 		# Gather Old Data
 		old_bus_lod_df = pd.read_sql_query("SELECT * FROM BUS_LOC_DB", self.conn)
+		len_before = len(old_bus_lod_df)
 
 		# Merge Data
 		updt_bus_lod_df = pd.concat([old_bus_lod_df, bus_loc_df])
@@ -238,7 +239,7 @@ class DataCollector:
 		# Print Size Of DB
 		now = datetime.now()
 		dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
-		print(f"Time: {dt_string}, Total Num Rows {len(updt_bus_lod_df)}")
+		print(f"Time: {dt_string}, Total New Rows: {len(updt_bus_lod_df) - len_before}, Total Rows {len(updt_bus_lod_df)}")
 
 		# Upload Data
 		updt_bus_lod_df = updt_bus_lod_df.astype(str)
@@ -262,7 +263,6 @@ if __name__ == "__main__":
 	while True:
 		try:
 			Collector.get_bus_loc()
-			time.sleep(5)
-
+			time.sleep(30)
 		except:
 			break
