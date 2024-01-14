@@ -45,30 +45,14 @@ class DataCollector:
 			self.conn.execute(
 			'''
 			CREATE TABLE IF NOT EXISTS BUS_LOC_DB (
-			id                    TEXT,
-			is_deleted            TEXT,
-			trip_update           TEXT,
-			alert                 TEXT,
-			trip_id               TEXT,
-			start_time            TEXT,
-			start_date            TEXT,
-			schedule_relationship TEXT,
-			route_id              TEXT,
-			latitude              TEXT,
-			longitude             TEXT,
-			bearing               TEXT,
-			odometer              TEXT,
-			speed                 TEXT,
-			current_stop_sequence TEXT,
-			current_status        TEXT,
-			timestamp             TEXT,
-			congestion_level      TEXT,
-			stop_id               TEXT,
-			vehicle_id            TEXT,
-			label                 TEXT,
-			license_plate         TEXT,
-			dt_colc               TEXT
-			);
+			id                    TEXT, is_deleted            TEXT, trip_update           TEXT,
+			alert                 TEXT, trip_id               TEXT, start_time            TEXT,
+			start_date            TEXT, chedule_relationship  TEXT, route_id              TEXT,
+			latitude              TEXT, longitude             TEXT, bearing               TEXT,
+			odometer              TEXT, speed                 TEXT, current_stop_sequence TEXT,
+			current_status        TEXT, timestamp             TEXT, congestion_level      TEXT,
+			stop_id               TEXT, vehicle_id            TEXT, label                 TEXT,
+			license_plate         TEXT, dt_colc               TEXT);
 			''')
 
 		except sqlite3.OperationalError as e:
