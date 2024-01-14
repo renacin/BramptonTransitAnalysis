@@ -4,11 +4,13 @@
 #
 # ----------------------------------------------------------------------------------------------------------------------
 import json
+import time
 import sqlite3
 import requests
 import numpy as np
 import pandas as pd
 from bs4 import BeautifulSoup
+from datetime import datetime
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -17,7 +19,7 @@ class DataCollector:
 
 
 	# -------------------- Functions Run On Instantiation ----------------------
-	def __init__(self, db_path):
+	def __init__(self, db_path, skp_rte_dwn=False, skp_stp_dwn=False):
 		""" This function will run when the DataCollector Class is instantiated """
 
 		# Internalize Needed URLs: Bus Location API, Bus Routes, Bus Stops
@@ -30,8 +32,12 @@ class DataCollector:
 
 		# Ensure Database Exists, Grab Recent Bus Stop Info, Grab Route Data
 		self.__db_check()
-		self.__get_bus_stops()
-		self.__get_bus_route()
+
+		if skp_stp_dwn == False:
+			self.__get_bus_stops()
+
+		if skp_rte_dwn == False:
+			self.__get_bus_route()
 
 
 	# -------------------------- Private Function 1 ----------------------------
@@ -229,7 +235,13 @@ class DataCollector:
 		updt_bus_lod_df = pd.concat([old_bus_lod_df, bus_loc_df])
 		updt_bus_lod_df = updt_bus_lod_df.drop_duplicates(subset=["timestamp", "latitude", "longitude", "label", "id", "vehicle_id", "stop_id", "trip_id", "speed"])
 
+		# Print Size Of DB
+		now = datetime.now()
+		dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+		print(f"Time: {dt_string}, Total Num Rows {len(updt_bus_lod_df)}")
+
 		# Upload Data
+		updt_bus_lod_df = updt_bus_lod_df.astype(str)
 		updt_bus_lod_df.to_sql("BUS_LOC_DB", self.conn, if_exists="replace", index=False)
 
 
@@ -244,7 +256,13 @@ if __name__ == "__main__":
 	db_path = out_path + "/DataStorage.db"
 
 	# Create An Instance Of The Data Collector
-	Collector = DataCollector(db_path)
+	Collector = DataCollector(db_path, skp_rte_dwn=True, skp_stp_dwn=True)
 
 	# Collect Bus Location Data
-	Collector.get_bus_loc()
+	while True:
+		try:
+			Collector.get_bus_loc()
+			time.sleep(5)
+
+		except:
+			break
