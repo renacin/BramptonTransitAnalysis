@@ -54,8 +54,11 @@ And so here we are. This is my 4th attempt at this project?
 
 
 ### 3. Move To RaspBerry PI & Run For A Short Test Period (Can It Run For A Week?)
+	+ Started Running Jan 15th 2024, Running Well So Far
 
 
 ### 4. Analyzing Test Data. How Can We Visualize The Data That We Have Collected?
 	Possible Research Questions:
 	+ How Much Data Are We Collecting, Does The Amount Of Data Vary By Time?
+	+ If Data Collected Does Vary By Time, IE There Are No Buses Running, Can We Run Another Script In Between?
+	+ Maybe A Script That Does Some Data Cleaning, And Maybe Does Some Basic Analysis? Maybe Even Makes A BackUp Of The Database, Just Incase?
