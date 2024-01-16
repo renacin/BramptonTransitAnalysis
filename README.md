@@ -54,7 +54,13 @@ And so here we are. This is my 4th attempt at this project?
 
 
 ### 3. Move To RaspBerry PI & Run For A Short Test Period (Can It Run For A Week?)
+	Issues Identified:
 	+ Started Running Jan 15th 2024, Running Well So Far
+	+ As The Number Of Rows Increased, So Did The Time It Took To Perform A DB Update. This Will Cause Issues Days Into Data Collection Attempt.
+	+ Need A More Efficient Methodology. Ideas?
+	+ Possible: https://vikborges.com/articles/simple-way-to-update-a-sqlite-database-table-from-a-csv-file-using-pandas/
+	+ File Size Got Really Big, Really Quick. Look Into Appropriate Datatypes.
+	+ Possible: https://sqlite.org/datatype3.html
 
 
 ### 4. Analyzing Test Data. How Can We Visualize The Data That We Have Collected?
