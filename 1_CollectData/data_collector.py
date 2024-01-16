@@ -51,6 +51,7 @@ class DataCollector:
 			self.conn.execute(
 			'''
 			CREATE TABLE IF NOT EXISTS BUS_LOC_DB (
+			u_id                  TEXT,
 			id                    TEXT, is_deleted            TEXT, trip_update           TEXT,
 			alert                 TEXT, trip_id               TEXT, start_time            TEXT,
 			start_date            TEXT, schedule_relationship TEXT, route_id              TEXT,
@@ -246,6 +247,10 @@ class DataCollector:
 		# Create A Datetime So We Know The Exact Time In Human Readable
 		bus_loc_df["dt_colc"] = pd.to_datetime(bus_loc_df["timestamp"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
 
+		# Create A U_ID Column Based On Route ID, Vehicle ID, And Timestamp
+		bus_loc_df["u_id"] = bus_loc_df["route_id"] + "_" + bus_loc_df["vehicle_id"] + "_" + bus_loc_df["timestamp"].astype(str)
+
+
 		# Gather Old Data
 		old_bus_lod_df = pd.read_sql_query("SELECT * FROM BUS_LOC_DB", self.conn)
 		len_before = len(old_bus_lod_df)
@@ -294,6 +299,9 @@ if __name__ == "__main__":
 	# For Testing
 	Collector.get_bus_loc()
 
+
+
+"route_id" + "vehicle_id" + "timestampt"
 
 
 
