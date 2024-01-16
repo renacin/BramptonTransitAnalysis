@@ -291,6 +291,14 @@ if __name__ == "__main__":
 	# Create An Instance Of The Data Collector
 	Collector = DataCollector(db_path, skp_rte_dwn=True, skp_stp_dwn=True)
 
+	# For Testing
+	Collector.get_bus_loc()
+
+
+
+
+
+"""
 	# Keept Collecting Data, Make Exceptions For Error Catching
 	while True:
 		try:
@@ -306,3 +314,4 @@ if __name__ == "__main__":
 		except Exception as e:
 			print(f"Error: {e}")
 			break
+"""
