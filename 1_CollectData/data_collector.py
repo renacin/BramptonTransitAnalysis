@@ -251,6 +251,10 @@ class DataCollector:
 		bus_loc_df["u_id"] = bus_loc_df["route_id"] + "_" + bus_loc_df["vehicle_id"] + "_" + bus_loc_df["timestamp"].astype(str)
 
 
+
+
+		# PLEASE UPDATE TO NEW METHODOLOGY
+
 		# Gather Old Data
 		old_bus_lod_df = pd.read_sql_query("SELECT * FROM BUS_LOC_DB", self.conn)
 		len_before = len(old_bus_lod_df)
@@ -282,6 +286,12 @@ class DataCollector:
 		updt_db_meta = updt_db_meta.astype(str)
 
 		updt_db_meta.to_sql("DB_META_DT", self.conn, if_exists="replace", index=False)
+
+
+
+
+
+		
 
 
 # ----------------------------------------------------------------------------------------------------------------------
