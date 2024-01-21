@@ -241,13 +241,13 @@ class DataCollector:
 			'vehicle.congestion_level': 'congestion_level', 'vehicle.stop_id': 'stop_id', 'vehicle.vehicle.id': 'vehicle_id', 'vehicle.vehicle.label': 'label',
 			'vehicle.vehicle.license_plate': 'license_plate'})
 
-		# Create A Datetime So We Know The Exact Time In Human Readable
+		# Create A Datetime So We Know The Exact Time In Human Readable Rather Than Timestamp From EPOCH
 		bus_loc_df["dt_colc"] = pd.to_datetime(bus_loc_df["timestamp"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
 
-		# Create A U_ID Column Based On Route ID, Vehicle ID, And Timestamp
+		# Create A U_ID Column Based On Route ID, Vehicle ID, And Timestamp To Act As A Unique ID For The Table
 		bus_loc_df["u_id"] = bus_loc_df["route_id"] + "_" + bus_loc_df["vehicle_id"] + "_" + bus_loc_df["timestamp"].astype(str)
 
-		# Upload New Data To SQLite Database, From Intermediary Temp Table
+		# Upload New Data To An Intermediary Temp Table, Check If The U_IDs Are In A Cache From 10 Min Ago, If Not Add To Database
 		bus_loc_df.to_sql('bus_temp', self.conn, if_exists='replace', index=False)
 		self.conn.execute('''
 		    INSERT INTO BUS_LOC_DB(u_id, id, is_deleted, trip_update, alert, trip_id, start_time,
@@ -274,36 +274,33 @@ class DataCollector:
 		self.conn.execute('DROP TABLE IF EXISTS bus_temp')
 		self.conn.commit()
 
-		# Upload Data From New Data Pull To Table That Keeps Only 500 Of The Most Recent U_IDs
+		# Combine U_IDs From New Data & U_IDs In Most Recent Cache
 		all_uids = pd.concat([pd.read_sql_query("SELECT * FROM U_ID_TEMP", self.conn),
 							  bus_loc_df[["u_id", "timestamp"]]
 							  ])
 
-		# Sort, Where The Most Recent Are At The Top, Remove Duplicates
-		all_uids["timestamp"] = 		all_uids["timestamp"].astype('int')
+		# Sort, Where The Most Recent U_IDs Are At The Top, Remove Duplicates
+		all_uids["timestamp"] = all_uids["timestamp"].astype('int')
 		all_uids = all_uids.sort_values(by="timestamp", ascending=False)
-		all_uids = all_uids.drop_duplicates(subset=["u_id"])
+		all_uids = all_uids.drop_duplicates()
 
-		# Find The Max Time Stamp, And Only Keep Data X Min Back From That ()
+		# Find The Max Time Stamp, And Only Keep Rows A Couple Of Min Back From That Value
 		min_back = 8
 		max_timestamp = all_uids["timestamp"].max() - (min_back * 60)
 		all_uids = all_uids[all_uids["timestamp"] >= max_timestamp]
 
-		# Upload 500 Most Recent U_IDs To Temp Table For Future Comparison
+		# Now That We Have
 		all_uids.to_sql('U_ID_TEMP', self.conn, if_exists='replace', index=False)
 
 		# Size After & Time To Complete
-		now = datetime.now()
-		dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+		dt_string = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 		time_to_comp_sec = round((time.time() - start_time), 2)
 
 		# Print Details Of Datapull. How Are Things Going?
 		print(f"Time: {dt_string}, Time To Complete: {time_to_comp_sec} Seconds")
 
 		# Upload Metadata To Database
-		self.conn.execute(f"""INSERT INTO DB_META_DT VALUES ('{str(dt_string)}',
-															 '{str(time_to_comp_sec)}')
-															 """)
+		self.conn.execute(f"""INSERT INTO DB_META_DT VALUES ('{str(dt_string)}', '{str(time_to_comp_sec)}')""")
 		self.conn.commit()
 
 
