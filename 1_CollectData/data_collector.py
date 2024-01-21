@@ -71,8 +71,7 @@ class DataCollector:
 			self.conn.execute(
 			'''
 			CREATE TABLE IF NOT EXISTS U_ID_TEMP (
-			u_id                    TEXT,
-			tm_stmp                 INTEGER);
+			u_id                    TEXT, timestamp               TEXT);
 			''')
 
 		except sqlite3.OperationalError as e:
@@ -84,10 +83,7 @@ class DataCollector:
 			self.conn.execute(
 			'''
 			CREATE TABLE IF NOT EXISTS DB_META_DT (
-			time                    TEXT,
-			new_rows                TEXT,
-			all_rows                TEXT,
-			time_2_comp             TEXT);
+			time                    TEXT, time_2_comp             TEXT);
 			''')
 
 		except sqlite3.OperationalError as e:
@@ -251,17 +247,14 @@ class DataCollector:
 		# Create A U_ID Column Based On Route ID, Vehicle ID, And Timestamp
 		bus_loc_df["u_id"] = bus_loc_df["route_id"] + "_" + bus_loc_df["vehicle_id"] + "_" + bus_loc_df["timestamp"].astype(str)
 
-		# Size Before
-		len_before = pd.read_sql_query("SELECT COUNT(u_id) FROM BUS_LOC_DB", self.conn)
-
-		# Upload New Data To SQLite Database, As A Temp Table
+		# Upload New Data To SQLite Database, From Intermediary Temp Table
 		bus_loc_df.to_sql('bus_temp', self.conn, if_exists='replace', index=False)
 		self.conn.execute('''
 		    INSERT INTO BUS_LOC_DB(u_id, id, is_deleted, trip_update, alert, trip_id, start_time,
 								   start_date, schedule_relationship, route_id, latitude, longitude, bearing,
 								   odometer, speed, current_stop_sequence, current_status, timestamp, congestion_level,
 								   stop_id, vehicle_id, label, license_plate, dt_colc)
-		    SELECT
+			SELECT
 				A.u_id,                  A.id,             A.is_deleted,
 				A.trip_update,           A.alert,          A.trip_id,
 				A.start_time,            A.start_date,     A.schedule_relationship,
@@ -271,45 +264,47 @@ class DataCollector:
 				A.congestion_level,      A.stop_id,        A.vehicle_id,
 				A.label,                 A.license_plate,  A.dt_colc
 
-		    FROM
-		        bus_temp AS A
-		    WHERE NOT EXISTS (
-		        SELECT u_id FROM BUS_LOC_DB WHERE BUS_LOC_DB.u_id = A.u_id
-		    )
+			FROM
+				bus_temp AS A
+
+			WHERE NOT EXISTS (
+				SELECT u_id FROM U_ID_TEMP AS B
+				WHERE B.u_id = A.u_id)
 		''')
 		self.conn.execute('DROP TABLE IF EXISTS bus_temp')
 		self.conn.commit()
 
+		# Upload Data From New Data Pull To Table That Keeps Only 500 Of The Most Recent U_IDs
+		all_uids = pd.concat([pd.read_sql_query("SELECT * FROM U_ID_TEMP", self.conn),
+							  bus_loc_df[["u_id", "timestamp"]]
+							  ])
+
+		# Sort, Where The Most Recent Are At The Top, Remove Duplicates
+		all_uids["timestamp"] = 		all_uids["timestamp"].astype('int')
+		all_uids = all_uids.sort_values(by="timestamp", ascending=False)
+		all_uids = all_uids.drop_duplicates(subset=["u_id"])
+
+		# Find The Max Time Stamp, And Only Keep Data X Min Back From That ()
+		min_back = 10
+		max_timestamp = all_uids["timestamp"].max() - (min_back * 60)
+		all_uids = all_uids[all_uids["timestamp"] >= max_timestamp]
+
+		# Upload 500 Most Recent U_IDs To Temp Table For Future Comparison
+		all_uids.to_sql('U_ID_TEMP', self.conn, if_exists='replace', index=False)
+
 		# Size After & Time To Complete
-		len_after = pd.read_sql_query("SELECT COUNT(u_id) FROM BUS_LOC_DB", self.conn)
-		new_rows = len_after - len_before
 		now = datetime.now()
 		dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
 		time_to_comp_sec = round((time.time() - start_time), 2)
 
 		# Print Details Of Datapull. How Are Things Going?
-		print(f"Time: {dt_string}, Total New Rows: {new_rows}, Total Rows {len_after}, Time To Complete: {time_to_comp_sec} Seconds")
+		print(f"Time: {dt_string}, Time To Complete: {time_to_comp_sec} Seconds")
 
 		# Upload Metadata To Database
 		self.conn.execute(f"""INSERT INTO DB_META_DT VALUES ('{str(dt_string)}',
-															 '{str(new_rows)}',
-															 '{str(len_after)}',
 															 '{str(time_to_comp_sec)}')
 															 """)
 		self.conn.commit()
-
-
-		"""
-		Possible Solution To DB Update Time Issue:
-			+ So it looks like the issue revolves around the fact that we need to compare the U_IDs from the new data with the U_IDs found in the old database
-			+ As the old database gets larger, we have to compare the U_IDs from the new datapull to a larger and larger number of old U_IDs
-			+ We need an optimization that compares the new U_IDs to U_IDs that aren't that old - instead of the entire database
-			+ Should we create a new seperate U_ID table that, at any given time - only store 2000 most recent U_IDs, and we use that to compare the new U_IDs to?
-
-		New Intermediary DB:
-			+ U_ID_TEMP
-		"""
-
 
 
 
@@ -323,7 +318,7 @@ if __name__ == "__main__":
 	db_path = out_path + "/DataStorage.db"
 
 	# Create An Instance Of The Data Collector
-	Collector = DataCollector(db_path, skp_rte_dwn=False, skp_stp_dwn=False)
+	Collector = DataCollector(db_path, skp_rte_dwn=True, skp_stp_dwn=True)
 
 	# Keept Collecting Data, Make Exceptions For Error Catching
 	while True:
