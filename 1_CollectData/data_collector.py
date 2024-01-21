@@ -225,23 +225,11 @@ class DataCollector:
 
 		# Rename Columns With Periods In Name
 		bus_loc_df = bus_loc_df.rename(columns={
-			'vehicle.trip.trip_id': 'trip_id',
-			'vehicle.trip.start_time': 'start_time',
-			'vehicle.trip.start_date': 'start_date',
-			'vehicle.trip.schedule_relationship': 'schedule_relationship',
-			'vehicle.trip.route_id': 'route_id',
-			'vehicle.position.latitude': 'latitude',
-			'vehicle.position.longitude': 'longitude',
-			'vehicle.position.bearing': 'bearing',
-			'vehicle.position.odometer': 'odometer',
-			'vehicle.position.speed': 'speed',
-			'vehicle.current_stop_sequence': 'current_stop_sequence',
-			'vehicle.current_status': 'current_status',
-			'vehicle.timestamp': 'timestamp',
-			'vehicle.congestion_level': 'congestion_level',
-			'vehicle.stop_id': 'stop_id',
-			'vehicle.vehicle.id': 'vehicle_id',
-			'vehicle.vehicle.label': 'label',
+			'vehicle.trip.trip_id': 'trip_id', 'vehicle.trip.start_time': 'start_time', 'vehicle.trip.start_date': 'start_date',
+			'vehicle.trip.schedule_relationship': 'schedule_relationship', 'vehicle.trip.route_id': 'route_id',
+			'vehicle.position.latitude': 'latitude', 'vehicle.position.longitude': 'longitude', 'vehicle.position.bearing': 'bearing', 'vehicle.position.odometer': 'odometer', 'vehicle.position.speed': 'speed',
+			'vehicle.current_stop_sequence': 'current_stop_sequence', 'vehicle.current_status': 'current_status', 'vehicle.timestamp': 'timestamp',
+			'vehicle.congestion_level': 'congestion_level', 'vehicle.stop_id': 'stop_id', 'vehicle.vehicle.id': 'vehicle_id', 'vehicle.vehicle.label': 'label',
 			'vehicle.vehicle.license_plate': 'license_plate'})
 
 		# Create A Datetime So We Know The Exact Time In Human Readable
@@ -250,48 +238,54 @@ class DataCollector:
 		# Create A U_ID Column Based On Route ID, Vehicle ID, And Timestamp
 		bus_loc_df["u_id"] = bus_loc_df["route_id"] + "_" + bus_loc_df["vehicle_id"] + "_" + bus_loc_df["timestamp"].astype(str)
 
+		# Size Before
+		len_before = len(pd.read_sql_query("SELECT DISTINCT u_id FROM BUS_LOC_DB", self.conn))
 
+		# Upload New Data To SQLite Database, As A Temp Table
+		bus_loc_df.to_sql('bus_temp', self.conn, if_exists='replace', index=False)
+		self.conn.execute('''
+		    INSERT INTO BUS_LOC_DB(u_id, id, is_deleted, trip_update, alert, trip_id, start_time,
+								   start_date, schedule_relationship, route_id, latitude, longitude, bearing,
+								   odometer, speed, current_stop_sequence, current_status, timestamp, congestion_level,
+								   stop_id, vehicle_id, label, license_plate, dt_colc)
+		    SELECT
+				A.u_id,                  A.id,             A.is_deleted,
+				A.trip_update,           A.alert,          A.trip_id,
+				A.start_time,            A.start_date,     A.schedule_relationship,
+				A.route_id,              A.latitude,       A.longitude,
+				A.bearing,               A.odometer,       A.speed,
+				A.current_stop_sequence, A.current_status, A.timestamp,
+				A.congestion_level,      A.stop_id,        A.vehicle_id,
+				A.label,                 A.license_plate,  A.dt_colc
 
+		    FROM
+		        bus_temp AS A
+		    WHERE NOT EXISTS (
+		        SELECT u_id FROM BUS_LOC_DB WHERE BUS_LOC_DB.u_id = A.u_id
+		    )
+		''')
+		self.conn.execute('DROP TABLE IF EXISTS bus_temp')
+		self.conn.commit()
 
-		# PLEASE UPDATE TO NEW METHODOLOGY
-
-		# Gather Old Data
-		old_bus_lod_df = pd.read_sql_query("SELECT * FROM BUS_LOC_DB", self.conn)
-		len_before = len(old_bus_lod_df)
-
-		# Merge Data
-		updt_bus_lod_df = pd.concat([old_bus_lod_df, bus_loc_df])
-		updt_bus_lod_df = updt_bus_lod_df.drop_duplicates(subset=["timestamp", "latitude", "longitude", "label", "id", "vehicle_id", "stop_id", "trip_id", "speed"])
-
-		# Upload Data
-		updt_bus_lod_df = updt_bus_lod_df.astype(str)
-		updt_bus_lod_df.to_sql("BUS_LOC_DB", self.conn, if_exists="replace", index=False)
-
-		# Gather Details. How Are Things Going?
+		# Size After & Time To Complete
+		len_after = len(pd.read_sql_query("SELECT DISTINCT u_id FROM BUS_LOC_DB", self.conn))
+		new_rows = len_after - len_before
 		now = datetime.now()
 		dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
 		time_to_comp_sec = round((time.time() - start_time), 2)
-		new_rows = len(updt_bus_lod_df) - len_before
-		tot_rows = len(updt_bus_lod_df)
 
 		# Print Details Of Datapull. How Are Things Going?
-		print(f"Time: {dt_string}, Total New Rows: {new_rows}, Total Rows {tot_rows}, Time To Complete: {time_to_comp_sec} Seconds")
+		print(f"Time: {dt_string}, Total New Rows: {new_rows}, Total Rows {len_after}, Time To Complete: {time_to_comp_sec} Seconds")
 
-		# Append Metadata
-		old_db_meta = pd.read_sql_query("SELECT * FROM DB_META_DT", self.conn)
-		new_db_meta = pd.DataFrame.from_dict({"time": [dt_string], "new_rows": [new_rows], "all_rows": [tot_rows], "time_2_comp": [time_to_comp_sec]})
-		updt_db_meta = pd.concat([old_db_meta, new_db_meta])
-
-		updt_db_meta = updt_db_meta.drop_duplicates(subset=["time", "new_rows", "all_rows", "time_2_comp"])
-		updt_db_meta = updt_db_meta.astype(str)
-
-		updt_db_meta.to_sql("DB_META_DT", self.conn, if_exists="replace", index=False)
+		# Upload Metadata To Database
+		self.conn.execute(f"""INSERT INTO DB_META_DT VALUES ('{str(dt_string)}',
+															 '{str(new_rows)}',
+															 '{str(len_after)}',
+															 '{str(time_to_comp_sec)}')
+															 """)
+		self.conn.commit()
 
 
-
-
-
-		
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -306,17 +300,6 @@ if __name__ == "__main__":
 	# Create An Instance Of The Data Collector
 	Collector = DataCollector(db_path, skp_rte_dwn=True, skp_stp_dwn=True)
 
-	# For Testing
-	Collector.get_bus_loc()
-
-
-
-"route_id" + "vehicle_id" + "timestampt"
-
-
-
-
-"""
 	# Keept Collecting Data, Make Exceptions For Error Catching
 	while True:
 		try:
@@ -332,4 +315,3 @@ if __name__ == "__main__":
 		except Exception as e:
 			print(f"Error: {e}")
 			break
-"""
