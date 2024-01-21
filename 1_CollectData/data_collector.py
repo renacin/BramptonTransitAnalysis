@@ -70,6 +70,19 @@ class DataCollector:
 		try:
 			self.conn.execute(
 			'''
+			CREATE TABLE IF NOT EXISTS U_ID_TEMP (
+			u_id                    TEXT,
+			tm_stmp                 INTEGER);
+			''')
+
+		except sqlite3.OperationalError as e:
+			print(e)
+
+
+		# Connect to database check if it has data in it | Create If Not There
+		try:
+			self.conn.execute(
+			'''
 			CREATE TABLE IF NOT EXISTS DB_META_DT (
 			time                    TEXT,
 			new_rows                TEXT,
@@ -284,6 +297,18 @@ class DataCollector:
 															 '{str(time_to_comp_sec)}')
 															 """)
 		self.conn.commit()
+
+
+		"""
+		Possible Solution To DB Update Time Issue:
+			+ So it looks like the issue revolves around the fact that we need to compare the U_IDs from the new data with the U_IDs found in the old database
+			+ As the old database gets larger, we have to compare the U_IDs from the new datapull to a larger and larger number of old U_IDs
+			+ We need an optimization that compares the new U_IDs to U_IDs that aren't that old - instead of the entire database
+			+ Should we create a new seperate U_ID table that, at any given time - only store 2000 most recent U_IDs, and we use that to compare the new U_IDs to?
+
+		New Intermediary DB:
+			+ U_ID_TEMP
+		"""
 
 
 
