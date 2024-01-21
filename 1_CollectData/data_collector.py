@@ -285,7 +285,7 @@ class DataCollector:
 		all_uids = all_uids.drop_duplicates(subset=["u_id"])
 
 		# Find The Max Time Stamp, And Only Keep Data X Min Back From That ()
-		min_back = 10
+		min_back = 8
 		max_timestamp = all_uids["timestamp"].max() - (min_back * 60)
 		all_uids = all_uids[all_uids["timestamp"] >= max_timestamp]
 
