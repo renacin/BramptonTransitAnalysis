@@ -239,7 +239,7 @@ class DataCollector:
 		bus_loc_df["u_id"] = bus_loc_df["route_id"] + "_" + bus_loc_df["vehicle_id"] + "_" + bus_loc_df["timestamp"].astype(str)
 
 		# Size Before
-		len_before = len(pd.read_sql_query("SELECT DISTINCT u_id FROM BUS_LOC_DB", self.conn))
+		len_before = pd.read_sql_query("SELECT COUNT(u_id) FROM BUS_LOC_DB", self.conn)
 
 		# Upload New Data To SQLite Database, As A Temp Table
 		bus_loc_df.to_sql('bus_temp', self.conn, if_exists='replace', index=False)
@@ -268,7 +268,7 @@ class DataCollector:
 		self.conn.commit()
 
 		# Size After & Time To Complete
-		len_after = len(pd.read_sql_query("SELECT DISTINCT u_id FROM BUS_LOC_DB", self.conn))
+		len_after = pd.read_sql_query("SELECT COUNT(u_id) FROM BUS_LOC_DB", self.conn)
 		new_rows = len_after - len_before
 		now = datetime.now()
 		dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
