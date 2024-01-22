@@ -312,6 +312,7 @@ class DataCollector:
 			dt_string = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 			print(f"Time: {dt_string}, Time To Complete: {timeout_val} Seconds")
 
+			# Upload Metadata To Database
 			self.conn.execute(f"""INSERT INTO DB_META_DT VALUES ('{str(dt_string)}', '{str(timeout_val)}')""")
 			self.conn.commit()
 
