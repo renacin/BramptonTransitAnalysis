@@ -326,7 +326,7 @@ if __name__ == "__main__":
 	db_path = out_path + "/DataStorage.db"
 
 	# Create An Instance Of The Data Collector
-	Collector = DataCollector(db_path, skp_rte_dwn=True, skp_stp_dwn=True)
+	Collector = DataCollector(db_path, skp_rte_dwn=False, skp_stp_dwn=False)
 
 	# Keept Collecting Data, Make Exceptions For Error Catching
 	while True:
