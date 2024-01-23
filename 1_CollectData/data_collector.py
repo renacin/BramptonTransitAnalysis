@@ -315,6 +315,7 @@ class DataCollector:
 			self.conn.execute(f"""INSERT INTO DB_META_DT VALUES ('{str(dt_string)}', '{str(timeout_val)}')""")
 			self.conn.commit()
 
+		# TODO!!!
 		# IF ANY OTHER ERROR< COLLECT DATA INTO LOGGING FILE! TODO
 		except Exception as e:
 			print(f"Error: {e}")
@@ -327,15 +328,19 @@ class DataCollector:
 # Main Entry Point Into Python Code
 if __name__ == "__main__":
 
-	# Dine Paths Needed
+	# Define Paths Needed
 	out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/3_Data"
 	db_path = out_path + "/DataStorage.db"
 
 	# Create An Instance Of The Data Collector
 	Collector = DataCollector(db_path, skp_rte_dwn=False, skp_stp_dwn=False)
 
-	# Keept Collecting Data, Make Exceptions For Error Catching
+	# Keep Collecting Data, Make Exceptions For Error Catching
 	while True:
+
+		# TODO!!!
+		# If It's Late At Night, And No Busses Are Running, Format The Data Collected,
+		# Clean Up Databases, And Export Data Into Other Storage Units
 		try:
 			Collector.get_bus_loc()
 			time.sleep(15)
