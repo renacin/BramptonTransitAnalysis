@@ -307,7 +307,6 @@ class DataCollector:
 
 
 		except requests.exceptions.Timeout:
-
 			# Size After & Time To Complete
 			dt_string = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 			print(f"Time: {dt_string}, Time To Complete: {timeout_val} Seconds")
@@ -315,6 +314,12 @@ class DataCollector:
 			# Upload Metadata To Database
 			self.conn.execute(f"""INSERT INTO DB_META_DT VALUES ('{str(dt_string)}', '{str(timeout_val)}')""")
 			self.conn.commit()
+
+		# IF ANY OTHER ERROR< COLLECT DATA INTO LOGGING FILE! TODO
+		except Exception as e:
+			print(f"Error: {e}")
+			pass
+
 
 
 # ----------------------------------------------------------------------------------------------------------------------
