@@ -29,8 +29,6 @@ grped_time = df.groupby(['YEAR', 'MONTH', 'DAY', 'R30_TM'], as_index=False).agg(
 						COUNT_BUS = ("vehicle_id", num_unique)
 						)
 
-"""
 # Export Data
 out_path = r"/Users/renacin/Desktop/Out.csv"
 grped_time.to_csv(out_path, index=False)
-"""
