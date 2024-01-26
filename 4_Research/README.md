@@ -26,9 +26,28 @@
 	  having to read in the entire table.
 
 	+ The solution I came up with was a dynamic cache of "U_ID"s. I know that sounds
-	  complicated, but let me explain. The column "U_ID" contains
+	  complicated, but let me explain. The column "U_ID" is based on, route_id,
+	  vehicle_id, and timestamp. This creates a unique identifier for a bus location
+	  update.
+
+	+ Once we pull the JSON data, we create the U_ID column. However, before we add
+	  those new rows to our database table, we check to see if those U_IDs are in
+	  another database table, a cache of U_IDs gathered in the last 10 minutes.
+	  If they can't be found in the cache we add them to the old database table.
+	  Note, that we add the new rows to the 10 min cache database table as they are
+	  now not unique, and we remove rows that are older than 10 min.
+
+	+ One additional speed up that I made use of was the timeout feature of the
+	  get request. It doesn't make data transfers faster, but it does make things
+	  more consistent over all.
+
+	![Methodology_1](https://github.com/renacin/BramptonTransitAnalysis/blob/master/4_Research/Images/DB%20Update%20Methodology%20%231.png)
+
+	![Methodology_2](https://github.com/renacin/BramptonTransitAnalysis/blob/master/4_Research/Images/DB%20Update%20Methodology%20%232.png)
+
+	![Methodology_3](https://github.com/renacin/BramptonTransitAnalysis/blob/master/4_Research/Images/DB%20Update%20Methodology%20%233.png)
 
 
 
 ## 2. (Database) Daily Offloading RPI3 Memory Constraints
-	  bus_loc_df["u_id"] = bus_loc_df["route_id"] + "_" + bus_loc_df["vehicle_id"] + "_" + bus_loc_df["timestamp"].astype(str)
+	+ TODO
