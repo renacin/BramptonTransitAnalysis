@@ -6,7 +6,7 @@
 	+ If there was some area of difficulty, the process to identifying a solution
 	  will be documented here.
 
-## 1. DB Update Issue:
+## 1. (Database) Update Issue
 	+ One challenging issue I faced in this project, was the process of
 	  reaching out to the JSON API, and adding unique rows to a database table.
 
@@ -25,7 +25,10 @@
 	+ To fix this I needed a way to upload unique rows to the old database table without
 	  having to read in the entire table.
 
-	+ The solution I came up with was a dynamic cache of U_IDs. I know that sounds
+	+ The solution I came up with was a dynamic cache of "U_ID"s. I know that sounds
 	  complicated, but let me explain. The column "U_ID" contains
 
-DB Sizing Issue.
+
+
+## 2. (Database) Daily Offloading RPI3 Memory Constraints
+	  bus_loc_df["u_id"] = bus_loc_df["route_id"] + "_" + bus_loc_df["vehicle_id"] + "_" + bus_loc_df["timestamp"].astype(str)
