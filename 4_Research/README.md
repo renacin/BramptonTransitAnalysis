@@ -41,6 +41,8 @@
 	  get request. It doesn't make data transfers faster, but it does make things
 	  more consistent over all.
 
+	![LOGO](https://github.com/renacin/BramptonTransitAnalysis/blob/master/4_Research/Images/DB Update Methodology #1.png "Interval House Toronto Logo")
+
 	![Methodology_1](https://github.com/renacin/BramptonTransitAnalysis/blob/master/4_Research/Images/DB%20Update%20Methodology%20%231.png "Employee Data title")
 
 	![Methodology_2](https://github.com/renacin/BramptonTransitAnalysis/blob/master/4_Research/Images/DB%20Update%20Methodology%20%232.png)
