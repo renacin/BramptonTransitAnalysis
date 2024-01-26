@@ -41,8 +41,8 @@
 	  get request. It doesn't make data transfers faster, but it does make things
 	  more consistent over all.
 
-<img src="https://github.com/renacin/BramptonTransitAnalysis/blob/master/4_Research/Images/DB_UPDATE_1.png" width="200" />
-<img src="https://github.com/renacin/BramptonTransitAnalysis/blob/master/4_Research/Images/DB_UPDATE_2.png" width="200" />
+<center><img src="https://github.com/renacin/BramptonTransitAnalysis/blob/master/4_Research/Images/DB_UPDATE_1.png" width="200" /><center/>
+<img src="https://github.com/renacin/BramptonTransitAnalysis/blob/master/4_Research/Images/DB_UPDATE_2.png" width="400" />
 <img src="https://github.com/renacin/BramptonTransitAnalysis/blob/master/4_Research/Images/DB_UPDATE_3.png" width="200" />
 
 
