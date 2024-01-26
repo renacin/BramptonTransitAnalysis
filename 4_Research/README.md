@@ -41,11 +41,10 @@
 	  get request. It doesn't make data transfers faster, but it does make things
 	  more consistent over all.
 
-![DB_Update_Methodology_1](https://github.com/renacin/BramptonTransitAnalysis/blob/master/4_Research/Images/DB_UPDATE_1.png "DB Update Methodology #1")
+<img src="https://github.com/renacin/BramptonTransitAnalysis/blob/master/4_Research/Images/DB_UPDATE_1.png" width="200" />
+<img src="https://github.com/renacin/BramptonTransitAnalysis/blob/master/4_Research/Images/DB_UPDATE_2.png" width="200" />
+<img src="https://github.com/renacin/BramptonTransitAnalysis/blob/master/4_Research/Images/DB_UPDATE_3.png" width="200" />
 
-![DB_Update_Methodology_2](https://github.com/renacin/BramptonTransitAnalysis/blob/master/4_Research/Images/DB_UPDATE_2.png "DB Update Methodology #2")
-
-![DB_Update_Methodology_3](https://github.com/renacin/BramptonTransitAnalysis/blob/master/4_Research/Images/DB_UPDATE_3.png "DB Update Methodology #3")
 
 
 
