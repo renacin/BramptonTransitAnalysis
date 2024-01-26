@@ -41,15 +41,17 @@
 	  get request. It doesn't make data transfers faster, but it does make things
 	  more consistent over all.
 
-Hello World
+DB Update: Methodology 1
 <p align="center">
 <img src="https://github.com/renacin/BramptonTransitAnalysis/blob/master/4_Research/Images/DB_UPDATE_1.png" width="500"/>
 </p>
 
+DB Update: Methodology 2
 <p align="center">
 <img src="https://github.com/renacin/BramptonTransitAnalysis/blob/master/4_Research/Images/DB_UPDATE_2.png" width="500"/>
 </p>
 
+DB Update: Methodology 3
 <p align="center">
 <img src="https://github.com/renacin/BramptonTransitAnalysis/blob/master/4_Research/Images/DB_UPDATE_3.png" width="500"/>
 </p>
