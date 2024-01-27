@@ -4,18 +4,13 @@
 #
 # ----------------------------------------------------------------------------------------------------------------------
 import time
-import sqlite3
 import datetime
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib.dates import DateFormatter
 # ----------------------------------------------------------------------------------------------------------------------
 
-
+# Note That 3:00AM Would Be Stored As 03:00
 # Depending On When I Start This, The First Alarm Will Be The Next Day (+1) At 0300 AM
 alrm_dt = str(datetime.datetime.now().strftime('%Y-%m-%d'))
-alrm_tm = "20:33"
+alrm_tm = "09:21"
 
 while True:
 
