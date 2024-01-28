@@ -322,9 +322,41 @@ class DataCollector:
 
 
 	# -------------------------- Public Function 2 -----------------------------
-	def xprt_data(self, out_path, out_table, clear_all=True):
+	def xprt_data(self, out_path, out_table, dup_col, clear_all=True):
 		"""
 		When called, this function will gather all data in a given table, format
 		the data in that data table, export it as a CSV to a given path, and then
 		empty out the the chosen table if the appropriate choice is given.
 		"""
+
+		# Define Needed Variables
+		dt_nw = datetime.now().strftime("%d/%m/%Y")
+		db_path = out_path + f"/{out_table}_{dt_nw}.csv"
+
+		# Read Data From Defined Database, Remove Duplicates
+		df = pd.read_sql_query(f"SELECT * FROM {out_table}", self.conn)
+		df = df.drop_duplicates()
+
+		# We Need To Keep An A Version Of The Input Dataframe With No Rows & Just Columns
+		empty_df = df.iloc[:0].copy()
+
+		# If List Then All Cols In List
+		if type(input_val) == list:
+			df = df[input_val]
+			df = df.drop_duplicates(subset=[dup_col])
+
+		# If Value = True Then All
+		elif input_val == True:
+			pass
+
+		# If Invalid, Let The User Know
+		else:
+			print("Invalid Arguement")
+			raise ValueError("Invalid Choice: Choose Either List Of Columns, Or True")
+
+		# Export Data
+		df.to_csv(db_path, index=False)
+		del df
+
+		# Write Over DB Table So It's Now Empty
+		em_df.to_sql(f"{out_table}", self.conn, if_exists="replace", index=False)

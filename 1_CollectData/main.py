@@ -11,16 +11,19 @@ import time
 # Main Logic Of Python Code
 def main():
 
-	# Define Paths Needed
-	out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/3_Data"
-	db_path = out_path + "/DataStorage.db"
+	# Path For Working Database [Internal Storage]
+	db_out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/3_Data"
+	db_path = db_out_path + "/DataStorage.db"
+
+	# Path For Exported Data [External Storage]
+	csv_out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/3_Data"
 
 	# Create An Instance Of The Data Collector
 	Collector = DataCollector(db_path, skp_rte_dwn=True, skp_stp_dwn=True)
 
 	# Scheduled Maintenance Will Be The Next Day (+1) At 0300 AM, Export Data From DB To CSV, And Clear The Database
 	alrm_dt = str(datetime.datetime.now().strftime('%Y-%m-%d'))
-	alrm_tm = "22:32"
+	alrm_tm = "12:13"
 
 	# Keep Data Collector Running
 	while True:
@@ -35,23 +38,14 @@ def main():
 			# If It's 0300AM, Export Data To CSV, Clean DB Tables, Generate Graphics, Etc...
 			if (nw_tm == alrm_tm) & (nw_dt == alrm_dt):
 
-				# Perform Data Maintenance
-				print(f"{nw_tm}: It's Time To Clean Up The DB")
-
-				# Set The New Maintenance Alarm For The Next Day
+				# Perform Data Maintenance, Set Next Day Alarm
+				Collector.xprt_data(csv_out_path, "BUS_LOC_DB", "u_id", clear_all=True)
 				alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))
 
-
-			# If It's Not Scheduled Maintenance
+			# If It's Not Scheduled Maintenance Just Collect Data
 			else:
-				print(f"{nw_tm}: Collecting Data")
-
-				"""
 				Collector.get_bus_loc()
 				time.sleep(15)
-				"""
-
-			time.sleep(10)
 
 
 		except KeyboardInterrupt:
