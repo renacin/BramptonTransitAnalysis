@@ -38,6 +38,7 @@ def main():
 
 				# Perform Data Maintenance, Set Next Day Alarm | TODO Move Over Metadata As Well
 				Collector.xprt_data(csv_out_path, "BUS_LOC_DB", "u_id", True)
+				Collector.xprt_data(csv_out_path, "DB_META_DT", "time", True)
 				alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))
 				time.sleep(15)
 
