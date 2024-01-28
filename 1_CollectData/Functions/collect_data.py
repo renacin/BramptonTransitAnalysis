@@ -295,7 +295,7 @@ class DataCollector:
 			all_uids.to_sql('U_ID_TEMP', self.conn, if_exists='replace', index=False)
 
 			# Size After & Time To Complete
-			dt_string = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+			dt_string = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
 			time_to_comp_sec = round((time.time() - start_time), 2)
 
 			# Print Details Of Datapull. How Are Things Going?
@@ -308,7 +308,7 @@ class DataCollector:
 
 		except requests.exceptions.Timeout:
 			# Size After & Time To Complete
-			dt_string = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+			dt_string = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
 			print(f"Time: {dt_string}, Time To Complete: {timeout_val} Seconds")
 
 			# Upload Metadata To Database
@@ -322,7 +322,7 @@ class DataCollector:
 
 
 	# -------------------------- Public Function 2 -----------------------------
-	def xprt_data(self, out_path, out_table, dup_col, clear_all=True):
+	def xprt_data(self, out_path, out_table, dup_col, input_val=True):
 		"""
 		When called, this function will gather all data in a given table, format
 		the data in that data table, export it as a CSV to a given path, and then
@@ -330,7 +330,8 @@ class DataCollector:
 		"""
 
 		# Define Needed Variables
-		dt_nw = datetime.now().strftime("%d/%m/%Y")
+		dt_nw = datetime.now().strftime("%d-%m-%Y")
+		tm_nw = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
 		db_path = out_path + f"/{out_table}_{dt_nw}.csv"
 
 		# Read Data From Defined Database, Remove Duplicates
@@ -359,4 +360,5 @@ class DataCollector:
 		del df
 
 		# Write Over DB Table So It's Now Empty
-		em_df.to_sql(f"{out_table}", self.conn, if_exists="replace", index=False)
+		empty_df.to_sql(f"{out_table}", self.conn, if_exists="replace", index=False)
+		print(f"Time: {tm_nw}, Data Successfully Export & DB Table - {out_table} Cleaned")

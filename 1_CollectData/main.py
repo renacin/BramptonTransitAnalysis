@@ -23,7 +23,7 @@ def main():
 
 	# Scheduled Maintenance Will Be The Next Day (+1) At 0300 AM, Export Data From DB To CSV, And Clear The Database
 	alrm_dt = str(datetime.datetime.now().strftime('%Y-%m-%d'))
-	alrm_tm = "12:13"
+	alrm_tm = "14:37"
 
 	# Keep Data Collector Running
 	while True:
@@ -39,8 +39,9 @@ def main():
 			if (nw_tm == alrm_tm) & (nw_dt == alrm_dt):
 
 				# Perform Data Maintenance, Set Next Day Alarm
-				Collector.xprt_data(csv_out_path, "BUS_LOC_DB", "u_id", clear_all=True)
+				Collector.xprt_data(csv_out_path, "BUS_LOC_DB", "u_id", True)
 				alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))
+				time.sleep(15)
 
 			# If It's Not Scheduled Maintenance Just Collect Data
 			else:
@@ -50,7 +51,7 @@ def main():
 
 		except KeyboardInterrupt:
 			now = datetime.datetime.now()
-			dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+			dt_string = now.strftime("%d-%m-%Y %H:%M:%S")
 			print(f" Stoped By User: {dt_string}")
 			break
 
