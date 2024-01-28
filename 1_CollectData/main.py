@@ -4,9 +4,8 @@
 #
 # ----------------------------------------------------------------------------------------------------------------------
 from Functions.collect_data import DataCollector
-
-import time
 import datetime
+import time
 # ----------------------------------------------------------------------------------------------------------------------
 
 # Main Logic Of Python Code
@@ -22,7 +21,6 @@ def main():
 	# Scheduled Maintenance Will Be The Next Day (+1) At 0300 AM, Export Data From DB To CSV, And Clear The Database
 	alrm_dt = str(datetime.datetime.now().strftime('%Y-%m-%d'))
 	alrm_tm = "22:32"
-
 
 	# Keep Data Collector Running
 	while True:

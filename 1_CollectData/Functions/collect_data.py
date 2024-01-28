@@ -319,3 +319,12 @@ class DataCollector:
 		except Exception as e:
 			print(f"Error: {e}")
 			pass
+
+
+	# -------------------------- Public Function 2 -----------------------------
+	def xprt_data(self, out_path, out_table, clear_all=True):
+		"""
+		When called, this function will gather all data in a given table, format
+		the data in that data table, export it as a CSV to a given path, and then
+		empty out the the chosen table if the appropriate choice is given.
+		"""
