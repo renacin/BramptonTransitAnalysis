@@ -19,7 +19,7 @@ def main():
 	csv_out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/3_Data"
 
 	# Create An Instance Of The Data Collector
-	Collector = DataCollector(db_path, skp_rte_dwn=True, skp_stp_dwn=True)
+	Collector = DataCollector(db_path, skp_rte_dwn=False, skp_stp_dwn=False)
 
 	# Scheduled Maintenance Will Be The Next Day (+1) At 0315 AM, Export Data From DB To CSV, And Clear The Database
 	alrm_dt = str(datetime.datetime.now().strftime('%Y-%m-%d'))
