@@ -21,16 +21,17 @@ def main():
     # Create An Instance Of The Data Collector
     Collector = DataCollector(db_path, skp_rte_dwn=False, skp_stp_dwn=False)
 
-    # Scheduled Maintenance Will Be The Next Day (+1) At 0315 AM, Export Data From DB To CSV, And Clear The Database
-    alrm_dt = str(datetime.datetime.now().strftime('%Y-%m-%d'))
-    alrm_tm = "03:15"
+    # Scheduled Maintenance Will Be The Next Day (+1) At 0300 AM, Export Data From DB To CSV, And Clear The Database
+    # Note: Compare Hour Only. Incase Processing Causes It To Miss The Exact Time With Regards To Minutes
+	alrm_dt = str(datetime.datetime.now().strftime('%Y-%m-%d'))
+    alrm_tm = "03"
 
     # Keep Data Collector Running
     while True:
 
         # Get The Current Time
         nw_dt = str(datetime.datetime.now().strftime('%Y-%m-%d'))
-        nw_tm = str(datetime.datetime.now().strftime('%H:%M'))
+        nw_tm = str(datetime.datetime.now().strftime('%H'))
 
         try:
             # If It's 0300AM, Export Data To CSV, Clean DB Tables, Generate Graphics, Etc...
