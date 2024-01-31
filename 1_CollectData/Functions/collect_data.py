@@ -319,7 +319,8 @@ class DataCollector:
         # TODO I NEED TO COLLECT DATA TO SEE WHAT THE ISSUE IS.
         # I NEED THE JSON RESPONSE WHAT'S INSIDE OF IT. I NEED LOOGING
         except Exception as e:
-            print(f"Error: {e}")
+            print(f"Data Collection Error: {e}")
+            print(requests.get(self.bus_loc_url, timeout=timeout_val))
             pass
 
 
