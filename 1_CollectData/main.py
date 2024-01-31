@@ -19,11 +19,12 @@ def main():
     csv_out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/3_Data"
 
     # Create An Instance Of The Data Collector
-    Collector = DataCollector(db_path, skp_rte_dwn=False, skp_stp_dwn=False)
+    Collector = DataCollector(db_path, skp_rte_dwn=True, skp_stp_dwn=True)
 
     # Scheduled Maintenance Will Be The Next Day (+1) At 0300 AM, Export Data From DB To CSV, And Clear The Database
     # Note: Compare Hour Only. Incase Processing Causes It To Miss The Exact Time With Regards To Minutes
     alrm_dt = str(datetime.datetime.now().strftime('%Y-%m-%d'))
+    alrm_hr = "03"
 
     # Keep Data Collector Running
     while True:
@@ -34,7 +35,7 @@ def main():
 
         try:
             # If It's 0300AM, Export Data To CSV, Clean DB Tables, Generate Graphics, Etc...
-            if ((nw_tm == "03") & (nw_dt == alrm_dt)) or ((nw_tm == "3") & (nw_dt == alrm_dt)):
+            if ((nw_tm == alrm_hr) & (nw_dt == alrm_dt)):
 
                 # Perform Data Maintenance, Set Next Day Alarm | TODO Move Over Metadata As Well
                 Collector.xprt_data(csv_out_path, "BUS_LOC_DB", "u_id", True)
