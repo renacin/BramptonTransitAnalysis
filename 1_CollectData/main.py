@@ -41,7 +41,7 @@ def main():
                 Collector.xprt_data(csv_out_path, "BUS_LOC_DB", "u_id", True)
                 Collector.xprt_data(csv_out_path, "DB_META_DT", "time", True)
 
-                # 
+                # Do Other Data Processing Once Methodology Found
 
                 # Set New Alarm Date
                 alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))
