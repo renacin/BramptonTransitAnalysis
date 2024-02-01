@@ -26,8 +26,9 @@ def main():
         print("Running On RPI3")
 
     else:
-        raise Exception as e:
-        print(f"Invalid Host Name {e}")
+        print(f"Invalid Host Name")
+        raise Exception
+
 
 
     # Create An Instance Of The Data Collector
@@ -68,7 +69,7 @@ def main():
         except KeyboardInterrupt:
             now = datetime.datetime.now()
             dt_string = now.strftime("%d-%m-%Y %H:%M:%S")
-            print(f" Stoped By User: {dt_string}")
+            print(f"Interrupt Error: {dt_string}")
             break
 
         except Exception as e:
