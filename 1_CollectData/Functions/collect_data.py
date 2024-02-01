@@ -227,7 +227,7 @@ class DataCollector:
         start_time = time.time()
 
         # Injest As JSON, and Load Into Pandas Dataframe, Include Timeout
-        timeout_val = 2
+        timeout_val = (1.5, 1.5) # Timeout For Read & Write
         dt_string = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
 
 

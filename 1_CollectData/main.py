@@ -47,11 +47,12 @@ def main():
         nw_dt = str(datetime.datetime.now().strftime('%Y-%m-%d'))
         nw_tm = str(datetime.datetime.now().strftime('%H'))
 
+
         try:
             # If It's 0300AM, Export Data To CSV, Clean DB Tables, Generate Graphics, Etc...
             if ((nw_tm == alrm_hr) & (nw_dt == alrm_dt)):
 
-                # Perform Data Maintenance
+                # Perform Data Maintenance, Export Data & Clean Database
                 Collector.xprt_data(csv_out_path, "BUS_LOC_DB", "u_id", True)
                 Collector.xprt_data(csv_out_path, "DB_META_DT", "time", True)
 
@@ -59,12 +60,13 @@ def main():
 
                 # Set New Alarm Date
                 alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))
-                time.sleep(15)
+                time.sleep(5)
 
             # If It's Not Scheduled Maintenance Just Collect Data
             else:
                 Collector.get_bus_loc()
-                time.sleep(15)
+                time.sleep(10)
+
 
         except KeyboardInterrupt:
             now = datetime.datetime.now()
