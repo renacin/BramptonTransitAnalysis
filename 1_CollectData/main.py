@@ -37,9 +37,13 @@ def main():
             # If It's 0300AM, Export Data To CSV, Clean DB Tables, Generate Graphics, Etc...
             if ((nw_tm == alrm_hr) & (nw_dt == alrm_dt)):
 
-                # Perform Data Maintenance, Set Next Day Alarm | TODO Move Over Metadata As Well
+                # Perform Data Maintenance
                 Collector.xprt_data(csv_out_path, "BUS_LOC_DB", "u_id", True)
                 Collector.xprt_data(csv_out_path, "DB_META_DT", "time", True)
+
+                # 
+
+                # Set New Alarm Date
                 alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))
                 time.sleep(15)
 
