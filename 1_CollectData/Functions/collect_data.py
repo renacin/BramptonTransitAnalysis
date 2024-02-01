@@ -300,30 +300,20 @@ class DataCollector:
             # Size After & Time To Complete
             time_to_comp_sec = round((time.time() - start_time), 2)
 
-            # Print Details Of Datapull. How Are Things Going?
-            print(f"Time: {dt_string}, Time To Complete: {time_to_comp_sec} Seconds - Data Collected")
-
             # Upload Metadata To Database
             self.conn.execute(f"""INSERT INTO DB_META_DT VALUES ('{str(dt_string)}', '{str(time_to_comp_sec)}')""")
             self.conn.commit()
 
 
         except requests.exceptions.Timeout:
-            # Size After & Time To Complete
-            dt_string = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-            print(f"Time: {dt_string}, Time To Complete: {timeout_val} Seconds - Exception Timeout")
-
-            # Upload Metadata To Database
-            self.conn.execute(f"""INSERT INTO DB_META_DT VALUES ('{str(dt_string)}', '{str(timeout_val)}')""")
-            self.conn.commit()
+            # When Did The Exception Occur?
+            print(f"Time: {dt_string}, Exception Timeout")
 
 
-        # TODO I NEED TO COLLECT DATA TO SEE WHAT THE ISSUE IS.
-        # I NEED THE JSON RESPONSE WHAT'S INSIDE OF IT. I NEED LOOGING
         except Exception as e:
-            print(f"Data Collection Error: {e}")
             r_data = requests.get(self.bus_loc_url, timeout=timeout_val)
             data = json.loads(r_data.text)
+            print(f"Time: {dt_string}, Data Collection Error, {e}")
             print(f"->{data}<-")
 
 

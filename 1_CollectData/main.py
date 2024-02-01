@@ -16,17 +16,23 @@ def main():
     if socket.gethostname() == "Renacins-MacBook-Pro.local":
         db_out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/3_Data"
         csv_out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/3_Data"
+        db_path = db_out_path + "/DataStorage.db"
         print("Running On Macbook Pro")
 
-    else:
+    elif socket.gethostname() == "raspberrypi":
         db_out_path = r"/home/pi/Documents/Python/BramptonTransitAnalysis/3_Data"
         csv_out_path = r"/media/pi/STORAGE"
+        db_path = db_out_path + "/DataStorage.db"
         print("Running On RPI3")
 
-    db_path = db_out_path + "/DataStorage.db"
+    else:
+        raise Exception as e:
+        print(f"Invalid Host Name {e}")
+
 
     # Create An Instance Of The Data Collector
     Collector = DataCollector(db_path, skp_rte_dwn=True, skp_stp_dwn=True)
+
 
     # Scheduled Maintenance Will Be The Next Day (+1) At 0300 AM, Export Data From DB To CSV, And Clear The Database
     # Note: Compare Hour Only. Incase Processing Causes It To Miss The Exact Time With Regards To Minutes
