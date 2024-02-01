@@ -4,6 +4,7 @@
 #
 # ----------------------------------------------------------------------------------------------------------------------
 from Functions.collect_data import DataCollector
+import socket
 import datetime
 import time
 # ----------------------------------------------------------------------------------------------------------------------
@@ -11,12 +12,18 @@ import time
 # Main Logic Of Python Code
 def main():
 
-    # Path For Working Database [Internal Storage]
-    db_out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/3_Data"
-    db_path = db_out_path + "/DataStorage.db"
+    # Define [Internal Storage], & [External Storage] Storage
+    if socket.gethostname() == "Renacins-MacBook-Pro.local":
+        db_out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/3_Data"
+        csv_out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/3_Data"
+        print("Running On Macbook Pro")
 
-    # Path For Exported Data [External Storage]
-    csv_out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/3_Data"
+    else:
+        db_out_path = r"/home/pi/Documents/Python/BramptonTransitAnalysis/3_Data"
+        csv_out_path = r"/media/pi/STORAGE"
+        print("Running On RPI3")
+
+    db_path = db_out_path + "/DataStorage.db"
 
     # Create An Instance Of The Data Collector
     Collector = DataCollector(db_path, skp_rte_dwn=True, skp_stp_dwn=True)
