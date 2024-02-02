@@ -37,8 +37,8 @@ def main():
 
     # Scheduled Maintenance Will Be The Next Day (+1) At 0300 AM, Export Data From DB To CSV, And Clear The Database
     # Note: Compare Hour Only. Incase Processing Causes It To Miss The Exact Time With Regards To Minutes
-    alrm_dt = str(datetime.datetime.now().strftime('%Y-%m-%d'))
-    alrm_hr = 10
+    alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))
+    alrm_hr = 03
 
     # Keep Data Collector Running
     while True:
@@ -51,9 +51,6 @@ def main():
             # If It's 0300AM, Export Data To CSV, Clean DB Tables, Generate Graphics, Etc...
             if cur_hr == alrm_hr and cur_dt == alrm_dt:
 
-                # Wait For A Bit
-                time.sleep(2)
-
                 # Perform Data Maintenance, Export Data & Clean Database
                 Collector.xprt_data(csv_out_path, "BUS_LOC_DB", "u_id", True)
                 Collector.xprt_data(csv_out_path, "DB_META_DT", "time", True)
@@ -63,7 +60,6 @@ def main():
 
                 # Set New Alarm Date
                 alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))
-                time.sleep(2)
 
             # If It's Not Scheduled Maintenance Just Collect Data
             else:
