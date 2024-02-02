@@ -38,32 +38,32 @@ def main():
     # Scheduled Maintenance Will Be The Next Day (+1) At 0300 AM, Export Data From DB To CSV, And Clear The Database
     # Note: Compare Hour Only. Incase Processing Causes It To Miss The Exact Time With Regards To Minutes
     alrm_dt = str(datetime.datetime.now().strftime('%Y-%m-%d'))
-    alrm_hr = "08"
+    alrm_hr = 9
 
     # Keep Data Collector Running
     while True:
 
         # Get The Current Time
         nw_dt = str(datetime.datetime.now().strftime('%Y-%m-%d'))
-        nw_tm = str(datetime.datetime.now().strftime('%H'))
+        nw_tm = int(datetime.datetime.now().strftime('%H'))
 
         print(nw_dt, nw_tm)
 
-
         try:
             # If It's 0300AM, Export Data To CSV, Clean DB Tables, Generate Graphics, Etc...
-            if ((nw_tm == alrm_hr) & (nw_dt == alrm_dt)):
+            if nw_tm == alrm_hr:
+                if nw_dt == alrm_dt:
 
-                # Perform Data Maintenance, Export Data & Clean Database
-                Collector.xprt_data(csv_out_path, "BUS_LOC_DB", "u_id", True)
-                Collector.xprt_data(csv_out_path, "DB_META_DT", "time", True)
+                    # Perform Data Maintenance, Export Data & Clean Database
+                    Collector.xprt_data(csv_out_path, "BUS_LOC_DB", "u_id", True)
+                    Collector.xprt_data(csv_out_path, "DB_META_DT", "time", True)
 
-                # Do Other Data Processing Once Methodology Found
+                    # Do Other Data Processing Once Methodology Found
+                    # DO ANALYTICS STUFF
 
-
-                # Set New Alarm Date
-                alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))
-                time.sleep(5)
+                    # Set New Alarm Date
+                    alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))
+                    time.sleep(5)
 
             # If It's Not Scheduled Maintenance Just Collect Data
             else:
