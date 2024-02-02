@@ -235,74 +235,77 @@ class DataCollector:
             response = requests.get(self.bus_loc_url, timeout=timeout_val)
             data = json.loads(response.text)
             resp_tsmp = data["header"]["timestamp"]
-            bus_loc_df = pd.json_normalize(data["entity"])
 
-            # Rename Columns With Periods In Name
-            bus_loc_df = bus_loc_df.rename(columns={
-                'vehicle.trip.trip_id': 'trip_id', 'vehicle.trip.start_time': 'start_time', 'vehicle.trip.start_date': 'start_date',
-                'vehicle.trip.schedule_relationship': 'schedule_relationship', 'vehicle.trip.route_id': 'route_id',
-                'vehicle.position.latitude': 'latitude', 'vehicle.position.longitude': 'longitude', 'vehicle.position.bearing': 'bearing', 'vehicle.position.odometer': 'odometer', 'vehicle.position.speed': 'speed',
-                'vehicle.current_stop_sequence': 'current_stop_sequence', 'vehicle.current_status': 'current_status', 'vehicle.timestamp': 'timestamp',
-                'vehicle.congestion_level': 'congestion_level', 'vehicle.stop_id': 'stop_id', 'vehicle.vehicle.id': 'vehicle_id', 'vehicle.vehicle.label': 'label',
-                'vehicle.vehicle.license_plate': 'license_plate'})
+            # Account For Situations Where The data["entity"] == []
+            if data["entity"] != []:
+                bus_loc_df = pd.json_normalize(data["entity"])
 
-            # Create A Datetime So We Know The Exact Time In Human Readable Rather Than Timestamp From EPOCH
-            bus_loc_df["dt_colc"] = pd.to_datetime(bus_loc_df["timestamp"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
+                # Rename Columns With Periods In Name
+                bus_loc_df = bus_loc_df.rename(columns={
+                    'vehicle.trip.trip_id': 'trip_id', 'vehicle.trip.start_time': 'start_time', 'vehicle.trip.start_date': 'start_date',
+                    'vehicle.trip.schedule_relationship': 'schedule_relationship', 'vehicle.trip.route_id': 'route_id',
+                    'vehicle.position.latitude': 'latitude', 'vehicle.position.longitude': 'longitude', 'vehicle.position.bearing': 'bearing', 'vehicle.position.odometer': 'odometer', 'vehicle.position.speed': 'speed',
+                    'vehicle.current_stop_sequence': 'current_stop_sequence', 'vehicle.current_status': 'current_status', 'vehicle.timestamp': 'timestamp',
+                    'vehicle.congestion_level': 'congestion_level', 'vehicle.stop_id': 'stop_id', 'vehicle.vehicle.id': 'vehicle_id', 'vehicle.vehicle.label': 'label',
+                    'vehicle.vehicle.license_plate': 'license_plate'})
 
-            # Create A U_ID Column Based On Route ID, Vehicle ID, And Timestamp To Act As A Unique ID For The Table
-            bus_loc_df["u_id"] = bus_loc_df["route_id"] + "_" + bus_loc_df["vehicle_id"] + "_" + bus_loc_df["timestamp"].astype(str)
+                # Create A Datetime So We Know The Exact Time In Human Readable Rather Than Timestamp From EPOCH
+                bus_loc_df["dt_colc"] = pd.to_datetime(bus_loc_df["timestamp"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
 
-            # Upload New Data To An Intermediary Temp Table, Check If The U_IDs Are In A Cache From 10 Min Ago, If Not Add To Database
-            bus_loc_df.to_sql('bus_temp', self.conn, if_exists='replace', index=False)
-            self.conn.execute("""
-                INSERT INTO BUS_LOC_DB(u_id, id, is_deleted, trip_update, alert, trip_id, start_time,
-                                       start_date, schedule_relationship, route_id, latitude, longitude, bearing,
-                                       odometer, speed, current_stop_sequence, current_status, timestamp, congestion_level,
-                                       stop_id, vehicle_id, label, license_plate, dt_colc)
-                SELECT
-                    A.u_id,                  A.id,             A.is_deleted,
-                    A.trip_update,           A.alert,          A.trip_id,
-                    A.start_time,            A.start_date,     A.schedule_relationship,
-                    A.route_id,              A.latitude,       A.longitude,
-                    A.bearing,               A.odometer,       A.speed,
-                    A.current_stop_sequence, A.current_status, A.timestamp,
-                    A.congestion_level,      A.stop_id,        A.vehicle_id,
-                    A.label,                 A.license_plate,  A.dt_colc
+                # Create A U_ID Column Based On Route ID, Vehicle ID, And Timestamp To Act As A Unique ID For The Table
+                bus_loc_df["u_id"] = bus_loc_df["route_id"] + "_" + bus_loc_df["vehicle_id"] + "_" + bus_loc_df["timestamp"].astype(str)
 
-                FROM
-                    bus_temp AS A
+                # Upload New Data To An Intermediary Temp Table, Check If The U_IDs Are In A Cache From 10 Min Ago, If Not Add To Database
+                bus_loc_df.to_sql('bus_temp', self.conn, if_exists='replace', index=False)
+                self.conn.execute("""
+                    INSERT INTO BUS_LOC_DB(u_id, id, is_deleted, trip_update, alert, trip_id, start_time,
+                                           start_date, schedule_relationship, route_id, latitude, longitude, bearing,
+                                           odometer, speed, current_stop_sequence, current_status, timestamp, congestion_level,
+                                           stop_id, vehicle_id, label, license_plate, dt_colc)
+                    SELECT
+                        A.u_id,                  A.id,             A.is_deleted,
+                        A.trip_update,           A.alert,          A.trip_id,
+                        A.start_time,            A.start_date,     A.schedule_relationship,
+                        A.route_id,              A.latitude,       A.longitude,
+                        A.bearing,               A.odometer,       A.speed,
+                        A.current_stop_sequence, A.current_status, A.timestamp,
+                        A.congestion_level,      A.stop_id,        A.vehicle_id,
+                        A.label,                 A.license_plate,  A.dt_colc
 
-                WHERE NOT EXISTS (
-                    SELECT u_id FROM U_ID_TEMP AS B
-                    WHERE B.u_id = A.u_id)
-            """)
-            self.conn.execute('DROP TABLE IF EXISTS bus_temp')
-            self.conn.commit()
+                    FROM
+                        bus_temp AS A
 
-            # Combine U_IDs From New Data & U_IDs In Most Recent Cache
-            all_uids = pd.concat([pd.read_sql_query("SELECT * FROM U_ID_TEMP", self.conn),
-                                  bus_loc_df[["u_id", "timestamp"]]
-                                  ])
+                    WHERE NOT EXISTS (
+                        SELECT u_id FROM U_ID_TEMP AS B
+                        WHERE B.u_id = A.u_id)
+                """)
+                self.conn.execute('DROP TABLE IF EXISTS bus_temp')
+                self.conn.commit()
 
-            # Sort, Where The Most Recent U_IDs Are At The Top, Remove Duplicates
-            all_uids["timestamp"] = all_uids["timestamp"].astype('int')
-            all_uids = all_uids.sort_values(by="timestamp", ascending=False)
-            all_uids = all_uids.drop_duplicates()
+                # Combine U_IDs From New Data & U_IDs In Most Recent Cache
+                all_uids = pd.concat([pd.read_sql_query("SELECT * FROM U_ID_TEMP", self.conn),
+                                      bus_loc_df[["u_id", "timestamp"]]
+                                      ])
 
-            # Find The Max Time Stamp, And Only Keep Rows A Couple Of Min Back From That Value
-            min_back = 8
-            max_timestamp = all_uids["timestamp"].max() - (min_back * 60)
-            all_uids = all_uids[all_uids["timestamp"] >= max_timestamp]
+                # Sort, Where The Most Recent U_IDs Are At The Top, Remove Duplicates
+                all_uids["timestamp"] = all_uids["timestamp"].astype('int')
+                all_uids = all_uids.sort_values(by="timestamp", ascending=False)
+                all_uids = all_uids.drop_duplicates()
 
-            # Now That We Have
-            all_uids.to_sql('U_ID_TEMP', self.conn, if_exists='replace', index=False)
+                # Find The Max Time Stamp, And Only Keep Rows A Couple Of Min Back From That Value
+                min_back = 8
+                max_timestamp = all_uids["timestamp"].max() - (min_back * 60)
+                all_uids = all_uids[all_uids["timestamp"] >= max_timestamp]
 
-            # Size After & Time To Complete
-            time_to_comp_sec = round((time.time() - start_time), 2)
+                # Now That We Have
+                all_uids.to_sql('U_ID_TEMP', self.conn, if_exists='replace', index=False)
 
-            # Upload Metadata To Database
-            self.conn.execute(f"""INSERT INTO DB_META_DT VALUES ('{str(dt_string)}', '{str(time_to_comp_sec)}')""")
-            self.conn.commit()
+                # Size After & Time To Complete
+                time_to_comp_sec = round((time.time() - start_time), 2)
+
+                # Upload Metadata To Database
+                self.conn.execute(f"""INSERT INTO DB_META_DT VALUES ('{str(dt_string)}', '{str(time_to_comp_sec)}')""")
+                self.conn.commit()
 
 
         except requests.exceptions.Timeout:
@@ -313,7 +316,7 @@ class DataCollector:
         except Exception as e:
             r_data = requests.get(self.bus_loc_url, timeout=timeout_val)
             data = json.loads(r_data.text)
-            print(f"Time: {dt_string}, Data Collection Error, {e}")
+            print(f"Time: {dt_string}, Data Collection Error, Type: {e}")
             print(f"->{data}<-")
 
 
