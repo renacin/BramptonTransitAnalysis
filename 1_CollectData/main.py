@@ -38,32 +38,32 @@ def main():
     # Scheduled Maintenance Will Be The Next Day (+1) At 0300 AM, Export Data From DB To CSV, And Clear The Database
     # Note: Compare Hour Only. Incase Processing Causes It To Miss The Exact Time With Regards To Minutes
     alrm_dt = str(datetime.datetime.now().strftime('%Y-%m-%d'))
-    alrm_hr = 9
+    alrm_hr = 10
 
     # Keep Data Collector Running
     while True:
 
         # Get The Current Time
-        nw_dt = str(datetime.datetime.now().strftime('%Y-%m-%d'))
-        nw_tm = int(datetime.datetime.now().strftime('%H'))
-
-        print(nw_dt, nw_tm)
+        cur_dt = str(datetime.datetime.now().strftime('%Y-%m-%d'))
+        cur_hr = int(datetime.datetime.now().strftime('%H'))
 
         try:
             # If It's 0300AM, Export Data To CSV, Clean DB Tables, Generate Graphics, Etc...
-            if nw_tm == alrm_hr:
-                if nw_dt == alrm_dt:
+            if cur_hr == alrm_hr and cur_dt == alrm_dt:
 
-                    # Perform Data Maintenance, Export Data & Clean Database
-                    Collector.xprt_data(csv_out_path, "BUS_LOC_DB", "u_id", True)
-                    Collector.xprt_data(csv_out_path, "DB_META_DT", "time", True)
+                # Wait For A Bit
+                time.sleep(2)
 
-                    # Do Other Data Processing Once Methodology Found
-                    # DO ANALYTICS STUFF
+                # Perform Data Maintenance, Export Data & Clean Database
+                Collector.xprt_data(csv_out_path, "BUS_LOC_DB", "u_id", True)
+                Collector.xprt_data(csv_out_path, "DB_META_DT", "time", True)
 
-                    # Set New Alarm Date
-                    alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))
-                    time.sleep(5)
+                # Do Other Data Processing Once Methodology Found
+                # DO ANALYTICS STUFF
+
+                # Set New Alarm Date
+                alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))
+                time.sleep(2)
 
             # If It's Not Scheduled Maintenance Just Collect Data
             else:
@@ -76,6 +76,7 @@ def main():
             dt_string = now.strftime("%d-%m-%Y %H:%M:%S")
             print(f"Interrupt Error: {dt_string}")
             break
+
 
         except Exception as e:
             print(f"Operation Error: Type {e}")
