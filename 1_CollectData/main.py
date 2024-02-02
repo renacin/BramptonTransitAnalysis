@@ -12,6 +12,7 @@ import time
 # Main Logic Of Python Code
 def main():
 
+	# --------------------------------------------------------------------------
     # Define [Internal Storage], & [External Storage] Storage
     if socket.gethostname() == "Renacins-MacBook-Pro.local":
         db_out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/3_Data"
@@ -30,13 +31,13 @@ def main():
         raise Exception
 
 
-
+	# --------------------------------------------------------------------------
     # Create An Instance Of The Data Collector
     Collector = DataCollector(db_path, skp_rte_dwn=True, skp_stp_dwn=True)
 
 
-    # Scheduled Maintenance Will Be The Next Day (+1) At 0300 AM, Export Data From DB To CSV, And Clear The Database
-    # Note: Compare Hour Only. Incase Processing Causes It To Miss The Exact Time With Regards To Minutes
+	# --------------------------------------------------------------------------
+    # Scheduled Maintenance Will Be The Next Day (+1) At 0300 AM
     alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))
     alrm_hr = 03
 
