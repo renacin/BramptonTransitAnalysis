@@ -19,7 +19,7 @@ class DataCollector:
 
 
     # -------------------- Functions Run On Instantiation ----------------------
-    def __init__(self, db_path, skp_rte_dwn=False, skp_stp_dwn=False):
+    def __init__(self, db_path, csv_out_path, skp_rte_dwn=False, skp_stp_dwn=False):
         """ This function will run when the DataCollector Class is instantiated """
 
         # Internalize Needed URLs: Bus Location API, Bus Routes, Bus Stops
@@ -27,20 +27,34 @@ class DataCollector:
         self.bus_routes_url = r"https://www1.brampton.ca/EN/residents/transit/plan-your-trip/Pages/Schedules-and-Maps.aspx"
         self.bus_stops_url = r"https://opendata.arcgis.com/api/v3/datasets/1c9869fd805e45339a9e3373fc10ce08_0/downloads/data?format=csv&spatialRefId=3857&where=1%3D1"
 
+        # Check To See If Appropriate Folders Exist, Where Are We Writting Data?
+        self.__out_folder_check(csv_out_path)
+
         # Create A Connection To The Database
         self.conn = sqlite3.connect(db_path)
 
-        # Ensure Database Exists, Grab Recent Bus Stop Info, Grab Route Data
+        # Ensure Database Exists
         self.__db_check()
 
-        if skp_stp_dwn == False:
-            self.__get_bus_stops()
-
-        if skp_rte_dwn == False:
-            self.__get_bus_route()
+        # If Optionset Equals False, Grab Recent Bus Stop Info & Grab Route Data
+        if skp_stp_dwn == False: self.__get_bus_stops()
+        if skp_rte_dwn == False: self.__get_bus_route()
 
 
     # -------------------------- Private Function 1 ----------------------------
+    def __out_folder_check(self, csv_out_path):
+        """ On instantiation this function will be called. Check to see which
+        operating system this script is running on, additionally check to see
+        if the approrpriate folders are available to write to, if not create
+        them."""
+
+        print(csv_out_path)
+
+
+
+
+
+    # -------------------------- Private Function 2 ----------------------------
     def __db_check(self):
         """ On instantiation this function will be called. Create a database
         that will store bus location data; as well as basic database functionality
@@ -90,7 +104,7 @@ class DataCollector:
             print(e)
 
 
-    # -------------------------- Private Function 2  ----------------------------
+    # -------------------------- Private Function 3  ----------------------------
     def __get_bus_stops(self):
         """ On instantiation this function will be called. Using Brampton's Open
         Data API Link, Download, Bus Stop Data To SQLite3 Database. This function
@@ -101,7 +115,7 @@ class DataCollector:
         dwnld_stp_data_df.to_sql("BUS_STP_DB", self.conn, if_exists="replace", index=False)
 
 
-    # -------------------------- Private Function 3  ---------------------------
+    # -------------------------- Private Function 4  ---------------------------
     def __get_rts(self):
         """
         Given a URL, this function navigates to Brampton Transit's Routes & Map Page,
