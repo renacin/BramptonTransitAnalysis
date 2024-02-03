@@ -7,6 +7,7 @@ from Functions.collect_data import DataCollector
 import socket
 import datetime
 import time
+import sys
 # ----------------------------------------------------------------------------------------------------------------------
 
 # Main Logic Of Python Code
@@ -33,7 +34,13 @@ def main():
 
     # --------------------------------------------------------------------------
     # Create An Instance Of The Data Collector
-    Collector = DataCollector(db_path, csv_out_path, skp_rte_dwn=True, skp_stp_dwn=True)
+    try:
+        Collector = DataCollector(db_path, csv_out_path, skp_dwnld=False)
+
+    except KeyboardInterrupt as e:
+        now = datetime.datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+        print(f"Interrupt Error: {now}")
+        sys.exit(1)
 
 
 

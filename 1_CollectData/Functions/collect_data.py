@@ -3,6 +3,7 @@
 # Title                  Main functions used within data collection effort will be found in this file
 #
 # ----------------------------------------------------------------------------------------------------------------------
+import os
 import json
 import time
 import sqlite3
@@ -18,8 +19,9 @@ class DataCollector:
     """ This class will gather data on both bus locations as well as weather data """
 
 
+
     # -------------------- Functions Run On Instantiation ----------------------
-    def __init__(self, db_path, csv_out_path, skp_rte_dwn=False, skp_stp_dwn=False):
+    def __init__(self, db_path, csv_out_path, skp_dwnld=False):
         """ This function will run when the DataCollector Class is instantiated """
 
         # Internalize Needed URLs: Bus Location API, Bus Routes, Bus Stops
@@ -28,6 +30,7 @@ class DataCollector:
         self.bus_stops_url = r"https://opendata.arcgis.com/api/v3/datasets/1c9869fd805e45339a9e3373fc10ce08_0/downloads/data?format=csv&spatialRefId=3857&where=1%3D1"
 
         # Check To See If Appropriate Folders Exist, Where Are We Writting Data?
+        self.out_dict = {}
         self.__out_folder_check(csv_out_path)
 
         # Create A Connection To The Database
@@ -37,8 +40,10 @@ class DataCollector:
         self.__db_check()
 
         # If Optionset Equals False, Grab Recent Bus Stop Info & Grab Route Data
-        if skp_stp_dwn == False: self.__get_bus_stops()
-        if skp_rte_dwn == False: self.__get_bus_route()
+        if skp_dwnld == False:
+            self.__get_bus_stops()
+            self.__get_bus_route()
+
 
 
     # -------------------------- Private Function 1 ----------------------------
@@ -48,9 +53,12 @@ class DataCollector:
         if the approrpriate folders are available to write to, if not create
         them."""
 
-        print(csv_out_path)
-
-
+        # In The Out Directory Provided See If The Appropriate Folders Exist
+        for fldr_nm in ['BUS_STP', 'BUS_LOC', 'MET_DTA']:
+            dir_chk = f"{csv_out_path}/{fldr_nm}"
+            self.out_dict[fldr_nm] = dir_chk
+            if not os.path.exists(dir_chk):
+                os.makedirs(dir_chk)
 
 
 
@@ -104,15 +112,24 @@ class DataCollector:
             print(e)
 
 
+
     # -------------------------- Private Function 3  ----------------------------
     def __get_bus_stops(self):
         """ On instantiation this function will be called. Using Brampton's Open
-        Data API Link, Download, Bus Stop Data To SQLite3 Database. This function
+        Data API Link, Download Bus Stop Data To SQLite3 Database. This function
         should only be run on instantiation. """
 
         # Compare Data From Bus Stops Collected And Brampton Bus Stop Dataset. Which Are Missing?
         dwnld_stp_data_df = pd.read_csv(self.bus_stops_url)
         dwnld_stp_data_df.to_sql("BUS_STP_DB", self.conn, if_exists="replace", index=False)
+
+        # Export To Folder Just In Case
+        dt_string = datetime.now().strftime("%d-%m-%Y")
+        out_path = self.out_dict["BUS_STP"] + f"/BUS_STP_DATA_{dt_string}.csv"
+        dwnld_stp_data_df.to_csv(out_path, index=False)
+        print(f"Downloaded Bus Stop Data")
+
+
 
 
     # -------------------------- Private Function 4  ---------------------------
@@ -165,8 +182,6 @@ class DataCollector:
             # Create A List Of The Bus Stops Found W/ Name For Join To Main Data
             rw_bs = [name + "###" + str(x).split('">')[1].replace("</a>", "") for x in hrefs]
             stp_data.extend(rw_bs)
-
-            print(f"Parsed: {name}, Progress: {counter}/{num_rts}, Num Stops: {len(rw_bs)}")
             counter += 1
 
         # Return A Pandas Dataframe With Route Data
@@ -227,6 +242,12 @@ class DataCollector:
 
         # Upload To Database
         stp_data_df.to_sql("BUS_RTE_DB", self.conn, if_exists="replace", index=False)
+
+        # Export To Folder Just In Case
+        dt_string = datetime.now().strftime("%d-%m-%Y")
+        out_path = self.out_dict["BUS_STP"] + f"/BUS_RTE_DATA_{dt_string}.csv"
+        stp_data_df.to_csv(out_path, index=False)
+
 
 
     # -------------------------- Public Function 1 -----------------------------
