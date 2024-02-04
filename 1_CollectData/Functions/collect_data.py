@@ -346,6 +346,7 @@ class DataCollector:
         except requests.exceptions.Timeout:
             # When Did The Exception Occur?
             print(f"Time: {dt_string}, Exception Timeout")
+            time.sleep(5)
 
 
         except Exception as e:
@@ -353,6 +354,7 @@ class DataCollector:
             data = json.loads(r_data.text)
             print(f"Time: {dt_string}, Data Collection Error, Type: {e}")
             print(f"->{data}<-")
+            time.sleep(5)
 
 
 

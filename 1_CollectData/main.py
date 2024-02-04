@@ -43,10 +43,6 @@ def main():
         sys.exit(1)
 
 
-
-
-
-    """
     # --------------------------------------------------------------------------
     # Scheduled Maintenance Will Be The Next Day (+1) At 0300 AM
     alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))
@@ -63,9 +59,9 @@ def main():
             # If It's 0300AM, Export Data To CSV, Clean DB Tables, Generate Graphics, Etc...
             if cur_hr == alrm_hr and cur_dt == alrm_dt:
 
-                # Perform Data Maintenance, Export Data & Clean Database
-                # Collector.xprt_data(csv_out_path, "BUS_LOC_DB", "u_id", True)
-                # Collector.xprt_data(csv_out_path, "DB_META_DT", "time", True)
+                Perform Data Maintenance, Export Data & Clean Database
+                Collector.xprt_data(csv_out_path, "BUS_LOC_DB", "u_id", True)
+                Collector.xprt_data(csv_out_path, "DB_META_DT", "time", True)
 
                 # Do Other Data Processing Once Methodology Found
                 # DO ANALYTICS STUFF
@@ -75,8 +71,8 @@ def main():
 
             # If It's Not Scheduled Maintenance Just Collect Data
             else:
-                # Collector.get_bus_loc()
-                time.sleep(10)
+                Collector.get_bus_loc()
+                time.sleep(15)
 
 
         except KeyboardInterrupt:
@@ -87,9 +83,11 @@ def main():
 
 
         except Exception as e:
-            print(f"Operation Error: Type {e}")
-            break
-    """
+            dt_string = now.strftime("%d-%m-%Y %H:%M:%S")
+            print(f"Operation Error: Type {dt_string}, {e}")
+            time.sleep(15)
+
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Entry Point Into Python Code
