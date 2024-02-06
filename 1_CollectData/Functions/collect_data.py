@@ -369,6 +369,8 @@ class DataCollector:
         # Define Needed Variables
         dt_nw = datetime.now().strftime("%d-%m-%Y")
         tm_nw = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+
+        out_path = self.out_dict[out_path]
         db_path = out_path + f"/{out_table}_{dt_nw}.csv"
 
         # Read Data From Defined Database, Remove Duplicates

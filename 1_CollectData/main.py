@@ -59,9 +59,9 @@ def main():
             # If It's 0300AM, Export Data To CSV, Clean DB Tables, Generate Graphics, Etc...
             if cur_hr == alrm_hr and cur_dt == alrm_dt:
 
-                Perform Data Maintenance, Export Data & Clean Database
-                Collector.xprt_data(csv_out_path, "BUS_LOC_DB", "u_id", True)
-                Collector.xprt_data(csv_out_path, "DB_META_DT", "time", True)
+                # Perform Data Maintenance, Export Data & Clean Database
+                Collector.xprt_data("BUS_LOC", "BUS_LOC_DB", "u_id", True)
+                Collector.xprt_data("MET_DTA", "DB_META_DT", "time", True)
 
                 # Do Other Data Processing Once Methodology Found
                 # DO ANALYTICS STUFF
