@@ -398,6 +398,9 @@ class DataCollector:
         df.to_csv(db_path, index=False)
         del df
 
+        # THIS ISN'T WORKING! FILES ARE GETTING TOO LARGE, AND DB ISN'T GETTING SMALLER AFTER REFRESH
+        # DELETE TABLE WITH SQL?
+        
         # Write Over DB Table So It's Now Empty
         empty_df.to_sql(f"{out_table}", self.conn, if_exists="replace", index=False)
         print(f"Time: {tm_nw}, Data Successfully Export & DB Table - {out_table} Cleaned")
