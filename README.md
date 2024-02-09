@@ -69,3 +69,4 @@ And so here we are. This is my 4th attempt at this project?
 	+ If Data Collected Does Vary By Time, IE There Are No Buses Running, Can We Run Another Script In Between?
 	+ Maybe A Script That Does Some Data Cleaning, And Maybe Does Some Basic Analysis? Maybe Even Makes A BackUp Of The Database, Just Incase?
 	+ What type of analytics do I want to do?
+	+ What type of data am I collecting? Does it make sense? Are there any errors preventing me from letting this run for a long period of time?
