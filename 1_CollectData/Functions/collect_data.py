@@ -12,6 +12,8 @@ import numpy as np
 import pandas as pd
 from bs4 import BeautifulSoup
 from datetime import datetime
+import matplotlib.pyplot as plt
+from matplotlib.dates import DateFormatter
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -405,3 +407,79 @@ class DataCollector:
         # Write Over DB Table So It's Now Empty
         empty_df.to_sql(f"{out_table}", self.conn, if_exists="replace", index=False)
         print(f"Time: {tm_nw}, Data Successfully Export & DB Table - {out_table} Cleaned")
+
+
+
+    # ------------------------- Private Function 5 -----------------------------
+    def __return_files_dates(self, out_path):
+        """
+        When called, this function will look at all the files in a folder and
+        return a formatted pandas dataframe for the user to query in later functions
+        """
+
+        # Navigate To Data Folder | Get All Appropriate Files
+        out_path = self.out_dict[out_path]
+        dir_list = [x for x in os.listdir(out_path) if ".csv" in x]
+        df = pd.DataFrame(dir_list, columns=['FILE_NAME'])
+        df[["DATE"]] = df["FILE_NAME"].str.split('_').str[3]
+        df["DATE"] = df["DATE"].str.replace(".csv", "", regex=False).apply(pd.to_datetime)
+        df["DATE"] = pd.to_datetime(df["DATE"], format='%Y-%d-%m')
+
+        return df
+
+
+    # -------------------------- Public Function 4 -----------------------------
+    def analyze_data_1(self, out_path, ystr_dt, td_dt_m6):
+
+        # Find The Last 5 Days Worth Of Data | TODO
+        fl_data = self.__return_files_dates(out_path)
+
+        # Ingest All Data Into Pandas Dataframe
+        out_path = self.out_dict[out_path]
+        fields = ['u_id', 'dt_colc', 'route_id', 'vehicle_id']
+        dfs = [pd.read_csv(path_, usecols=fields) for path_ in [f"{out_path}/{x}" for x in fl_data["FILE_NAME"].tolist()]]
+        df = pd.concat(dfs)
+
+        # Create A Basic Graph Of Number Of Buses Over Time
+        df = df.drop_duplicates(subset=['u_id'])
+
+        # We Need To Group Data In 15 Min Intervals
+        df['YEAR'] = pd.to_datetime(df['dt_colc']).dt.year
+        df['MONTH'] = pd.to_datetime(df['dt_colc']).dt.month
+        df['DAY'] = pd.to_datetime(df['dt_colc']).dt.day
+        df['R15_TM'] = pd.to_datetime(df['dt_colc']).dt.floor('15T').dt.time
+
+        # Create A New Datetime Timestamp
+        df["STR_COL"] = df['YEAR'].astype(str) + "-" + df['MONTH'].astype(str) + "-" + df['DAY'].astype(str) + " " + df['R15_TM'].astype(str)
+        df["DT_COL"] = pd.to_datetime(df["STR_COL"], format='%Y-%m-%d %H:%M:%S')
+
+        # REMOVE FOR LATER!
+        print(f"Main Table")
+        print(df.info())
+
+        # Grab The Day, Month, Year For Additional Sorting
+        def num_unique(x): return len(x.unique())
+        grped_time = df.groupby(['DT_COL'], as_index=False).agg(
+        						COUNT_R30 = ("DT_COL", "count"),
+        						COUNT_RTS = ("route_id", num_unique),
+        						COUNT_BUS = ("vehicle_id", num_unique)
+        						)
+
+
+        fig, ax = plt.subplots()
+        ax.scatter(grped_time["DT_COL"], grped_time["COUNT_BUS"], marker ="x")
+        ax.set_xlabel("Time (15 Min Interval)")
+        ax.set_ylabel("# Of Buses")
+        ax.set_title("Number Of Brampton Transit Buses Over A Given Time")
+
+        myFmt = DateFormatter("%d - %H:%S")
+        ax.xaxis.set_major_formatter(myFmt)
+
+        # REMOVE FOR LATER!
+        print(f"Secondary Table")
+        print(grped_time.info())
+
+
+        ## Rotate date labels automatically
+        fig.autofmt_xdate()
+        plt.show()

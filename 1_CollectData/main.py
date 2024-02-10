@@ -35,7 +35,7 @@ def main():
     # --------------------------------------------------------------------------
     # Create An Instance Of The Data Collector
     try:
-        Collector = DataCollector(db_path, csv_out_path, skp_dwnld=False)
+        Collector = DataCollector(db_path, csv_out_path, skp_dwnld=True)
 
     except KeyboardInterrupt as e:
         now = datetime.datetime.now().strftime("%d-%m-%Y %H:%M:%S")
@@ -57,14 +57,20 @@ def main():
 
         try:
             # If It's 0300AM, Export Data To CSV, Clean DB Tables, Generate Graphics, Etc...
-            if cur_hr == alrm_hr and cur_dt == alrm_dt:
+            if (cur_hr == alrm_hr and cur_dt == alrm_dt) or True:
 
                 # Perform Data Maintenance, Export Data & Clean Database
-                Collector.xprt_data("BUS_LOC", "BUS_LOC_DB", "u_id", True)
-                Collector.xprt_data("MET_DTA", "DB_META_DT", "time", True)
+                # Collector.xprt_data("BUS_LOC", "BUS_LOC_DB", "u_id", True)
+                # Collector.xprt_data("MET_DTA", "DB_META_DT", "time", True)
 
                 # Do Other Data Processing Once Methodology Found
-                # DO ANALYTICS STUFF
+                Collector.analyze_data_1("BUS_LOC", str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime('%Y-%m-%d')),
+                                                    str((datetime.datetime.now() + datetime.timedelta(days=-6)).strftime('%Y-%m-%d')))
+
+                # For Testing - Remove!
+                raise KeyboardInterrupt
+
+
 
                 # Set New Alarm Date
                 alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))
