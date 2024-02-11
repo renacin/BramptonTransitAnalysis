@@ -436,36 +436,51 @@ class DataCollector:
 
         # Ingest All Data Into Pandas Dataframe
         out_path = self.out_dict[out_path]
-        fields = ['u_id', 'dt_colc', 'route_id', 'vehicle_id']
-        dfs = [pd.read_csv(path_, usecols=fields) for path_ in [f"{out_path}/{x}" for x in fl_data["FILE_NAME"].tolist()]]
-        df = pd.concat(dfs)
+        df = pd.concat([pd.read_csv(path_, usecols=['u_id', 'dt_colc', 'vehicle_id']) for path_ in [f"{out_path}/{x}" for x in fl_data["FILE_NAME"].tolist()]])
 
-        # Create A Basic Graph Of Number Of Buses Over Time
+
+
+
+        # Format Data So It Can Be Graphed
         df = df.drop_duplicates(subset=['u_id'])
+        df.drop(['u_id'], axis=1, inplace=True)
 
         # We Need To Group Data In 15 Min Intervals
+        start_time = time.time()
+
+
         df['YEAR'] = pd.to_datetime(df['dt_colc']).dt.year
         df['MONTH'] = pd.to_datetime(df['dt_colc']).dt.month
         df['DAY'] = pd.to_datetime(df['dt_colc']).dt.day
         df['R15_TM'] = pd.to_datetime(df['dt_colc']).dt.floor('15T').dt.time
 
+
+        
+        print(f"Column Formating Time: {time.time() - start_time} Seconds")
+
+
         # Create A New Datetime Timestamp
         df["STR_COL"] = df['YEAR'].astype(str) + "-" + df['MONTH'].astype(str) + "-" + df['DAY'].astype(str) + " " + df['R15_TM'].astype(str)
         df["DT_COL"] = pd.to_datetime(df["STR_COL"], format='%Y-%m-%d %H:%M:%S')
+        df.drop(['YEAR', 'MONTH', 'DAY', 'R15_TM'], axis=1, inplace=True)
 
-        # REMOVE FOR LATER!
-        print(f"Main Table")
-        print(df.info())
+
+
+
+
+
+
 
         # Grab The Day, Month, Year For Additional Sorting
         def num_unique(x): return len(x.unique())
         grped_time = df.groupby(['DT_COL'], as_index=False).agg(
-        						COUNT_R30 = ("DT_COL", "count"),
-        						COUNT_RTS = ("route_id", num_unique),
-        						COUNT_BUS = ("vehicle_id", num_unique)
-        						)
+                                COUNT_BUS = ("vehicle_id", num_unique)
+                                )
 
+        # Remove Unneeded Data
+        del df
 
+        # Plot Data
         fig, ax = plt.subplots()
         ax.scatter(grped_time["DT_COL"], grped_time["COUNT_BUS"], marker ="x")
         ax.set_xlabel("Time (15 Min Interval)")
@@ -474,11 +489,6 @@ class DataCollector:
 
         myFmt = DateFormatter("%d - %H:%S")
         ax.xaxis.set_major_formatter(myFmt)
-
-        # REMOVE FOR LATER!
-        print(f"Secondary Table")
-        print(grped_time.info())
-
 
         ## Rotate date labels automatically
         fig.autofmt_xdate()
