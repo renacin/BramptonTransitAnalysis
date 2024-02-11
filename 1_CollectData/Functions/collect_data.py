@@ -446,41 +446,63 @@ class DataCollector:
         df[["YEAR", "MONTH", "DAY"]] = df["dt_colc"].str[:10].str.split('-', expand=True)
         df[["HOUR", "MINUTE", "SECOND"]] = df["dt_colc"].str[11:19].str.split(':', expand=True)
         df.drop(["u_id", "dt_colc", "SECOND"], axis=1, inplace=True)
+        df["SECOND"] = "00"
         df["MINUTE"] = df["MINUTE"].astype(int).round(-1).astype(str).str.zfill(2)
-        
-        # df.loc[df["MINUTE"] == "60", "MINUTE"] = "59"
-        # # Create A New Datetime Timestamp
-        # df["STR_COL"] = df['YEAR'] + "-" + df['MONTH'] + "-" + df['DAY'] + " " + df['HOUR'] + ":" + df['MINUTE'] + ":00"
-        # df["DT_COL"] = pd.to_datetime(df["STR_COL"], format='%Y-%m-%d %H:%M:%S')
-        # df.drop(['YEAR', 'MONTH', 'DAY', 'HOUR', 'MINUTE', 'STR_COL'], axis=1, inplace=True)
-        #
+        df.loc[df["MINUTE"] == "60", "MINUTE"] = "59"
+        df.loc[df["MINUTE"] == "60", "SECOND"] = "59"
 
+        # Create A New Datetime Timestamp
+        df["DT_COL"] = df['YEAR'] + "-" + df['MONTH'] + "-" + df['DAY'] + " " + df['HOUR'] + ":" + df['MINUTE'] + ":" + df['SECOND']
+        df.drop(['YEAR', 'MONTH', 'DAY'], axis=1, inplace=True)
 
+        # Groub By Hour
+        def num_unique(x): return len(x.unique())
+        grped_time = df.groupby(['DT_COL', 'HOUR', 'MINUTE', 'SECOND'], as_index=False).agg(
+                                COUNT_BUS = ("vehicle_id", num_unique)
+                                )
+        grped_time["DT_COL"] = pd.to_datetime(grped_time["DT_COL"], format='%Y-%m-%d %H:%M:%S')
 
-        print(df.head(10))
-        print(f"Column Formating Time: {time.time() - start_time} Seconds")
+        # Remove Unneeded Data
+        del df
 
+        # Convert Hour, Minute, And Seconds To Seconds After 0 (12AM)
+        grped_time["SEC_FTR_12"] = grped_time["HOUR"].astype(int)*3600 + grped_time["MINUTE"].astype(int)*60 + grped_time["SECOND"].astype(int)
 
-        #
-        # # Grab The Day, Month, Year For Additional Sorting
-        # def num_unique(x): return len(x.unique())
-        # grped_time = df.groupby(['DT_COL'], as_index=False).agg(
-        #                         COUNT_BUS = ("vehicle_id", num_unique)
-        #                         )
-        #
-        # # Remove Unneeded Data
-        # del df
-        #
-        # # Plot Data
-        # fig, ax = plt.subplots()
-        # ax.scatter(grped_time["DT_COL"], grped_time["COUNT_BUS"], marker ="x")
-        # ax.set_xlabel("Time (15 Min Interval)")
-        # ax.set_ylabel("# Of Buses")
-        # ax.set_title("Number Of Brampton Transit Buses Over A Given Time")
-        #
-        # myFmt = DateFormatter("%d - %H:%S")
-        # ax.xaxis.set_major_formatter(myFmt)
-        #
-        # ## Rotate date labels automatically
-        # fig.autofmt_xdate()
-        # plt.show()
+        # Remove Unneded Data
+        grped_time.drop(['HOUR', 'MINUTE', 'SECOND'], axis=1, inplace=True)
+
+        # Interate Through Each Day In Dataset
+        grped_time["STR_DT_COL"] = grped_time["DT_COL"].dt.strftime('%Y-%m-%d')
+        dates_in = grped_time["DT_COL"].dt.strftime('%Y-%m-%d').unique()
+
+        # Plot Data
+        fig, ax = plt.subplots()
+        days_in_focus = []
+        for dt_full in dates_in:
+
+            # Only Complete Days Worth Of Data Collection
+            f_df = grped_time[grped_time["STR_DT_COL"] == dt_full]
+
+            if len(f_df) >= 125:
+
+                # Fit Curve To Data
+                curve = np.polyfit(f_df["SEC_FTR_12"], f_df["COUNT_BUS"], 15)
+                poly = np.poly1d(curve)
+
+                yy =poly(f_df["SEC_FTR_12"])
+
+                ax.scatter(f_df["SEC_FTR_12"], f_df["COUNT_BUS"], marker ="x", c="grey", alpha=0.5)
+                ax.plot(f_df["SEC_FTR_12"], yy, c="red", alpha=0.5)
+
+                days_in_focus.append(dt_full)
+
+        ax.set_xlabel("Time (15 Min Interval)")
+        ax.set_ylabel("# Of Buses")
+        ax.set_title(f"Number Of Brampton Transit Buses: ({days_in_focus[0]}, ... {days_in_focus[-1]})")
+
+        myFmt = DateFormatter("%d - %H:%S")
+        ax.xaxis.set_major_formatter(myFmt)
+
+        ## Rotate date labels automatically
+        fig.autofmt_xdate()
+        plt.show()
