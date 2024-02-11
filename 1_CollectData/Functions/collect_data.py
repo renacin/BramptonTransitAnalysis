@@ -447,13 +447,13 @@ class DataCollector:
         df[["HOUR", "MINUTE", "SECOND"]] = df["dt_colc"].str[11:19].str.split(':', expand=True)
         df.drop(["u_id", "dt_colc", "SECOND"], axis=1, inplace=True)
         df["MINUTE"] = df["MINUTE"].astype(int).round(-1).astype(str).str.zfill(2)
-        # df.loc[df["MINUTE"] == "60", df["MINUTE"]] = "59"
-
-        # Create A New Datetime Timestamp
-        df["STR_COL"] = df['YEAR'] + "-" + df['MONTH'] + "-" + df['DAY'] + " " + df['HOUR'] + ":" + df['MINUTE'] + ":00"
-        df["DT_COL"] = pd.to_datetime(df["STR_COL"], format='%Y-%m-%d %H:%M:%S')
-        df.drop(['YEAR', 'MONTH', 'DAY', 'HOUR', 'MINUTE'], axis=1, inplace=True)
-
+        
+        # df.loc[df["MINUTE"] == "60", "MINUTE"] = "59"
+        # # Create A New Datetime Timestamp
+        # df["STR_COL"] = df['YEAR'] + "-" + df['MONTH'] + "-" + df['DAY'] + " " + df['HOUR'] + ":" + df['MINUTE'] + ":00"
+        # df["DT_COL"] = pd.to_datetime(df["STR_COL"], format='%Y-%m-%d %H:%M:%S')
+        # df.drop(['YEAR', 'MONTH', 'DAY', 'HOUR', 'MINUTE', 'STR_COL'], axis=1, inplace=True)
+        #
 
 
 
