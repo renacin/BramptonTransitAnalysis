@@ -438,58 +438,49 @@ class DataCollector:
         out_path = self.out_dict[out_path]
         df = pd.concat([pd.read_csv(path_, usecols=['u_id', 'dt_colc', 'vehicle_id']) for path_ in [f"{out_path}/{x}" for x in fl_data["FILE_NAME"].tolist()]])
 
-
-
-
-        # Format Data So It Can Be Graphed
-        df = df.drop_duplicates(subset=['u_id'])
-        df.drop(['u_id'], axis=1, inplace=True)
-
-        # We Need To Group Data In 15 Min Intervals
+        # Format Data So It Can Be Grouped By Minute Interval
         start_time = time.time()
 
+        # Format Data To Ints, DT Accessor Took Too Long (50 Sec Before! Now Down To 10 Sec)
+        df = df.drop_duplicates(subset=['u_id'])
+        df[["YEAR", "MONTH", "DAY"]] = df["dt_colc"].str[:10].str.split('-', expand=True)
+        df[["HOUR", "MINUTE", "SECOND"]] = df["dt_colc"].str[11:19].str.split(':', expand=True)
+        df.drop(["u_id", "dt_colc", "SECOND"], axis=1, inplace=True)
+        df["MINUTE"] = df["MINUTE"].astype(int).round(-1).astype(str).str.zfill(2)
+        # df.loc[df["MINUTE"] == "60", df["MINUTE"]] = "59"
 
-        df['YEAR'] = pd.to_datetime(df['dt_colc']).dt.year
-        df['MONTH'] = pd.to_datetime(df['dt_colc']).dt.month
-        df['DAY'] = pd.to_datetime(df['dt_colc']).dt.day
-        df['R15_TM'] = pd.to_datetime(df['dt_colc']).dt.floor('15T').dt.time
+        # Create A New Datetime Timestamp
+        df["STR_COL"] = df['YEAR'] + "-" + df['MONTH'] + "-" + df['DAY'] + " " + df['HOUR'] + ":" + df['MINUTE'] + ":00"
+        df["DT_COL"] = pd.to_datetime(df["STR_COL"], format='%Y-%m-%d %H:%M:%S')
+        df.drop(['YEAR', 'MONTH', 'DAY', 'HOUR', 'MINUTE'], axis=1, inplace=True)
 
 
-        
+
+
+        print(df.head(10))
         print(f"Column Formating Time: {time.time() - start_time} Seconds")
 
 
-        # Create A New Datetime Timestamp
-        df["STR_COL"] = df['YEAR'].astype(str) + "-" + df['MONTH'].astype(str) + "-" + df['DAY'].astype(str) + " " + df['R15_TM'].astype(str)
-        df["DT_COL"] = pd.to_datetime(df["STR_COL"], format='%Y-%m-%d %H:%M:%S')
-        df.drop(['YEAR', 'MONTH', 'DAY', 'R15_TM'], axis=1, inplace=True)
-
-
-
-
-
-
-
-
-        # Grab The Day, Month, Year For Additional Sorting
-        def num_unique(x): return len(x.unique())
-        grped_time = df.groupby(['DT_COL'], as_index=False).agg(
-                                COUNT_BUS = ("vehicle_id", num_unique)
-                                )
-
-        # Remove Unneeded Data
-        del df
-
-        # Plot Data
-        fig, ax = plt.subplots()
-        ax.scatter(grped_time["DT_COL"], grped_time["COUNT_BUS"], marker ="x")
-        ax.set_xlabel("Time (15 Min Interval)")
-        ax.set_ylabel("# Of Buses")
-        ax.set_title("Number Of Brampton Transit Buses Over A Given Time")
-
-        myFmt = DateFormatter("%d - %H:%S")
-        ax.xaxis.set_major_formatter(myFmt)
-
-        ## Rotate date labels automatically
-        fig.autofmt_xdate()
-        plt.show()
+        #
+        # # Grab The Day, Month, Year For Additional Sorting
+        # def num_unique(x): return len(x.unique())
+        # grped_time = df.groupby(['DT_COL'], as_index=False).agg(
+        #                         COUNT_BUS = ("vehicle_id", num_unique)
+        #                         )
+        #
+        # # Remove Unneeded Data
+        # del df
+        #
+        # # Plot Data
+        # fig, ax = plt.subplots()
+        # ax.scatter(grped_time["DT_COL"], grped_time["COUNT_BUS"], marker ="x")
+        # ax.set_xlabel("Time (15 Min Interval)")
+        # ax.set_ylabel("# Of Buses")
+        # ax.set_title("Number Of Brampton Transit Buses Over A Given Time")
+        #
+        # myFmt = DateFormatter("%d - %H:%S")
+        # ax.xaxis.set_major_formatter(myFmt)
+        #
+        # ## Rotate date labels automatically
+        # fig.autofmt_xdate()
+        # plt.show()
