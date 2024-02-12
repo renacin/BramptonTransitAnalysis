@@ -471,8 +471,8 @@ class DataCollector:
         grped_time["STR_DT_COL"] = grped_time["DT_COL"].dt.strftime('%Y-%m-%d')
         dates_in = grped_time["DT_COL"].dt.strftime('%Y-%m-%d').unique()
 
-        # Basics For Plot Frame
-        fig, ax = plt.subplots()
+        # Basics For Plot Frame | Define Plot Size 3:2
+        fig, ax = plt.subplots(figsize=(13, 7))
 
         # Only Want Data Between [1:-2], As It's Most Likely To Be Complete Days Picture
         grped_time = grped_time[grped_time["STR_DT_COL"].isin(dates_in[1:-1])]
@@ -489,10 +489,8 @@ class DataCollector:
             poly = np.poly1d(curve)
             yy = poly(wk_day["SEC_FTR_12"])
 
-            ax.scatter(wk_day["SEC_FTR_12"], wk_day["COUNT_BUS"], marker ="+", c="grey", alpha=0.5)
-            ax.plot(wk_day["SEC_FTR_12"], yy, c="red", alpha=0.5)
-            red_patch = mpatches.Patch(color='red', label='Line Best Fit Weekday')
-            ax.legend(handles=[red_patch])
+            ax.scatter(wk_day["SEC_FTR_12"], wk_day["COUNT_BUS"], marker ="+", c="grey", alpha=0.5, label='# Weekday Buses')
+            ax.plot(wk_day["SEC_FTR_12"], yy, c="red", alpha=0.5, label='Line Best Fit: Weekday')
 
 
         # If Weekend Is Not Empty
@@ -503,20 +501,18 @@ class DataCollector:
             poly = np.poly1d(curve)
             yy = poly(wk_day["SEC_FTR_12"])
 
-            ax.scatter(wk_day["SEC_FTR_12"], wk_day["COUNT_BUS"], marker ="+", c="grey", alpha=0.5)
-            ax.plot(wk_day["SEC_FTR_12"], yy, c="red", alpha=0.5)
-            red_patch = mpatches.Patch(color='red', label='Line Best Fit: Weekday')
+            ax.scatter(wk_day["SEC_FTR_12"], wk_day["COUNT_BUS"], marker ="+", c="grey", alpha=0.5, label='# Weekday Buses')
+            ax.plot(wk_day["SEC_FTR_12"], yy, c="red", alpha=0.5, label='Line Best Fit: Weekday')
 
             # Fit Curve To Data | Weekend
             curve = np.polyfit(wk_end["SEC_FTR_12"], wk_end["COUNT_BUS"], 15)
             poly = np.poly1d(curve)
             yy = poly(wk_end["SEC_FTR_12"])
 
-            ax.scatter(wk_end["SEC_FTR_12"], wk_end["COUNT_BUS"], marker ="x", c="grey", alpha=0.5)
-            ax.plot(wk_end["SEC_FTR_12"], yy, c="blue", alpha=0.5)
-            blue_patch = mpatches.Patch(color='blue', label='Line Best Fit: Weekend')
+            ax.scatter(wk_end["SEC_FTR_12"], wk_end["COUNT_BUS"], marker ="x", c="grey", alpha=0.5, label='# Weekend Buses')
+            ax.plot(wk_end["SEC_FTR_12"], yy, c="blue", alpha=0.5, label='Line Best Fit: Weekend')
 
-            ax.legend(handles=[blue_patch, red_patch])
+            ax.legend()
 
         # Manually Set X Ticks
         xlabels = [x for x in range(0, 26, 2)]
@@ -532,3 +528,6 @@ class DataCollector:
 
         # Plot The Data
         plt.show()
+
+        # Save The Figure... Somewhere?
+        fig.savefig('full_figure.png')
