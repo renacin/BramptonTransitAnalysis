@@ -13,7 +13,7 @@ import pandas as pd
 from bs4 import BeautifulSoup
 from datetime import datetime
 import matplotlib.pyplot as plt
-from matplotlib.dates import DateFormatter
+import matplotlib.patches as mpatches
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -438,9 +438,6 @@ class DataCollector:
         out_path = self.out_dict[out_path]
         df = pd.concat([pd.read_csv(path_, usecols=['u_id', 'dt_colc', 'vehicle_id']) for path_ in [f"{out_path}/{x}" for x in fl_data["FILE_NAME"].tolist()]])
 
-        # Format Data So It Can Be Grouped By Minute Interval
-        start_time = time.time()
-
         # Format Data To Ints, DT Accessor Took Too Long (50 Sec Before! Now Down To 10 Sec)
         df = df.drop_duplicates(subset=['u_id'])
         df[["YEAR", "MONTH", "DAY"]] = df["dt_colc"].str[:10].str.split('-', expand=True)
@@ -448,6 +445,7 @@ class DataCollector:
         df.drop(["u_id", "dt_colc", "SECOND"], axis=1, inplace=True)
         df["SECOND"] = "00"
         df["MINUTE"] = df["MINUTE"].astype(int).round(-1).astype(str).str.zfill(2)
+
         df.loc[df["MINUTE"] == "60", "MINUTE"] = "59"
         df.loc[df["MINUTE"] == "60", "SECOND"] = "59"
 
@@ -461,48 +459,76 @@ class DataCollector:
                                 COUNT_BUS = ("vehicle_id", num_unique)
                                 )
         grped_time["DT_COL"] = pd.to_datetime(grped_time["DT_COL"], format='%Y-%m-%d %H:%M:%S')
+        grped_time["WK_NUM"] = grped_time["DT_COL"].dt.dayofweek
 
-        # Remove Unneeded Data
         del df
 
-        # Convert Hour, Minute, And Seconds To Seconds After 0 (12AM)
+        # Convert Hour, Minute, And Seconds To Seconds After 0 (12AM), Remove Unneded Data
         grped_time["SEC_FTR_12"] = grped_time["HOUR"].astype(int)*3600 + grped_time["MINUTE"].astype(int)*60 + grped_time["SECOND"].astype(int)
-
-        # Remove Unneded Data
         grped_time.drop(['HOUR', 'MINUTE', 'SECOND'], axis=1, inplace=True)
 
         # Interate Through Each Day In Dataset
         grped_time["STR_DT_COL"] = grped_time["DT_COL"].dt.strftime('%Y-%m-%d')
         dates_in = grped_time["DT_COL"].dt.strftime('%Y-%m-%d').unique()
 
-        # Plot Data
+        # Basics For Plot Frame
         fig, ax = plt.subplots()
-        days_in_focus = []
-        for dt_full in dates_in:
 
-            # Only Complete Days Worth Of Data Collection
-            f_df = grped_time[grped_time["STR_DT_COL"] == dt_full]
+        # Only Want Data Between [1:-2], As It's Most Likely To Be Complete Days Picture
+        grped_time = grped_time[grped_time["STR_DT_COL"].isin(dates_in[1:-1])]
 
-            if len(f_df) >= 125:
+        # Create Dataframes For Weekday & Weekend
+        wk_day = grped_time[grped_time["WK_NUM"] <= 4].sort_values(by=['SEC_FTR_12'])
+        wk_end = grped_time[grped_time["WK_NUM"]  > 4].sort_values(by=['SEC_FTR_12'])
 
-                # Fit Curve To Data
-                curve = np.polyfit(f_df["SEC_FTR_12"], f_df["COUNT_BUS"], 15)
-                poly = np.poly1d(curve)
+        # If Weekend Is Empty
+        if wk_end.empty:
 
-                yy =poly(f_df["SEC_FTR_12"])
+            # Fit Curve To Data | Weekday
+            curve = np.polyfit(wk_day["SEC_FTR_12"], wk_day["COUNT_BUS"], 15)
+            poly = np.poly1d(curve)
+            yy = poly(wk_day["SEC_FTR_12"])
 
-                ax.scatter(f_df["SEC_FTR_12"], f_df["COUNT_BUS"], marker ="x", c="grey", alpha=0.5)
-                ax.plot(f_df["SEC_FTR_12"], yy, c="red", alpha=0.5)
+            ax.scatter(wk_day["SEC_FTR_12"], wk_day["COUNT_BUS"], marker ="+", c="grey", alpha=0.5)
+            ax.plot(wk_day["SEC_FTR_12"], yy, c="red", alpha=0.5)
+            red_patch = mpatches.Patch(color='red', label='Line Best Fit Weekday')
+            ax.legend(handles=[red_patch])
 
-                days_in_focus.append(dt_full)
 
-        ax.set_xlabel("Time (15 Min Interval)")
+        # If Weekend Is Not Empty
+        else:
+
+            # Fit Curve To Data | Weekday
+            curve = np.polyfit(wk_day["SEC_FTR_12"], wk_day["COUNT_BUS"], 15)
+            poly = np.poly1d(curve)
+            yy = poly(wk_day["SEC_FTR_12"])
+
+            ax.scatter(wk_day["SEC_FTR_12"], wk_day["COUNT_BUS"], marker ="+", c="grey", alpha=0.5)
+            ax.plot(wk_day["SEC_FTR_12"], yy, c="red", alpha=0.5)
+            red_patch = mpatches.Patch(color='red', label='Line Best Fit: Weekday')
+
+            # Fit Curve To Data | Weekend
+            curve = np.polyfit(wk_end["SEC_FTR_12"], wk_end["COUNT_BUS"], 15)
+            poly = np.poly1d(curve)
+            yy = poly(wk_end["SEC_FTR_12"])
+
+            ax.scatter(wk_end["SEC_FTR_12"], wk_end["COUNT_BUS"], marker ="x", c="grey", alpha=0.5)
+            ax.plot(wk_end["SEC_FTR_12"], yy, c="blue", alpha=0.5)
+            blue_patch = mpatches.Patch(color='blue', label='Line Best Fit: Weekend')
+
+            ax.legend(handles=[blue_patch, red_patch])
+
+        # Manually Set X Ticks
+        xlabels = [x for x in range(0, 26, 2)]
+        xticks = [x*3600 for x in xlabels]
+        xlabels = [f"{x}:00" for x in xlabels]
+        ax.set_xticks(xticks, labels=xlabels)
+
+        ax.set_xlabel("Time (24 Hour)")
         ax.set_ylabel("# Of Buses")
-        ax.set_title(f"Number Of Brampton Transit Buses: ({days_in_focus[0]}, ... {days_in_focus[-1]})")
 
-        myFmt = DateFormatter("%d - %H:%S")
-        ax.xaxis.set_major_formatter(myFmt)
+        fig.suptitle('Number Of Brampton Transit Buses Every 10 Minutes')
+        ax.set_title(f"Data Collected Between: {dates_in[1]} & {dates_in[-1]}")
 
-        ## Rotate date labels automatically
-        fig.autofmt_xdate()
+        # Plot The Data
         plt.show()
