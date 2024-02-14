@@ -61,7 +61,7 @@ def main():
             if (cur_hr == alrm_hr and cur_dt == alrm_dt) or True:
 
                 # Perform Data Maintenance, Export Data & Clean Database
-                # Collector.xprt_data("BUS_LOC", "BUS_LOC_DB", "u_id", True)
+                Collector.xprt_data("BUS_LOC", "BUS_LOC_DB", "u_id", True)
 
                 # Define Needed Connections
                 bus_loc_path, b_af = Collector.return_files_dates("BUS_LOC")
@@ -70,13 +70,9 @@ def main():
                 # Run Data Visualizations
                 data_viz_1(graphics_path, bus_loc_path, b_af, str((datetime.datetime.now() + datetime.timedelta(days=-5)).strftime('%Y-%m-%d')))
 
-                # For Testing - Remove!
-                raise KeyboardInterrupt
-
-
-
                 # Set New Alarm Date
                 alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))
+
 
             # If It's Not Scheduled Maintenance Just Collect Data
             else:
