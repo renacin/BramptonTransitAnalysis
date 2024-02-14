@@ -15,8 +15,8 @@ import matplotlib.pyplot as plt
 
 def data_viz_1(graphics_path, out_path, fl_data, td_dt_m6):
 
-    # Make Sure We Have At Least 3 Days Worth Of Data
-    if len(fl_data["FILE_NAME"].tolist()) > 3:
+    # Make Sure We Have At Least 5 Days Worth Of Data
+    if len(fl_data["FILE_NAME"].tolist()) > 5:
 
         # Find Days Between Today And Minus 5 Days
         fl_data = fl_data[fl_data["DATE"] >= td_dt_m6]
