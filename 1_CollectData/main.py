@@ -46,6 +46,7 @@ def main():
 
     # --------------------------------------------------------------------------
     # Scheduled Maintenance Will Be The Next Day (+1) At 0300 AM
+    tm_delay = 18
     alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))
     alrm_hr = 3
 
@@ -58,7 +59,7 @@ def main():
 
         try:
             # If It's 0300AM, Export Data To CSV, Clean DB Tables, Generate Graphics, Etc...
-            if (cur_hr == alrm_hr and cur_dt == alrm_dt) or True:
+            if (cur_hr == alrm_hr and cur_dt == alrm_dt):
 
                 # Perform Data Maintenance, Export Data & Clean Database
                 Collector.xprt_data("BUS_LOC", "BUS_LOC_DB", "u_id", True)
@@ -73,11 +74,13 @@ def main():
                 # Set New Alarm Date
                 alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))
 
+                # Wait To Gather Data Again
+                time.sleep(tm_delay)
 
             # If It's Not Scheduled Maintenance Just Collect Data
             else:
                 Collector.get_bus_loc()
-                time.sleep(15)
+                time.sleep(tm_delay)
 
 
         except KeyboardInterrupt:
@@ -88,9 +91,10 @@ def main():
 
 
         except Exception as e:
+            now = datetime.datetime.now()
             dt_string = now.strftime("%d-%m-%Y %H:%M:%S")
             print(f"Operation Error: Type {dt_string}, {e}")
-            time.sleep(15)
+            time.sleep(tm_delay)
 
 
 
