@@ -56,7 +56,7 @@ class DataCollector:
         them."""
 
         # In The Out Directory Provided See If The Appropriate Folders Exist
-        for fldr_nm in ['BUS_STP', 'BUS_LOC', 'MET_DTA']:
+        for fldr_nm in ['BUS_STP', 'BUS_LOC', 'GRAPHICS']:
             dir_chk = f"{csv_out_path}/{fldr_nm}"
             self.out_dict[fldr_nm] = dir_chk
             if not os.path.exists(dir_chk):
@@ -96,18 +96,6 @@ class DataCollector:
             '''
             CREATE TABLE IF NOT EXISTS U_ID_TEMP (
             u_id                    TEXT, timestamp               TEXT);
-            ''')
-
-        except sqlite3.OperationalError as e:
-            print(e)
-
-
-        # Connect to database check if it has data in it | Create If Not There
-        try:
-            self.conn.execute(
-            '''
-            CREATE TABLE IF NOT EXISTS DB_META_DT (
-            time                    TEXT, time_2_comp             TEXT);
             ''')
 
         except sqlite3.OperationalError as e:
@@ -337,13 +325,6 @@ class DataCollector:
                 # Now That We Have
                 all_uids.to_sql('U_ID_TEMP', self.conn, if_exists='replace', index=False)
 
-                # Size After & Time To Complete
-                time_to_comp_sec = round((time.time() - start_time), 2)
-
-                # Upload Metadata To Database
-                self.conn.execute(f"""INSERT INTO DB_META_DT VALUES ('{str(dt_string)}', '{str(time_to_comp_sec)}')""")
-                self.conn.commit()
-
 
         except requests.exceptions.Timeout:
             # When Did The Exception Occur?
@@ -409,9 +390,8 @@ class DataCollector:
         print(f"Time: {tm_nw}, Data Successfully Export & DB Table - {out_table} Cleaned")
 
 
-
     # ------------------------- Private Function 5 -----------------------------
-    def __return_files_dates(self, out_path):
+    def return_files_dates(self, out_path):
         """
         When called, this function will look at all the files in a folder and
         return a formatted pandas dataframe for the user to query in later functions
@@ -422,112 +402,7 @@ class DataCollector:
         dir_list = [x for x in os.listdir(out_path) if ".csv" in x]
         df = pd.DataFrame(dir_list, columns=['FILE_NAME'])
         df[["DATE"]] = df["FILE_NAME"].str.split('_').str[3]
-        df["DATE"] = df["DATE"].str.replace(".csv", "", regex=False).apply(pd.to_datetime)
-        df["DATE"] = pd.to_datetime(df["DATE"], format='%Y-%d-%m')
+        df["DATE"] = df["DATE"].str.replace(".csv", "", regex=False)
+        df["DATE"] = pd.to_datetime(df["DATE"], format='%d-%m-%Y')
 
-        return df
-
-
-    # -------------------------- Public Function 4 -----------------------------
-    def analyze_data_1(self, out_path, ystr_dt, td_dt_m6):
-
-        # Find The Last 5 Days Worth Of Data | TODO
-        fl_data = self.__return_files_dates(out_path)
-
-        # Ingest All Data Into Pandas Dataframe
-        out_path = self.out_dict[out_path]
-        df = pd.concat([pd.read_csv(path_, usecols=['u_id', 'dt_colc', 'vehicle_id']) for path_ in [f"{out_path}/{x}" for x in fl_data["FILE_NAME"].tolist()]])
-
-        # Format Data To Ints, DT Accessor Took Too Long (50 Sec Before! Now Down To 10 Sec)
-        df = df.drop_duplicates(subset=['u_id'])
-        df[["YEAR", "MONTH", "DAY"]] = df["dt_colc"].str[:10].str.split('-', expand=True)
-        df[["HOUR", "MINUTE", "SECOND"]] = df["dt_colc"].str[11:19].str.split(':', expand=True)
-        df.drop(["u_id", "dt_colc", "SECOND"], axis=1, inplace=True)
-        df["SECOND"] = "00"
-        df["MINUTE"] = df["MINUTE"].astype(int).round(-1).astype(str).str.zfill(2)
-
-        df.loc[df["MINUTE"] == "60", "MINUTE"] = "59"
-        df.loc[df["MINUTE"] == "60", "SECOND"] = "59"
-
-        # Create A New Datetime Timestamp
-        df["DT_COL"] = df['YEAR'] + "-" + df['MONTH'] + "-" + df['DAY'] + " " + df['HOUR'] + ":" + df['MINUTE'] + ":" + df['SECOND']
-        df.drop(['YEAR', 'MONTH', 'DAY'], axis=1, inplace=True)
-
-        # Groub By Hour
-        def num_unique(x): return len(x.unique())
-        grped_time = df.groupby(['DT_COL', 'HOUR', 'MINUTE', 'SECOND'], as_index=False).agg(
-                                COUNT_BUS = ("vehicle_id", num_unique)
-                                )
-        grped_time["DT_COL"] = pd.to_datetime(grped_time["DT_COL"], format='%Y-%m-%d %H:%M:%S')
-        grped_time["WK_NUM"] = grped_time["DT_COL"].dt.dayofweek
-
-        del df
-
-        # Convert Hour, Minute, And Seconds To Seconds After 0 (12AM), Remove Unneded Data
-        grped_time["SEC_FTR_12"] = grped_time["HOUR"].astype(int)*3600 + grped_time["MINUTE"].astype(int)*60 + grped_time["SECOND"].astype(int)
-        grped_time.drop(['HOUR', 'MINUTE', 'SECOND'], axis=1, inplace=True)
-
-        # Interate Through Each Day In Dataset
-        grped_time["STR_DT_COL"] = grped_time["DT_COL"].dt.strftime('%Y-%m-%d')
-        dates_in = grped_time["DT_COL"].dt.strftime('%Y-%m-%d').unique()
-
-        # Basics For Plot Frame | Define Plot Size 3:2
-        fig, ax = plt.subplots(figsize=(13, 7))
-
-        # Only Want Data Between [1:-2], As It's Most Likely To Be Complete Days Picture
-        grped_time = grped_time[grped_time["STR_DT_COL"].isin(dates_in[1:-1])]
-
-        # Create Dataframes For Weekday & Weekend
-        wk_day = grped_time[grped_time["WK_NUM"] <= 4].sort_values(by=['SEC_FTR_12'])
-        wk_end = grped_time[grped_time["WK_NUM"]  > 4].sort_values(by=['SEC_FTR_12'])
-
-        # If Weekend Is Empty
-        if wk_end.empty:
-
-            # Fit Curve To Data | Weekday
-            curve = np.polyfit(wk_day["SEC_FTR_12"], wk_day["COUNT_BUS"], 15)
-            poly = np.poly1d(curve)
-            yy = poly(wk_day["SEC_FTR_12"])
-
-            ax.scatter(wk_day["SEC_FTR_12"], wk_day["COUNT_BUS"], marker ="+", c="grey", alpha=0.5, label='# Weekday Buses')
-            ax.plot(wk_day["SEC_FTR_12"], yy, c="red", alpha=0.5, label='Line Best Fit: Weekday')
-
-
-        # If Weekend Is Not Empty
-        else:
-
-            # Fit Curve To Data | Weekday
-            curve = np.polyfit(wk_day["SEC_FTR_12"], wk_day["COUNT_BUS"], 15)
-            poly = np.poly1d(curve)
-            yy = poly(wk_day["SEC_FTR_12"])
-
-            ax.scatter(wk_day["SEC_FTR_12"], wk_day["COUNT_BUS"], marker ="+", c="grey", alpha=0.5, label='# Weekday Buses')
-            ax.plot(wk_day["SEC_FTR_12"], yy, c="red", alpha=0.5, label='Line Best Fit: Weekday')
-
-            # Fit Curve To Data | Weekend
-            curve = np.polyfit(wk_end["SEC_FTR_12"], wk_end["COUNT_BUS"], 15)
-            poly = np.poly1d(curve)
-            yy = poly(wk_end["SEC_FTR_12"])
-
-            ax.scatter(wk_end["SEC_FTR_12"], wk_end["COUNT_BUS"], marker ="x", c="grey", alpha=0.5, label='# Weekend Buses')
-            ax.plot(wk_end["SEC_FTR_12"], yy, c="blue", alpha=0.5, label='Line Best Fit: Weekend')
-
-            ax.legend()
-
-        # Manually Set X Ticks
-        xlabels = [x for x in range(0, 26, 2)]
-        xticks = [x*3600 for x in xlabels]
-        xlabels = [f"{x}:00" for x in xlabels]
-        ax.set_xticks(xticks, labels=xlabels)
-
-        ax.set_xlabel("Time (24 Hour)")
-        ax.set_ylabel("# Of Buses")
-
-        fig.suptitle('Number Of Brampton Transit Buses Every 10 Minutes')
-        ax.set_title(f"Data Collected Between: {dates_in[1]} & {dates_in[-1]}")
-
-        # Plot The Data
-        plt.show()
-
-        # Save The Figure... Somewhere?
-        fig.savefig('full_figure.png')
+        return out_path, df

@@ -4,6 +4,7 @@
 #
 # ----------------------------------------------------------------------------------------------------------------------
 from Functions.collect_data import DataCollector
+from Functions.visualize_data import *
 import socket
 import datetime
 import time
@@ -61,11 +62,13 @@ def main():
 
                 # Perform Data Maintenance, Export Data & Clean Database
                 # Collector.xprt_data("BUS_LOC", "BUS_LOC_DB", "u_id", True)
-                # Collector.xprt_data("MET_DTA", "DB_META_DT", "time", True)
 
-                # Do Other Data Processing Once Methodology Found
-                Collector.analyze_data_1("BUS_LOC", str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime('%Y-%m-%d')),
-                                                    str((datetime.datetime.now() + datetime.timedelta(days=-6)).strftime('%Y-%m-%d')))
+                # Define Needed Connections
+                bus_loc_path, b_af = Collector.return_files_dates("BUS_LOC")
+                graphics_path, g_af = Collector.return_files_dates("GRAPHICS")
+
+                # Run Data Visualizations
+                data_viz_1(graphics_path, bus_loc_path, b_af, str((datetime.datetime.now() + datetime.timedelta(days=-5)).strftime('%Y-%m-%d')))
 
                 # For Testing - Remove!
                 raise KeyboardInterrupt
