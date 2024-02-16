@@ -14,6 +14,11 @@ import matplotlib.pyplot as plt
 
 
 def data_viz_1(graphics_path, out_path, fl_data, td_dt_m6):
+	"""
+	When called this function will create a scaterplot showing the number of
+	unique buses at 10 minute intervals for the entire day. Data is split between
+	weekday, and weekend schedules - if data appropriate data was collected.
+	"""
 
     # Make Sure We Have At Least 5 Days Worth Of Data
     if len(fl_data["FILE_NAME"].tolist()) > 5:
@@ -114,3 +119,9 @@ def data_viz_1(graphics_path, out_path, fl_data, td_dt_m6):
 
         # Save The Figure In Graphics Folder
         fig.savefig(f"{graphics_path}/NumBusesByHour.png")
+
+
+def data_viz_2(graphics_path, out_path, fl_data:
+	"""
+	When called this function will create a ridgeline plot of the day before's data.
+	"""
