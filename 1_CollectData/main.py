@@ -59,19 +59,20 @@ def main():
 
         try:
             # If It's 0300AM, Export Data To CSV, Clean DB Tables, Generate Graphics, Etc...
-            if (cur_hr == alrm_hr and cur_dt == alrm_dt):
+            if (cur_hr == alrm_hr and cur_dt == alrm_dt) | True:
 
                 # Perform Data Maintenance, Export Data & Clean Database
-                Collector.xprt_data("BUS_LOC", "BUS_LOC_DB", "u_id", True)
+                # Collector.xprt_data("BUS_LOC", "BUS_LOC_DB", "u_id", True)
 
                 # Define Needed Connections
                 bus_loc_path, b_af = Collector.return_files_dates("BUS_LOC")
                 graphics_path, g_af = Collector.return_files_dates("GRAPHICS")
 
                 # Run Data Visualizations
-                data_viz_1(graphics_path, bus_loc_path, b_af, str((datetime.datetime.now() + datetime.timedelta(days=-5)).strftime('%Y-%m-%d')))
+                # data_viz_1(graphics_path, bus_loc_path, b_af, str((datetime.datetime.now() + datetime.timedelta(days=-5)).strftime('%Y-%m-%d')))
                 data_viz_2(graphics_path, bus_loc_path, b_af, str((datetime.datetime.now() + datetime.timedelta(days=-2)).strftime('%Y-%m-%d')))
 
+                raise KeyboardInterrupt
 
                 # Set New Alarm Date
                 alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))

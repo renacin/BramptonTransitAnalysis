@@ -8,20 +8,23 @@ import time
 import sqlite3
 import numpy as np
 import pandas as pd
-from datetime import datetime
+import datetime
+from sklearn.neighbors import KernelDensity
 import matplotlib.pyplot as plt
+import matplotlib as mpl
+import matplotlib.gridspec as grid_spec
 # ----------------------------------------------------------------------------------------------------------------------
 
 
 def data_viz_1(graphics_path, out_path, fl_data, td_dt_m6):
-	"""
-	When called this function will create a scaterplot showing the number of
-	unique buses at 10 minute intervals for the entire day. Data is split between
-	weekday, and weekend schedules - if data appropriate data was collected.
-	"""
+    """
+    When called this function will create a scaterplot showing the number of
+    unique buses at 10 minute intervals for the entire day. Data is split between
+    weekday, and weekend schedules - if data appropriate data was collected.
+    """
 
     # Make Sure We Have At Least 5 Days Worth Of Data
-    if len(fl_data["FILE_NAME"].tolist()) > 5:
+    if len(fl_data["FILE_NAME"].tolist()) >= 5:
 
         # Find Days Between Today And Minus 5 Days
         fl_data = fl_data[fl_data["DATE"] >= td_dt_m6]
@@ -121,7 +124,82 @@ def data_viz_1(graphics_path, out_path, fl_data, td_dt_m6):
         fig.savefig(f"{graphics_path}/NumBusesByHour.png")
 
 
-def data_viz_2(graphics_path, out_path, fl_data:
-	"""
-	When called this function will create a ridgeline plot of the day before's data.
-	"""
+def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
+    """
+    When called this function will create a ridgeline plot of the day before's data.
+    """
+
+    # Make Sure We Have At Least 3 Days Worth Of Data
+    if len(fl_data["FILE_NAME"].tolist()) >= 3:
+
+        # Find Days Between Today And Minus Only Look At CSVs That Are 3 Days Old Or Newer, Then Read In Data
+        fl_data = fl_data[fl_data["DATE"] >= cur_dt_m2]
+        df = pd.concat([pd.read_csv(path_, usecols=['u_id', 'dt_colc', 'vehicle_id', 'route_id']) for path_ in [f"{out_path}/{x}" for x in fl_data["FILE_NAME"].tolist()]])
+        df = df.drop_duplicates(subset=['u_id'])
+
+        # Find All Data Points That Were Collected Yesterday (Cur Date Minus 1)
+        ystrdy = int((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime('%d'))
+        df[["YEAR", "MONTH", "DAY"]] = df["dt_colc"].str[:10].str.split('-', expand=True)
+        df[["HOUR", "MINUTE", "SECOND"]] = df["dt_colc"].str[11:19].str.split(':', expand=True)
+        df.drop(["u_id", "dt_colc", "SECOND"], axis=1, inplace=True)
+        df["SECOND"] = "00"
+        df["MINUTE"] = df["MINUTE"].astype(int).round(-1).astype(str).str.zfill(2)
+
+        df.loc[df["MINUTE"] == "60", "MINUTE"] = "59"
+        df.loc[df["MINUTE"] == "60", "SECOND"] = "59"
+
+        # Create A New Datetime Timestamp | Keep Data That Was Recorded Yesterday | Delete Unneded Rows
+        df["DT_COL"] = df['YEAR'] + "-" + df['MONTH'] + "-" + df['DAY'] + " " + df['HOUR'] + ":" + df['MINUTE'] + ":" + df['SECOND']
+        df = df[df["DAY"] == str(ystrdy)].drop_duplicates().drop(['YEAR', 'MONTH', 'DAY'], axis=1)
+
+        # Split Route Number From Columns
+        df[["ROUTE", "ID"]] = df["route_id"].str.split('-', expand=True)
+        df = df.drop(['ID'], axis=1)
+
+        # Find The Number Of Buses Operating On A Given Route At A Every 10 Time Interval
+        def num_ct(x): return len(x)
+        grped_time = df.groupby(['ROUTE', 'HOUR', 'MINUTE', 'SECOND'], as_index=False).agg(
+                                COUNT_BUS = ("ROUTE", num_ct)
+                                )
+
+        # Find The Number Of Routes Operating That Day
+        num_routes = [x for x in np.unique(grped_time["ROUTE"])]
+        gs = (grid_spec.GridSpec(num_routes,1))
+        fig = plt.figure(figsize=(8,6))
+
+        i = 0
+
+        #creating empty list
+        ax_objs = []
+
+        # Iterate Through Each Route In Dataset
+        for route in grped_time["ROUTE"].unique():
+
+            # creating new axes object and appending to ax_objs
+            ax_objs.append(fig.add_subplot(gs[i:i+1, 0:]))
+
+            # plotting the distribution
+            plot = (grped_time[grped_time["ROUTE"] == route]
+                    .score.plot.kde(ax=ax_objs[-1], color="#f0f0f0", lw=0.5)
+                   )
+
+            # grabbing x and y data from the kde plot
+            x = plot.get_children()[0]._x
+            y = plot.get_children()[0]._y
+
+            # filling the space beneath the distribution
+            ax_objs[-1].fill_between(x,y)
+
+            # setting uniform x and y lims
+            ax_objs[-1].set_xlim(0, 1)
+            ax_objs[-1].set_ylim(0,2.2)
+
+            i += 1
+
+        plt.tight_layout()
+        plt.show()
+
+        #
+        # df = df[df["dt_colc"] == ystrdy]
+        # print(df.head())
+        # print(cur_dt_m2)
