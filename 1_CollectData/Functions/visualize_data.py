@@ -37,8 +37,9 @@ def data_viz_1(graphics_path, out_path, fl_data, td_dt_m6):
         df["SECOND"] = "00"
         df["MINUTE"] = df["MINUTE"].astype(int).round(-1).astype(str).str.zfill(2)
 
-        df.loc[df["MINUTE"] == "60", "MINUTE"] = "59"
         df.loc[df["MINUTE"] == "60", "SECOND"] = "59"
+        df.loc[df["MINUTE"] == "60", "MINUTE"] = "59"
+
 
         # Create A New Datetime Timestamp
         df["DT_COL"] = df['YEAR'] + "-" + df['MONTH'] + "-" + df['DAY'] + " " + df['HOUR'] + ":" + df['MINUTE'] + ":" + df['SECOND']
@@ -142,8 +143,9 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
         df["SECOND"] = "00"
         df["MINUTE"] = df["MINUTE"].astype(int).round(-1).astype(str).str.zfill(2)
 
-        df.loc[df["MINUTE"] == "60", "MINUTE"] = "59"
         df.loc[df["MINUTE"] == "60", "SECOND"] = "59"
+        df.loc[df["MINUTE"] == "60", "MINUTE"] = "59"
+
 
         # Create A New Datetime Timestamp | Keep Data That Was Recorded Yesterday | Delete Unneded Rows
         df["DT_COL"] = df['YEAR'] + "-" + df['MONTH'] + "-" + df['DAY'] + " " + df['HOUR'] + ":" + df['MINUTE'] + ":" + df['SECOND']
@@ -166,13 +168,18 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
         grped_time = grped_time.drop_duplicates()
 
         # How Do We Make Sure That All Groups Of Data (By Route Name) Contains Appropriate Data Range (12:00AM To 11:59PM? By 10 Minute Interval?)
+        # Note That There Are Only 144 10 Minute Intervals. Why Are 150? Is It The Rounding Issue?
+        for df_gb in grped_time.groupby('ROUTE'):
+            print(df_gb[1])
+            df_gb[1].to_csv('Testing.csv', index=False)
+            break
 
-        # Plot Each Line
-        for idx, rt in enumerate(num_routes):
-            if idx <= 5:
-                fig, ax = plt.subplots(figsize=(13, 7))
-                temp_df = grped_time[grped_time["ROUTE"] == rt]
-                ax.plot(temp_df["SEC_FTR_12"], temp_df["COUNT_BUS"], alpha=0.5, label=rt)
-                plt.show()
-            else:
-                break
+        # # Plot Each Line
+        # for idx, rt in enumerate(num_routes):
+        #     if idx <= 5:
+        #         fig, ax = plt.subplots(figsize=(13, 7))
+        #         temp_df = grped_time[grped_time["ROUTE"] == rt]
+        #         ax.plot(temp_df["SEC_FTR_12"], temp_df["COUNT_BUS"], alpha=0.5, label=rt)
+        #         plt.show()
+        #     else:
+        #         break
