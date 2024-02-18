@@ -9,10 +9,7 @@ import sqlite3
 import numpy as np
 import pandas as pd
 import datetime
-from sklearn.neighbors import KernelDensity
 import matplotlib.pyplot as plt
-import matplotlib as mpl
-import matplotlib.gridspec as grid_spec
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -158,48 +155,24 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
 
         # Find The Number Of Buses Operating On A Given Route At A Every 10 Time Interval
         def num_ct(x): return len(x)
-        grped_time = df.groupby(['ROUTE', 'HOUR', 'MINUTE', 'SECOND'], as_index=False).agg(
-                                COUNT_BUS = ("ROUTE", num_ct)
-                                )
+        grped_time = df.groupby(['ROUTE', 'HOUR', 'MINUTE', 'SECOND', 'DT_COL'], as_index=False).agg(COUNT_BUS = ("ROUTE", num_ct))
+
+        # Create A Column Looking At Seconds Since 12:00AM
+        grped_time["SEC_FTR_12"] = grped_time["HOUR"].astype(int)*3600 + grped_time["MINUTE"].astype(int)*60 + grped_time["SECOND"].astype(int)
 
         # Find The Number Of Routes Operating That Day
         num_routes = [x for x in np.unique(grped_time["ROUTE"])]
-        gs = (grid_spec.GridSpec(num_routes,1))
-        fig = plt.figure(figsize=(8,6))
+        grped_time = grped_time.drop(['HOUR', 'MINUTE', 'SECOND'], axis=1)
+        grped_time = grped_time.drop_duplicates()
 
-        i = 0
+        # How Do We Make Sure That All Groups Of Data (By Route Name) Contains Appropriate Data Range (12:00AM To 11:59PM? By 10 Minute Interval?)
 
-        #creating empty list
-        ax_objs = []
-
-        # Iterate Through Each Route In Dataset
-        for route in grped_time["ROUTE"].unique():
-
-            # creating new axes object and appending to ax_objs
-            ax_objs.append(fig.add_subplot(gs[i:i+1, 0:]))
-
-            # plotting the distribution
-            plot = (grped_time[grped_time["ROUTE"] == route]
-                    .score.plot.kde(ax=ax_objs[-1], color="#f0f0f0", lw=0.5)
-                   )
-
-            # grabbing x and y data from the kde plot
-            x = plot.get_children()[0]._x
-            y = plot.get_children()[0]._y
-
-            # filling the space beneath the distribution
-            ax_objs[-1].fill_between(x,y)
-
-            # setting uniform x and y lims
-            ax_objs[-1].set_xlim(0, 1)
-            ax_objs[-1].set_ylim(0,2.2)
-
-            i += 1
-
-        plt.tight_layout()
-        plt.show()
-
-        #
-        # df = df[df["dt_colc"] == ystrdy]
-        # print(df.head())
-        # print(cur_dt_m2)
+        # Plot Each Line
+        for idx, rt in enumerate(num_routes):
+            if idx <= 5:
+                fig, ax = plt.subplots(figsize=(13, 7))
+                temp_df = grped_time[grped_time["ROUTE"] == rt]
+                ax.plot(temp_df["SEC_FTR_12"], temp_df["COUNT_BUS"], alpha=0.5, label=rt)
+                plt.show()
+            else:
+                break
