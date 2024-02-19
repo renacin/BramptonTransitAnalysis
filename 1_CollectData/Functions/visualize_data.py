@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 import datetime
 import matplotlib.pyplot as plt
-from scipy.stats import kde
+import matplotlib.gridspec as grid_spec
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -123,6 +123,7 @@ def data_viz_1(graphics_path, out_path, fl_data, td_dt_m6):
         fig.savefig(f"{graphics_path}/NumBusesByHour.png")
 
 
+
 def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
     """
     When called this function will create a ridgeline plot of the day before's data.
@@ -189,7 +190,60 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
         # Using The Main Dataframe As A Main Population, Left Join Number Of Buses
         cleaned_data = main_df.merge(grped_time, how="left", on=["ROUTE", "SEC_FTR_12"])
         cleaned_data["COUNT_BUS"] = cleaned_data["COUNT_BUS"].fillna(0)
-        cleaned_data.to_csv('Testing.csv', index=False)
+
+        # What Is The Max Number Of Buses? We Need For Setting Y Limit
+        max_num_bus = cleaned_data["COUNT_BUS"].max()
+
+        # Note That We Only Want To Visualize Routes Where The Max Number Of Buses Is Greater Than 1/4 Of The Max
+        # We Have Too Much Data And Patterns Are Being Drowned Out
+        max_bus_pr_rt = cleaned_data.groupby(['ROUTE'], as_index=False).agg(MAX_BUS = ("COUNT_BUS", "max"))
+        max_bus_pr_rt = max_bus_pr_rt[max_bus_pr_rt["MAX_BUS"] >= int((max_num_bus * 1/4))]
+
+        # Only Look At Data That Is Greater Than Threshold
+        cleaned_data = cleaned_data[cleaned_data["ROUTE"].isin(max_bus_pr_rt["ROUTE"])]
+
+        # Filtered Routes
+        f_rts = np.unique(cleaned_data["ROUTE"])
+
+        # Define Basics | Grid Should Be 1 Cell Wide & Len(RTS) Long
+        gs = (grid_spec.GridSpec(len(f_rts), 1))
+        fig = plt.figure(figsize=(6, 8))
+        i = 0
+        ax_objs = []
+
+        # Iterate Through Each Route
+        for rts in f_rts:
+
+            # Gather Appropriate Data
+            temp_df = cleaned_data.copy()
+            temp_df = temp_df[temp_df["ROUTE"] == rts]
+            temp_df['RLNG'] = temp_df['COUNT_BUS'].rolling(6).median().round().shift(-3)
+
+            # Create New Axis
+            ax = fig.add_subplot(gs[i:i+1, 0:])
+
+            # Fill Axis With Data
+            ax.plot(temp_df["SEC_FTR_12"], temp_df["COUNT_BUS"], alpha=1.0, color='grey')
+            # ax.plot(temp_df["SEC_FTR_12"], temp_df["RLNG"], alpha=1.0, label=f"Rolling Mean", color='red')
+
+            # Set Y Axis Limits
+            ax.set_ylim([0, max_num_bus])
+
+            # Iterate To Next Roue & Index
+            ax.axis('off')
+            i += 1
+
+            # Remove Before Data
+            del temp_df
+
+        # Plot All Data
+        plt.show()
+
+
+
+
+
+        """
 
         # Plot Each Line
         for idx, rt in enumerate(num_routes):
@@ -206,3 +260,5 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
                     plt.show()
             else:
                 break
+
+        """
