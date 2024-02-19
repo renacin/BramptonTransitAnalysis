@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 import datetime
 import matplotlib.pyplot as plt
+from scipy.stats import kde
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -146,7 +147,6 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
         df.loc[df["MINUTE"] == "60", "SECOND"] = "59"
         df.loc[df["MINUTE"] == "60", "MINUTE"] = "59"
 
-
         # Create A New Datetime Timestamp | Keep Data That Was Recorded Yesterday | Delete Unneded Rows
         df["DT_COL"] = df['YEAR'] + "-" + df['MONTH'] + "-" + df['DAY'] + " " + df['HOUR'] + ":" + df['MINUTE'] + ":" + df['SECOND']
         df = df[df["DAY"] == str(ystrdy)].drop_duplicates().drop(['YEAR', 'MONTH', 'DAY'], axis=1)
@@ -162,24 +162,44 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
         # Create A Column Looking At Seconds Since 12:00AM
         grped_time["SEC_FTR_12"] = grped_time["HOUR"].astype(int)*3600 + grped_time["MINUTE"].astype(int)*60 + grped_time["SECOND"].astype(int)
 
+        # There Is An Issue Where We Have Duplicates
+        grped_time["SEC_FTR_12"] = round(grped_time["SEC_FTR_12"], -1)
+
         # Find The Number Of Routes Operating That Day
         num_routes = [x for x in np.unique(grped_time["ROUTE"])]
-        grped_time = grped_time.drop(['HOUR', 'MINUTE', 'SECOND'], axis=1)
-        grped_time = grped_time.drop_duplicates()
+        grped_time = grped_time.drop(['HOUR', 'MINUTE', 'SECOND', 'DT_COL'], axis=1)
+        grped_time = grped_time.drop_duplicates(subset=["ROUTE", "COUNT_BUS", "SEC_FTR_12"], keep="first")
 
-        # How Do We Make Sure That All Groups Of Data (By Route Name) Contains Appropriate Data Range (12:00AM To 11:59PM? By 10 Minute Interval?)
-        # Note That There Are Only 144 10 Minute Intervals. Why Are 150? Is It The Rounding Issue?
-        for df_gb in grped_time.groupby('ROUTE'):
-            print(df_gb[1])
-            df_gb[1].to_csv('Testing.csv', index=False)
-            break
+        # Given Time Intervals Create A Version With The Route Name For Each Route
+        all_rows = []
+        for rt in num_routes:
+            all_rows.extend([f"{rt}_{x}" for x in range(0, 87000, 600)])
 
-        # # Plot Each Line
-        # for idx, rt in enumerate(num_routes):
-        #     if idx <= 5:
-        #         fig, ax = plt.subplots(figsize=(13, 7))
-        #         temp_df = grped_time[grped_time["ROUTE"] == rt]
-        #         ax.plot(temp_df["SEC_FTR_12"], temp_df["COUNT_BUS"], alpha=0.5, label=rt)
-        #         plt.show()
-        #     else:
-        #         break
+        # Create Dataframe That Contains All Timestamps For Each Route
+        main_df = pd.DataFrame.from_dict({"RAW_DATA": all_rows})
+        main_df[["ROUTE", "SEC_FTR_12"]] = main_df["RAW_DATA"].str.split('_', expand=True)
+        main_df = main_df.drop(["RAW_DATA"], axis=1)
+
+        # Convert Columns To Similar Datatypes
+        main_df["ROUTE"] = main_df["ROUTE"].astype(str)
+        main_df["SEC_FTR_12"] = main_df["SEC_FTR_12"].astype(str)
+        grped_time["ROUTE"] = grped_time["ROUTE"].astype(str)
+        grped_time["SEC_FTR_12"] = grped_time["SEC_FTR_12"].astype(str)
+
+        # Using The Main Dataframe As A Main Population, Left Join Number Of Buses
+        cleaned_data = main_df.merge(grped_time, how="left", on=["ROUTE", "SEC_FTR_12"])
+        cleaned_data["COUNT_BUS"] = cleaned_data["COUNT_BUS"].fillna(0)
+        cleaned_data.to_csv('Testing.csv', index=False)
+
+        # Plot Each Line
+        for idx, rt in enumerate(num_routes):
+            if (idx <= 50):
+                temp_df = cleaned_data[cleaned_data["ROUTE"] == rt]
+                temp_df['RLNG'] = temp_df['COUNT_BUS'].rolling(5).mean()
+                if (temp_df["COUNT_BUS"].max() >= 4):
+                    fig, ax = plt.subplots(figsize=(13, 7))
+                    ax.plot(temp_df["SEC_FTR_12"], temp_df["COUNT_BUS"], alpha=0.5, label=rt, color='grey')
+                    ax.plot(temp_df["SEC_FTR_12"], temp_df["RLNG"], alpha=0.7, label=rt, color='red')
+                    plt.show()
+            else:
+                break
