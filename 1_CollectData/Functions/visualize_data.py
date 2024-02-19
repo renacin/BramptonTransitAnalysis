@@ -194,12 +194,15 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
         # Plot Each Line
         for idx, rt in enumerate(num_routes):
             if (idx <= 50):
-                temp_df = cleaned_data[cleaned_data["ROUTE"] == rt]
-                temp_df['RLNG'] = temp_df['COUNT_BUS'].rolling(5).mean()
-                if (temp_df["COUNT_BUS"].max() >= 4):
+                # Calculating The Rolling Median For The Hour, But What Happens When I Shift It Back 3 Cells, What Am I Implying?
+                temp_df = cleaned_data.copy()
+                temp_df = temp_df[temp_df["ROUTE"] == rt]
+                temp_df['RLNG'] = temp_df['COUNT_BUS'].rolling(6).median().round().shift(-3)
+                if (temp_df["COUNT_BUS"].max() >= 8):
                     fig, ax = plt.subplots(figsize=(13, 7))
-                    ax.plot(temp_df["SEC_FTR_12"], temp_df["COUNT_BUS"], alpha=0.5, label=rt, color='grey')
-                    ax.plot(temp_df["SEC_FTR_12"], temp_df["RLNG"], alpha=0.7, label=rt, color='red')
+                    ax.plot(temp_df["SEC_FTR_12"], temp_df["COUNT_BUS"], alpha=0.6, label=f"Number Of Buses", color='grey')
+                    ax.plot(temp_df["SEC_FTR_12"], temp_df["RLNG"],      alpha=1.0, label=f"Rolling Mean",    color='red', linestyle="dotted", linewidth=1.5)
+                    ax.legend()
                     plt.show()
             else:
                 break
