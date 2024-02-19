@@ -191,13 +191,17 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
         cleaned_data = main_df.merge(grped_time, how="left", on=["ROUTE", "SEC_FTR_12"])
         cleaned_data["COUNT_BUS"] = cleaned_data["COUNT_BUS"].fillna(0)
 
+
+        # We Need To Exaggerate Data
+        cleaned_data["COUNT_BUS"] = cleaned_data["COUNT_BUS"] ** 3
+
         # What Is The Max Number Of Buses? We Need For Setting Y Limit
         max_num_bus = cleaned_data["COUNT_BUS"].max()
 
         # Note That We Only Want To Visualize Routes Where The Max Number Of Buses Is Greater Than 1/4 Of The Max
         # We Have Too Much Data And Patterns Are Being Drowned Out
         max_bus_pr_rt = cleaned_data.groupby(['ROUTE'], as_index=False).agg(MAX_BUS = ("COUNT_BUS", "max"))
-        max_bus_pr_rt = max_bus_pr_rt[max_bus_pr_rt["MAX_BUS"] >= int((max_num_bus * 1/4))]
+        # max_bus_pr_rt = max_bus_pr_rt[max_bus_pr_rt["MAX_BUS"] >= int((max_num_bus * 1/4))]
 
         # Only Look At Data That Is Greater Than Threshold
         cleaned_data = cleaned_data[cleaned_data["ROUTE"].isin(max_bus_pr_rt["ROUTE"])]
