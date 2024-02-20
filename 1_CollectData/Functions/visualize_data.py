@@ -190,6 +190,8 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
         # Using The Main Dataframe As A Main Population, Left Join Number Of Buses
         cleaned_data = main_df.merge(grped_time, how="left", on=["ROUTE", "SEC_FTR_12"])
         cleaned_data["COUNT_BUS"] = cleaned_data["COUNT_BUS"].fillna(0)
+        cleaned_data["SEC_FTR_12"] = cleaned_data["SEC_FTR_12"].astype(int)
+
 
         # What Is The Max Number Of Buses? We Need For Setting Y Limit
         max_num_bus = cleaned_data["COUNT_BUS"].max()
@@ -198,7 +200,7 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
         # We Have Too Much Data And Patterns Are Being Drowned Out
         max_bus_pr_rt = cleaned_data.groupby(['ROUTE'], as_index=False).agg(MAX_BUS = ("COUNT_BUS", "max"))
         print(max_bus_pr_rt["MAX_BUS"].tolist())
-        max_bus_pr_rt = max_bus_pr_rt[max_bus_pr_rt["MAX_BUS"] >= (max_bus_pr_rt["MAX_BUS"].max() * 2/4)]
+        max_bus_pr_rt = max_bus_pr_rt[max_bus_pr_rt["MAX_BUS"] >= 4]
 
         # Only Look At Data That Is Greater Than Threshold
         cleaned_data = cleaned_data[cleaned_data["ROUTE"].isin(max_bus_pr_rt["ROUTE"])]
@@ -243,12 +245,17 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
                 ax.set_yticks([])
                 xlabels = [x for x in range(0, 26, 2)]
                 ax.set_xticks([x*3600 for x in xlabels], [f"{x}" for x in xlabels])
+                ax.grid(linestyle='dotted', linewidth=0.5, alpha=0.3)
 
             else:
                 ax.set_xticklabels([])
                 ax.set_xticks([])
                 ax.set_yticklabels([])
                 ax.set_yticks([])
+                xlabels = [x for x in range(0, 26, 2)]
+                ax.set_xticks([x*3600 for x in xlabels])
+                ax.grid(linestyle='dotted', linewidth=0.5, alpha=0.3)
+                ax.tick_params(width=0, length=0)
 
             # Remove All Splines
             for dir in ["top", "bottom", "left", "right"]:
@@ -258,11 +265,11 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
             i += 1
 
         # Add Labels
-        fig.text(0.5, 0.04, 'Time (24 Hour)', ha='center')
-        fig.text(0.01, 0.5, 'Bus Routes', va='center', rotation='vertical')
+        plt.suptitle("Your Chart's Sub-Title")
+        plt.title("Your Chart's Title")
+        plt.xlabel('Time (24 Hour)', style='italic')
+        plt.ylabel('Bus Routes',     style='italic', rotation='vertical')
 
         # Plot Data
         gs.update(hspace=0) # For Additional Formatting Or If You Want Them To Overlap
         plt.show()
-
-        # TODO: DATA CHECK, WHY ISN'T 12:00AM In Seconds The Last Record?
