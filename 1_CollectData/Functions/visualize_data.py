@@ -120,7 +120,7 @@ def data_viz_1(graphics_path, out_path, fl_data, td_dt_m6):
         ax.set_title(f"Data Collected Between: {dates_in[1]} & {dates_in[-1]}")
 
         # Save The Figure In Graphics Folder
-        fig.savefig(f"{graphics_path}/NumBusesByHour.png")
+        fig.savefig(f"{graphics_path}/NumBusesByHour.pdf")
 
 
 
@@ -199,7 +199,6 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
         # Note That We Only Want To Visualize Routes Where The Max Number Of Buses Is Greater Than 1/4 Of The Max
         # We Have Too Much Data And Patterns Are Being Drowned Out
         max_bus_pr_rt = cleaned_data.groupby(['ROUTE'], as_index=False).agg(MAX_BUS = ("COUNT_BUS", "max"))
-        print(max_bus_pr_rt["MAX_BUS"].tolist())
         max_bus_pr_rt = max_bus_pr_rt[max_bus_pr_rt["MAX_BUS"] >= 4]
 
         # Only Look At Data That Is Greater Than Threshold
@@ -209,6 +208,7 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
         f_rts = np.unique(cleaned_data["ROUTE"])
 
         # Define Basics | Grid Should Be 1 Cell Wide & Len(RTS) Long
+        yesterday_dt = (datetime.datetime.now() + datetime.timedelta(days=-1)).strftime('%Y-%m-%d')
         gs = (grid_spec.GridSpec(len(f_rts), 1))
         fig = plt.figure(figsize=(6, 10))
         i = 0
@@ -236,17 +236,34 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
 
             # Set Y Axis Limits
             ax.set_ylim([0, max_num_bus])
-            ax.set_xlim(left=0)
+            ax.set_xlim(left=0, right=87000)
             ax.patch.set_alpha(0)
 
-            # Set Ax Route Name & Turn Off Some Labels | Make Exception For Last Grid
+            # Add A Horizontal Line
+            ax.axhline(y=int((max_num_bus/2)), color='grey', linestyle='-', linewidth=0.5, alpha=0.1)
+
+            # If Were Dealing With The Last Grid Object, Do Certain Things
             if (idx + 1) == max_rts:
                 ax.set_yticklabels([])
                 ax.set_yticks([])
                 xlabels = [x for x in range(0, 26, 2)]
                 ax.set_xticks([x*3600 for x in xlabels], [f"{x}" for x in xlabels])
                 ax.grid(linestyle='dotted', linewidth=0.5, alpha=0.3)
+                plt.xlabel('Time (24 Hour)', style='italic')
 
+            # If Were Dealing With The First Grid Object, Do Certain Things
+            elif (idx + 1) == 1:
+                ax.set_xticklabels([])
+                ax.set_xticks([])
+                ax.set_yticklabels([])
+                ax.set_yticks([])
+                xlabels = [x for x in range(0, 26, 2)]
+                ax.set_xticks([x*3600 for x in xlabels])
+                ax.grid(linestyle='dotted', linewidth=0.5, alpha=0.3)
+                ax.tick_params(width=0, length=0)
+                plt.title(f"By Route, Number Of Buses Operating: {yesterday_dt}")
+
+            # If Were Dealing With Any Other Grid Object, Do Certain Things
             else:
                 ax.set_xticklabels([])
                 ax.set_xticks([])
@@ -264,12 +281,6 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
             # Iterate To Next Roue & Index
             i += 1
 
-        # Add Labels
-        plt.suptitle("Your Chart's Sub-Title")
-        plt.title("Your Chart's Title")
-        plt.xlabel('Time (24 Hour)', style='italic')
-        plt.ylabel('Bus Routes',     style='italic', rotation='vertical')
-
         # Plot Data
         gs.update(hspace=0) # For Additional Formatting Or If You Want Them To Overlap
-        plt.show()
+        fig.savefig(f"{graphics_path}/NumBusesByHourByRoute.pdf")
