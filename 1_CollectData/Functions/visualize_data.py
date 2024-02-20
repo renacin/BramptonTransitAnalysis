@@ -264,3 +264,5 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
         # Plot Data
         gs.update(hspace=0) # For Additional Formatting Or If You Want Them To Overlap
         plt.show()
+
+        # TODO: DATA CHECK, WHY ISN'T 12:00AM In Seconds The Last Record?
