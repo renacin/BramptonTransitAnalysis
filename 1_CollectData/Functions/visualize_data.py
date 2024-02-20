@@ -207,7 +207,6 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
         f_rts = np.unique(cleaned_data["ROUTE"])
 
         # Define Basics | Grid Should Be 1 Cell Wide & Len(RTS) Long
-        print(len(f_rts))
         gs = (grid_spec.GridSpec(len(f_rts), 1))
         fig = plt.figure(figsize=(6, 10))
         i = 0
@@ -215,7 +214,8 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
         max_num_bus = cleaned_data["COUNT_BUS"].max() + 1
 
         # Iterate Through Each Route
-        for rts in f_rts:
+        max_rts = len(f_rts)
+        for idx, rts in enumerate(f_rts):
 
             # Gather Appropriate Data
             temp_df = cleaned_data.copy()
@@ -227,37 +227,40 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
 
             # Fill Axis With Data
             ax.plot(temp_df["SEC_FTR_12"], temp_df["COUNT_BUS"], alpha=1.0, linewidth=0.5, color='black')
-            ax.fill_between(temp_df["SEC_FTR_12"], temp_df["COUNT_BUS"], alpha=0.5, color='grey')
+            ax.fill_between(temp_df["SEC_FTR_12"], temp_df["COUNT_BUS"], alpha=0.2, color='grey')
 
             # Set Route Name For Each Grid
-            ax.set_ylabel(f"{rts}")
-
-            # Set Ax Route Name & Turn Off Some Labels
-            plt.subplots_adjust(hspace=0)
-            ax.set_xticklabels([])
-            ax.set_xticks([])
-            ax.set_yticklabels([])
-            ax.set_yticks([])
-
-            ax.spines['top'].set_visible(False)
-            ax.spines['right'].set_visible(False)
-            ax.spines['bottom'].set_visible(True)
-            ax.spines['left'].set_visible(True)
+            ax.text(-0.5, 2 ,f"{rts}", fontsize=8, ha="right", rotation=90)
 
             # Set Y Axis Limits
             ax.set_ylim([0, max_num_bus])
             ax.set_xlim(left=0)
+            ax.patch.set_alpha(0)
+
+            # Set Ax Route Name & Turn Off Some Labels | Make Exception For Last Grid
+            if (idx + 1) == max_rts:
+                ax.set_yticklabels([])
+                ax.set_yticks([])
+                xlabels = [x for x in range(0, 26, 2)]
+                ax.set_xticks([x*3600 for x in xlabels], [f"{x}" for x in xlabels])
+
+            else:
+                ax.set_xticklabels([])
+                ax.set_xticks([])
+                ax.set_yticklabels([])
+                ax.set_yticks([])
+
+            # Remove All Splines
+            for dir in ["top", "bottom", "left", "right"]:
+                ax.spines[dir].set_visible(False)
 
             # Iterate To Next Roue & Index
             i += 1
 
-        # Manually Set X Ticks For Last Grid
-        xlabels = [x for x in range(0, 26, 2)]
-        xticks = [x*3600 for x in xlabels]
-        xlabels = [f"{x}" for x in xlabels]
-        plt.xticks(xticks, labels=xlabels)
-
-        # Plot All Data
+        # Add Labels
         fig.text(0.5, 0.04, 'Time (24 Hour)', ha='center')
         fig.text(0.01, 0.5, 'Bus Routes', va='center', rotation='vertical')
+
+        # Plot Data
+        gs.update(hspace=0) # For Additional Formatting Or If You Want Them To Overlap
         plt.show()
