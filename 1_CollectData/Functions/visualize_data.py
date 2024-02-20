@@ -110,7 +110,7 @@ def data_viz_1(graphics_path, out_path, fl_data, td_dt_m6):
         # Manually Set X Ticks
         xlabels = [x for x in range(0, 26, 2)]
         xticks = [x*3600 for x in xlabels]
-        xlabels = [f"{x}:00" for x in xlabels]
+        xlabels = [f"{x}" for x in xlabels]
         ax.set_xticks(xticks, labels=xlabels)
 
         ax.set_xlabel("Time (24 Hour)")
@@ -191,17 +191,14 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
         cleaned_data = main_df.merge(grped_time, how="left", on=["ROUTE", "SEC_FTR_12"])
         cleaned_data["COUNT_BUS"] = cleaned_data["COUNT_BUS"].fillna(0)
 
-
-        # We Need To Exaggerate Data
-        cleaned_data["COUNT_BUS"] = cleaned_data["COUNT_BUS"] ** 3
-
         # What Is The Max Number Of Buses? We Need For Setting Y Limit
         max_num_bus = cleaned_data["COUNT_BUS"].max()
 
         # Note That We Only Want To Visualize Routes Where The Max Number Of Buses Is Greater Than 1/4 Of The Max
         # We Have Too Much Data And Patterns Are Being Drowned Out
         max_bus_pr_rt = cleaned_data.groupby(['ROUTE'], as_index=False).agg(MAX_BUS = ("COUNT_BUS", "max"))
-        # max_bus_pr_rt = max_bus_pr_rt[max_bus_pr_rt["MAX_BUS"] >= int((max_num_bus * 1/4))]
+        print(max_bus_pr_rt["MAX_BUS"].tolist())
+        max_bus_pr_rt = max_bus_pr_rt[max_bus_pr_rt["MAX_BUS"] >= (max_bus_pr_rt["MAX_BUS"].max() * 2/4)]
 
         # Only Look At Data That Is Greater Than Threshold
         cleaned_data = cleaned_data[cleaned_data["ROUTE"].isin(max_bus_pr_rt["ROUTE"])]
@@ -210,10 +207,12 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
         f_rts = np.unique(cleaned_data["ROUTE"])
 
         # Define Basics | Grid Should Be 1 Cell Wide & Len(RTS) Long
+        print(len(f_rts))
         gs = (grid_spec.GridSpec(len(f_rts), 1))
-        fig = plt.figure(figsize=(6, 8))
+        fig = plt.figure(figsize=(6, 10))
         i = 0
         ax_objs = []
+        max_num_bus = cleaned_data["COUNT_BUS"].max() + 1
 
         # Iterate Through Each Route
         for rts in f_rts:
@@ -227,42 +226,38 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
             ax = fig.add_subplot(gs[i:i+1, 0:])
 
             # Fill Axis With Data
-            ax.plot(temp_df["SEC_FTR_12"], temp_df["COUNT_BUS"], alpha=1.0, color='grey')
-            # ax.plot(temp_df["SEC_FTR_12"], temp_df["RLNG"], alpha=1.0, label=f"Rolling Mean", color='red')
+            ax.plot(temp_df["SEC_FTR_12"], temp_df["COUNT_BUS"], alpha=1.0, linewidth=0.5, color='black')
+            ax.fill_between(temp_df["SEC_FTR_12"], temp_df["COUNT_BUS"], alpha=0.5, color='grey')
+
+            # Set Route Name For Each Grid
+            ax.set_ylabel(f"{rts}")
+
+            # Set Ax Route Name & Turn Off Some Labels
+            plt.subplots_adjust(hspace=0)
+            ax.set_xticklabels([])
+            ax.set_xticks([])
+            ax.set_yticklabels([])
+            ax.set_yticks([])
+
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
+            ax.spines['bottom'].set_visible(True)
+            ax.spines['left'].set_visible(True)
 
             # Set Y Axis Limits
             ax.set_ylim([0, max_num_bus])
+            ax.set_xlim(left=0)
 
             # Iterate To Next Roue & Index
-            ax.axis('off')
             i += 1
 
-            # Remove Before Data
-            del temp_df
+        # Manually Set X Ticks For Last Grid
+        xlabels = [x for x in range(0, 26, 2)]
+        xticks = [x*3600 for x in xlabels]
+        xlabels = [f"{x}" for x in xlabels]
+        plt.xticks(xticks, labels=xlabels)
 
         # Plot All Data
+        fig.text(0.5, 0.04, 'Time (24 Hour)', ha='center')
+        fig.text(0.01, 0.5, 'Bus Routes', va='center', rotation='vertical')
         plt.show()
-
-
-
-
-
-        """
-
-        # Plot Each Line
-        for idx, rt in enumerate(num_routes):
-            if (idx <= 50):
-                # Calculating The Rolling Median For The Hour, But What Happens When I Shift It Back 3 Cells, What Am I Implying?
-                temp_df = cleaned_data.copy()
-                temp_df = temp_df[temp_df["ROUTE"] == rt]
-                temp_df['RLNG'] = temp_df['COUNT_BUS'].rolling(6).median().round().shift(-3)
-                if (temp_df["COUNT_BUS"].max() >= 8):
-                    fig, ax = plt.subplots(figsize=(13, 7))
-                    ax.plot(temp_df["SEC_FTR_12"], temp_df["COUNT_BUS"], alpha=0.6, label=f"Number Of Buses", color='grey')
-                    ax.plot(temp_df["SEC_FTR_12"], temp_df["RLNG"],      alpha=1.0, label=f"Rolling Mean",    color='red', linestyle="dotted", linewidth=1.5)
-                    ax.legend()
-                    plt.show()
-            else:
-                break
-
-        """
