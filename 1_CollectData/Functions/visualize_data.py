@@ -230,7 +230,7 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
             ax.fill_between(temp_df["SEC_FTR_12"], temp_df["COUNT_BUS"], alpha=0.2, color='grey')
 
             # Set Route Name For Each Grid
-            ax.text(-0.5, 2 ,f"{rts}", fontsize=8, ha="right", rotation=90)
+            ax.text(-0.5, 2 ,f"({rts})", fontsize=8, ha="right", rotation=90)
 
             # Set Y Axis Limits
             ax.set_ylim([0, max_num_bus])
