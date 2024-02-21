@@ -199,25 +199,23 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
         # Note That We Only Want To Visualize Routes Where The Max Number Of Buses Is Greater Than 1/4 Of The Max
         # We Have Too Much Data And Patterns Are Being Drowned Out
         max_bus_pr_rt = cleaned_data.groupby(['ROUTE'], as_index=False).agg(MAX_BUS = ("COUNT_BUS", "max"))
+        max_bus_pr_rt.sort_values(by='MAX_BUS', ascending=False, inplace=True)
         max_bus_pr_rt = max_bus_pr_rt[max_bus_pr_rt["MAX_BUS"] >= 4]
 
         # Only Look At Data That Is Greater Than Threshold
         cleaned_data = cleaned_data[cleaned_data["ROUTE"].isin(max_bus_pr_rt["ROUTE"])]
 
-        # Filtered Routes
-        f_rts = np.unique(cleaned_data["ROUTE"])
-
         # Define Basics | Grid Should Be 1 Cell Wide & Len(RTS) Long
         yesterday_dt = (datetime.datetime.now() + datetime.timedelta(days=-1)).strftime('%Y-%m-%d')
-        gs = (grid_spec.GridSpec(len(f_rts), 1))
-        fig = plt.figure(figsize=(6, 10))
+        gs = (grid_spec.GridSpec(len(max_bus_pr_rt["ROUTE"].tolist()), 1))
+        fig = plt.figure(figsize=(6, (len(max_bus_pr_rt["ROUTE"].tolist())) - 2))
         i = 0
         ax_objs = []
         max_num_bus = cleaned_data["COUNT_BUS"].max() + 1
 
         # Iterate Through Each Route
-        max_rts = len(f_rts)
-        for idx, rts in enumerate(f_rts):
+        max_rts = len(max_bus_pr_rt["ROUTE"].tolist())
+        for idx, rts in enumerate(max_bus_pr_rt["ROUTE"].tolist()):
 
             # Gather Appropriate Data
             temp_df = cleaned_data.copy()
@@ -282,5 +280,5 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
             i += 1
 
         # Plot Data
-        gs.update(hspace=0) # For Additional Formatting Or If You Want Them To Overlap
+        gs.update(hspace=0) # For Additional Formatting Or If You Want Them To
         fig.savefig(f"{graphics_path}/NumBusesByHourByRoute.pdf")
