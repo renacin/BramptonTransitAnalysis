@@ -208,7 +208,8 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
         # Define Basics | Grid Should Be 1 Cell Wide & Len(RTS) Long
         yesterday_dt = (datetime.datetime.now() + datetime.timedelta(days=-1)).strftime('%Y-%m-%d')
         gs = (grid_spec.GridSpec(len(max_bus_pr_rt["ROUTE"].tolist()), 1))
-        fig = plt.figure(figsize=(6, (len(max_bus_pr_rt["ROUTE"].tolist())) - 2))
+        doc_len = (len(max_bus_pr_rt["ROUTE"].tolist()) -2)
+        fig = plt.figure(figsize=(6, doc_len))
         i = 0
         ax_objs = []
         max_num_bus = cleaned_data["COUNT_BUS"].max() + 1
@@ -229,8 +230,8 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
             ax.plot(temp_df["SEC_FTR_12"], temp_df["COUNT_BUS"], alpha=1.0, linewidth=0.5, color='black')
             ax.fill_between(temp_df["SEC_FTR_12"], temp_df["COUNT_BUS"], alpha=0.2, color='grey')
 
-            # Set Route Name For Each Grid
-            ax.text(-0.5, 2 ,f"({rts})", fontsize=8, ha="right", rotation=90)
+            # # Set Route Name For Each Grid
+            # ax.text(-0.5, 2 ,f"{rts}", fontsize=8, ha="right", rotation=90)
 
             # Set Y Axis Limits
             ax.set_ylim([0, max_num_bus])
@@ -242,6 +243,7 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
 
             # If Were Dealing With The Last Grid Object, Do Certain Things
             if (idx + 1) == max_rts:
+                ax.set_ylabel(f"{rts}")
                 ax.set_yticklabels([])
                 ax.set_yticks([])
                 xlabels = [x for x in range(0, 26, 2)]
@@ -251,6 +253,7 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
 
             # If Were Dealing With The First Grid Object, Do Certain Things
             elif (idx + 1) == 1:
+                ax.set_ylabel(f"{rts}")
                 ax.set_xticklabels([])
                 ax.set_xticks([])
                 ax.set_yticklabels([])
@@ -259,10 +262,11 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
                 ax.set_xticks([x*3600 for x in xlabels])
                 ax.grid(linestyle='dotted', linewidth=0.5, alpha=0.3)
                 ax.tick_params(width=0, length=0)
-                plt.title(f"By Route, Number Of Buses Operating: {yesterday_dt}")
+                plt.title(f"Number Of Buses Operating / Route - {yesterday_dt}")
 
             # If Were Dealing With Any Other Grid Object, Do Certain Things
             else:
+                ax.set_ylabel(f"{rts}")
                 ax.set_xticklabels([])
                 ax.set_xticks([])
                 ax.set_yticklabels([])
@@ -281,4 +285,5 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
 
         # Plot Data
         gs.update(hspace=0) # For Additional Formatting Or If You Want Them To
+        plt.tight_layout()
         fig.savefig(f"{graphics_path}/NumBusesByHourByRoute.pdf")
