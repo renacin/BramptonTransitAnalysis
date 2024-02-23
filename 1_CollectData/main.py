@@ -61,6 +61,10 @@ def main():
             # If It's 0300AM, Export Data To CSV, Clean DB Tables, Generate Graphics, Etc...
             if (cur_hr == alrm_hr and cur_dt == alrm_dt) | True:
 
+
+                # What Do We Know About The Memory Issue? We Know The Export File Was Written, But Then No Graphic Was Created
+                # Was The Issue With data_viz_1?
+
                 # Perform Data Maintenance, Export Data & Clean Database
                 # Collector.xprt_data("BUS_LOC", "BUS_LOC_DB", "u_id", True)
 
@@ -105,5 +109,5 @@ def main():
 # Entry Point Into Python Code
 if __name__ == "__main__":
 
-	# TODO: Why Did I Get A Killed Message?
+    # TODO: Why Did I Get A Killed Message?
     main()
