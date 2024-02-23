@@ -69,8 +69,8 @@ def main():
                 graphics_path, g_af = Collector.return_files_dates("GRAPHICS")
 
                 # Run Data Visualizations
-                # data_viz_1(graphics_path, bus_loc_path, b_af, str((datetime.datetime.now() + datetime.timedelta(days=-5)).strftime('%Y-%m-%d')))
-                data_viz_2(graphics_path, bus_loc_path, b_af, str((datetime.datetime.now() + datetime.timedelta(days=-2)).strftime('%Y-%m-%d')))
+                # data_viz_1(graphics_path, bus_loc_path, b_af, str((datetime.datetime.now() + datetime.timedelta(days=-3)).strftime('%Y-%m-%d')))
+                # data_viz_2(graphics_path, bus_loc_path, b_af, str((datetime.datetime.now() + datetime.timedelta(days=-2)).strftime('%Y-%m-%d')))
 
                 raise KeyboardInterrupt
 

@@ -14,18 +14,18 @@ import matplotlib.gridspec as grid_spec
 # ----------------------------------------------------------------------------------------------------------------------
 
 
-def data_viz_1(graphics_path, out_path, fl_data, td_dt_m6):
+def data_viz_1(graphics_path, out_path, fl_data, td_dt_mx):
     """
     When called this function will create a scaterplot showing the number of
     unique buses at 10 minute intervals for the entire day. Data is split between
     weekday, and weekend schedules - if data appropriate data was collected.
     """
 
-    # Make Sure We Have At Least 5 Days Worth Of Data
-    if len(fl_data["FILE_NAME"].tolist()) >= 5:
+    # Make Sure We Have At Least 2 Days Worth Of Data
+    if len(fl_data["FILE_NAME"].tolist()) >= 2:
 
-        # Find Days Between Today And Minus 5 Days
-        fl_data = fl_data[fl_data["DATE"] >= td_dt_m6]
+        # Find Days Between Today And Minus 3 Days
+        fl_data = fl_data[fl_data["DATE"] >= td_dt_mx]
 
         # Ingest All Data Into Pandas Dataframe
         df = pd.concat([pd.read_csv(path_, usecols=['u_id', 'dt_colc', 'vehicle_id']) for path_ in [f"{out_path}/{x}" for x in fl_data["FILE_NAME"].tolist()]])
