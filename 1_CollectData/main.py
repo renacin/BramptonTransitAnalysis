@@ -110,4 +110,5 @@ def main():
 if __name__ == "__main__":
 
     # TODO: Why Did I Get A Killed Message?
+    # I think I need to recode most of this. Make it more efficient & follow a better logical flow.
     main()
