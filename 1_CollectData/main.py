@@ -111,4 +111,5 @@ if __name__ == "__main__":
 
     # TODO: Why Did I Get A Killed Message?
     # I think I need to recode most of this. Make it more efficient & follow a better logical flow.
+    # This seems like a lot, am I just trying to keep my streak going. Most def. Hopefully I have some time in the future to reorg everything
     main()

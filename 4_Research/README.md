@@ -57,7 +57,7 @@ DB Update: Methodology 3
 </p>
 
 
-
-
-## 2. (Database) Daily Offloading RPI3 Memory Constraints
-	+ TODO
+## 2. (Database) RPI3 Memory Constraints
+	+ A memory issue was identified where when developing the data for data_viz_1 the kernel would kill the script as it was using too much memory.
+	+ I need to re-profile the code to identify memory issues!
+	+ Are more complicated analytics possible on a RPI3? (Can I handle files that are gigabytes large?)

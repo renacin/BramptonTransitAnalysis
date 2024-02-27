@@ -25,7 +25,9 @@ And so here we are. This is my 4th attempt at this project?
 1. [12-29-2023] - For All Routes In A Given Transit System, Determine Which Stops A Bus Visits
 2. [01-15-2024] - Create A System That Can Effectively Parse, And Store GTFS Data Into A Database
 3. [01-22-2024] - For A Given Period Of Time, Run System - Gather GTFS Data On A Headless Computer. Build In Contingencies!
+4. [02-27-2024] - Memory issue identified w/ RPI3. Need to modify code to be more memory efficient
 4. [00-00-0000] - Having Collected Data, Can I Interpret Traffic Patterns From GTFS Data Collected?
+
 
 
 ## Overview Of Code:
@@ -70,3 +72,4 @@ And so here we are. This is my 4th attempt at this project?
 	+ Maybe A Script That Does Some Data Cleaning, And Maybe Does Some Basic Analysis? Maybe Even Makes A BackUp Of The Database, Just Incase?
 	+ What type of analytics do I want to do?
 	+ What type of data am I collecting? Does it make sense? Are there any errors preventing me from letting this run for a long period of time?
+	+ Identified an issue where the RPI3 Kernel will kill the script. I looks like a memory issue. I need to profile everything and optimize!
