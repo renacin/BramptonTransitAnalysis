@@ -8,25 +8,17 @@ from Functions.collect_data import *
 
 import datetime
 import time
-import sys
 # ----------------------------------------------------------------------------------------------------------------------
 
 # Main Logic Of Python Code
 def main():
 
     # --------------------------------------------------------------------------
-    # Define [Internal Storage], & [External Storage] Storage
+    # Define Storage Paths & Instantiate Data Collector
     db_out_path, csv_out_path, db_path = get_paths()
+    Collector = DataCollector(db_path, csv_out_path, skp_dwnld=True)
 
-    # # --------------------------------------------------------------------------
-    # # Create An Instance Of The Data Collector
-    # try:
-    #     Collector = DataCollector(db_path, csv_out_path, skp_dwnld=True)
-    #
-    # except KeyboardInterrupt as e:
-    #     now = datetime.datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-    #     print(f"Interrupt Error: {now}")
-    #     sys.exit(1)
+
 
 
 
