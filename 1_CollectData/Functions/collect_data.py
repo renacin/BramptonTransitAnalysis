@@ -19,66 +19,79 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 # ----------------------------------------------------------------------------------------------------------------------
 
-def get_paths():
-    """ This will """
-
-    if socket.gethostname() == "Renacins-MacBook-Pro.local":
-        print("Running On Macbook Pro")
-        db_out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/3_Data"
-        csv_out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/3_Data"
-        db_path = db_out_path + "/DataStorage.db"
-
-    elif socket.gethostname() == "raspberrypi":
-        print("Running On RPI3")
-        db_out_path = r"/home/pi/Documents/Python/BramptonTransitAnalysis/3_Data"
-        csv_out_path = r"/media/pi/STORAGE"
-        db_path = db_out_path + "/DataStorage.db"
-
-    else:
-        print(f"Invalid Host Name")
-        raise Exception
-
-    gc.collect()
-    return db_out_path, csv_out_path, db_path
 
 
-
-# ----------------------------------------------------------------------------------------------------------------------
 class DataCollector:
     """ This class will gather data on both bus locations as well as weather data """
 
 
     # -------------------- Functions Run On Instantiation ----------------------
-    def __init__(self, db_path, csv_out_path, skp_dwnld=False):
+    def __init__(self, skp_dwnld=False):
         """ This function will run when the DataCollector Class is instantiated """
 
-        dt_dsply_frmt = "%d-%m-%Y %H:%M:%S"
+        # Datetime Variables
+        self.td_l_dt_dsply_frmt = "%d-%m-%Y %H:%M:%S"
+        self.td_s_dt_dsply_frmt = "%d-%m-%Y"
+
+
+        # Where Is This Running On?
+        if socket.gethostname() == "Renacins-MacBook-Pro.local":
+            now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+            print(f"{now}: Running On Macbook Pro")
+
+            db_out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/3_Data"
+            self.csv_out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/3_Data"
+            self.db_path = db_out_path + "/DataStorage.db"
+
+        elif socket.gethostname() == "raspberrypi":
+            now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+            print(f"{now}: Running On RPI3")
+
+            db_out_path = r"/home/pi/Documents/Python/BramptonTransitAnalysis/3_Data"
+            self.csv_out_path = r"/media/pi/STORAGE"
+            self.db_path = db_out_path + "/DataStorage.db"
+
+        else:
+            now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+            print(f"{now}: Invalid Host Name")
+            sys.exit(1)
+
 
         # Internalize Needed URLs: Bus Location API, Bus Routes, Bus Stops
         self.bus_loc_url    = r"https://nextride.brampton.ca:81/API/VehiclePositions?format=json"
         self.bus_routes_url = r"https://www1.brampton.ca/EN/residents/transit/plan-your-trip/Pages/Schedules-and-Maps.aspx"
         self.bus_stops_url  = r"https://opendata.arcgis.com/api/v3/datasets/1c9869fd805e45339a9e3373fc10ce08_0/downloads/data?format=csv&spatialRefId=3857&where=1%3D1"
 
+
         # Check To See If Appropriate Folders Exist, Where Are We Writting Data?
         self.out_dict = {}
-        self.__out_folder_check(csv_out_path)
+        self.__out_folder_check(self.csv_out_path)
 
         # Create An Internal Reference To The Database Location
-        self.db_path = db_path
+        self.db_path = self.db_path
 
         # Ensure Database Exists
         self.__db_check()
 
-        # # If Optionset Equals False, Grab Recent Bus Stop Info & Grab Route Data
-        # if skp_dwnld == False:
-        #     try:
-        #         self.__get_bus_stops()
-        #         self.__get_bus_route()
-        #
-        #     except KeyboardInterrupt as e:
-        #         now = datetime.datetime.now().strftime(dt_dsply_frmt)
-        #         print(f"Get Bus Stop/Bus Route Download Error: {now}")
-        #         sys.exit(1)
+
+        # If Optionset Equals False, Grab Recent Bus Stop Info & Grab Route Data
+        if skp_dwnld == False:
+
+            try:
+                self.__get_routes_nd_stops()
+
+            except KeyboardInterrupt as e:
+                now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+                print(f"Keyboard Interupt: {now}")
+                sys.exit(1)
+
+            except Exception as e:
+                now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+                print(f"Bus Stop/Bus Route Download Error: {now}")
+                sys.exit(1)
+
+        # Collect Garbage So Everything Any Unused Memory Is Released
+        gc.collect()
 
 
 
@@ -152,16 +165,16 @@ class DataCollector:
         Data API Link, Download Bus Stop Data To SQLite3 Database. This function
         should only be run on instantiation. """
 
-        # Compare Data From Bus Stops Collected And Brampton Bus Stop Dataset. Which Are Missing?
+        # Download Bus Stop Data & Export To Folder
         dwnld_stp_data_df = pd.read_csv(self.bus_stops_url)
-        dwnld_stp_data_df.to_sql("BUS_STP_DB", self.conn, if_exists="replace", index=False)
-
-        # Export To Folder Just In Case
-        dt_string = datetime.now().strftime("%d-%m-%Y")
+        dt_string = datetime.now().strftime(self.td_s_dt_dsply_frmt)
         out_path = self.out_dict["BUS_STP"] + f"/BUS_STP_DATA_{dt_string}.csv"
         dwnld_stp_data_df.to_csv(out_path, index=False)
-        print(f"Downloaded Bus Stop Data")
 
+        now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+        print(f"{now}: Exported Bus Stop Data")
+
+        return dwnld_stp_data_df
 
 
 
@@ -193,6 +206,7 @@ class DataCollector:
 
         # Return A Pandas Dataframe With Route Data
         return pd.DataFrame(rt_data, columns=["RT_LINK", "RT_DIR", "RT_GRP", "RT_NUM", "RT_NM"])
+
 
 
     def __get_rt_stops(self, rt_links, rt_names):
@@ -229,7 +243,11 @@ class DataCollector:
         num_stps_df = stp_df.groupby("RT_NM", as_index=False).agg(RT_NUM_STPS = ("RT_NM", "count"))
         stp_df = stp_df.merge(num_stps_df, on='RT_NM', how='left')
 
+        now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+        print(f"{now}: Downloaded Bus Route Data")
+
         return stp_df
+
 
 
     def __comp_data(self, parsed_df, downld_df):
@@ -251,16 +269,21 @@ class DataCollector:
         unq_parsed_stps["In_OpenData"] = np.where(unq_parsed_stps["Parsed_Bus_Stps"].isin(downld_df["stop_name"]), "Y", "N")
 
         # Which Bus Stops Are Missing?
+        now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
         misng_stps = unq_parsed_stps[unq_parsed_stps["In_OpenData"] == "N"]
-        print(f"Parsed DF Len: {len(parsed_df)}, Downloaded DF Len: {len(downld_df)}, Number Of Missing Stops: {len(misng_stps)}")
+        print(f"{now}: (Parsed DF Len: {len(parsed_df)}), (Downloaded DF Len: {len(downld_df)}), (Number Of Missing Stops: {len(misng_stps)})")
 
         return parsed_df
 
 
-    def __get_bus_route(self):
+
+    def __get_routes_nd_stops(self):
         """ On instantiation this function will be called. Using Brampton's Open
         Data API Link, Download, Bus Route Data, And Related Bus Stops, Export To
         SQLite3 Database. This function should only be run on instantiation. """
+
+        # Download All Bus Stops From Brampton Transits Website
+        dwnld_stp_data_df = self.__get_bus_stops()
 
         # Pull Route Info, Then Related Bus Stop Info
         rt_df = self.__get_rts()
@@ -270,16 +293,15 @@ class DataCollector:
         stp_data_df = stp_df.merge(rt_df, on='RT_NM', how='left')
 
         # Compare Bus Stop Names, Ensure All Names Are Consistent
-        dwnld_stp_data_df = pd.read_sql_query("SELECT * FROM BUS_STP_DB", self.conn)
         stp_data_df = self.__comp_data(stp_data_df, dwnld_stp_data_df)
 
-        # Upload To Database
-        stp_data_df.to_sql("BUS_RTE_DB", self.conn, if_exists="replace", index=False)
-
-        # Export To Folder Just In Case
-        dt_string = datetime.now().strftime("%d-%m-%Y")
+        # Export To Folder
+        dt_string = datetime.now().strftime(self.td_s_dt_dsply_frmt)
         out_path = self.out_dict["BUS_STP"] + f"/BUS_RTE_DATA_{dt_string}.csv"
         stp_data_df.to_csv(out_path, index=False)
+
+        now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+        print(f"{now}: Exported Bus Route Data")
 
 
 

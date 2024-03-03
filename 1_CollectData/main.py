@@ -4,8 +4,6 @@
 #
 # ----------------------------------------------------------------------------------------------------------------------
 from Functions.collect_data import *
-# from Functions.visualize_data import *
-
 import datetime
 import time
 # ----------------------------------------------------------------------------------------------------------------------
@@ -13,16 +11,8 @@ import time
 # Main Logic Of Python Code
 def main():
 
-    # --------------------------------------------------------------------------
-    # Define Storage Paths & Instantiate Data Collector
-    db_out_path, csv_out_path, db_path = get_paths()
-    Collector = DataCollector(db_path, csv_out_path, skp_dwnld=True)
-
-
-
-
-
-
+    # Instantiate Data Collector
+    Collector = DataCollector(skp_dwnld=False)
 
 
     #
