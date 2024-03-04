@@ -11,74 +11,58 @@ import time
 # Main Logic Of Python Code
 def main():
 
+    # Needed Standards
+    td_l_dt_dsply_frmt = "%d-%m-%Y %H:%M:%S"
+    td_s_dt_dsply_frmt = "%d-%m-%Y"
+
+    # Scheduled Maintenance Will Be The Next Day (+1) At 0300 AM
+    tm_delay = 18
+    alrm_hr = 3
+    alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime(td_s_dt_dsply_frmt))
+
+
     # Instantiate Data Collector
     Collector = DataCollector(skp_dwnld=False)
 
 
-    #
-    # # --------------------------------------------------------------------------
-    # # Scheduled Maintenance Will Be The Next Day (+1) At 0300 AM
-    # tm_delay = 18
-    # alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))
-    # alrm_hr = 3
-    #
-    # # Keep Data Collector Running
-    # while True:
-    #
-    #     # Get The Current Time
-    #     cur_dt = str(datetime.datetime.now().strftime('%Y-%m-%d'))
-    #     cur_hr = int(datetime.datetime.now().strftime('%H'))
-    #
-    #     try:
-    #         # If It's 0300AM, Export Data To CSV, Clean DB Tables, Generate Graphics, Etc...
-    #         if (cur_hr == alrm_hr and cur_dt == alrm_dt) | True:
-    #
-    #
-    #             # What Do We Know About The Memory Issue? We Know The Export File Was Written, But Then No Graphic Was Created
-    #             # Was The Issue With data_viz_1?
-    #
-    #             # Perform Data Maintenance, Export Data & Clean Database
-    #             # Collector.xprt_data("BUS_LOC", "BUS_LOC_DB", "u_id", True)
-    #
-    #             # Define Needed Connections
-    #             bus_loc_path, b_af = Collector.return_files_dates("BUS_LOC")
-    #             graphics_path, g_af = Collector.return_files_dates("GRAPHICS")
-    #
-    #             # Run Data Visualizations
-    #             # data_viz_1(graphics_path, bus_loc_path, b_af, str((datetime.datetime.now() + datetime.timedelta(days=-3)).strftime('%Y-%m-%d')))
-    #             # data_viz_2(graphics_path, bus_loc_path, b_af, str((datetime.datetime.now() + datetime.timedelta(days=-2)).strftime('%Y-%m-%d')))
-    #
-    #             raise KeyboardInterrupt
-    #
-    #             # Set New Alarm Date
-    #             alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))
-    #
-    #             # Wait To Gather Data Again
-    #             time.sleep(tm_delay)
-    #
-    #         # If It's Not Scheduled Maintenance Just Collect Data
-    #         else:
-    #             Collector.get_bus_loc()
-    #             time.sleep(tm_delay)
-    #
-    #
-    #     except KeyboardInterrupt:
-    #         now = datetime.datetime.now()
-    #         dt_string = now.strftime("%d-%m-%Y %H:%M:%S")
-    #         print(f"Interrupt Error: {dt_string}")
-    #         break
-    #
-    #
-    #     except Exception as e:
-    #         now = datetime.datetime.now()
-    #         dt_string = now.strftime("%d-%m-%Y %H:%M:%S")
-    #         print(f"Operation Error: Type {dt_string}, {e}")
-    #         time.sleep(tm_delay)
+    # Keep Data Collector Running Everyday
+    while True:
+
+        # Get The Current Time
+        cur_dt = str(datetime.datetime.now().strftime(td_s_dt_dsply_frmt))
+        cur_hr = int(datetime.datetime.now().strftime('%H'))
+
+        try:
+            # If It's 0300AM, Export Data To CSV, Clean DB Tables, Generate Graphics, Etc...
+            if (cur_hr == alrm_hr and cur_dt == alrm_dt):
+
+                # Set New Alarm Date
+                alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime(td_s_dt_dsply_frmt))
+
+                # Wait To Gather Data Again
+                time.sleep(tm_delay)
+
+            # If It's Not Scheduled Maintenance Just Collect Data
+            else:
+                Collector.get_bus_loc()
+                time.sleep(tm_delay)
+
+
+        except KeyboardInterrupt:
+            now = datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
+            print(f"{now}: Interrupt Error")
+            break
+
+
+        except Exception as e:
+            now = datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
+            print(f"{now}: Operation Error (Type - {e})")
+            time.sleep(tm_delay)
 
 
 
 # ----------------------------------------------------------------------------------------------------------------------
+
 # Entry Point Into Python Code
 if __name__ == "__main__":
-
     main()

@@ -1,6 +1,6 @@
 # Name:                                            Renacin Matadeen
-# Date:                                               01/10/2024
-# Title                  Main functions used within data collection effort will be found in this file
+# Date:                                               03/03/2024
+# Title                           Main Logic Of Data Collector: Version 2 Memory Optimized?
 #
 # ----------------------------------------------------------------------------------------------------------------------
 import gc
@@ -139,6 +139,7 @@ class DataCollector:
         except sqlite3.OperationalError as e:
             print(e)
             sys.exit(1)
+
 
 
         # Connect to database check if it has data in it | Create If Not There
@@ -305,113 +306,118 @@ class DataCollector:
 
 
 
-    # # -------------------------- Public Function 1 -----------------------------
-    # def get_bus_loc(self):
-    #     """
-    #     When called, this function will navigate to Brampton Transit JSON GTFS
-    #     link, scrape, format, and then upload data to the linked database. It
-    #     will merge old data found in the database keeping new and old records.
-    #     """
-    #
-    #     # What Is The Start Time
-    #     start_time = time.time()
-    #
-    #     # Injest As JSON, and Load Into Pandas Dataframe, Include Timeout
-    #     timeout_val = (1.5, 1.5) # Timeout For Read & Write
-    #     dt_string = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-    #
-    #
-    #     try:
-    #         response = requests.get(self.bus_loc_url, timeout=timeout_val)
-    #         data = json.loads(response.text)
-    #         resp_tsmp = data["header"]["timestamp"]
-    #
-    #         # Account For Situations Where The data["entity"] == []
-    #         if data["entity"] != []:
-    #             bus_loc_df = pd.json_normalize(data["entity"])
-    #
-    #             # Rename Columns With Periods In Name
-    #             bus_loc_df = bus_loc_df.rename(columns={
-    #                 'vehicle.trip.trip_id': 'trip_id', 'vehicle.trip.start_time': 'start_time', 'vehicle.trip.start_date': 'start_date',
-    #                 'vehicle.trip.schedule_relationship': 'schedule_relationship', 'vehicle.trip.route_id': 'route_id',
-    #                 'vehicle.position.latitude': 'latitude', 'vehicle.position.longitude': 'longitude', 'vehicle.position.bearing': 'bearing', 'vehicle.position.odometer': 'odometer', 'vehicle.position.speed': 'speed',
-    #                 'vehicle.current_stop_sequence': 'current_stop_sequence', 'vehicle.current_status': 'current_status', 'vehicle.timestamp': 'timestamp',
-    #                 'vehicle.congestion_level': 'congestion_level', 'vehicle.stop_id': 'stop_id', 'vehicle.vehicle.id': 'vehicle_id', 'vehicle.vehicle.label': 'label',
-    #                 'vehicle.vehicle.license_plate': 'license_plate'})
-    #
-    #             # Create A Datetime So We Know The Exact Time In Human Readable Rather Than Timestamp From EPOCH
-    #             bus_loc_df["dt_colc"] = pd.to_datetime(bus_loc_df["timestamp"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
-    #
-    #             # Create A U_ID Column Based On Route ID, Vehicle ID, And Timestamp To Act As A Unique ID For The Table
-    #             bus_loc_df["u_id"] = bus_loc_df["route_id"] + "_" + bus_loc_df["vehicle_id"] + "_" + bus_loc_df["timestamp"].astype(str)
-    #
-    #             # Upload New Data To An Intermediary Temp Table, Check If The U_IDs Are In A Cache From 10 Min Ago, If Not Add To Database
-    #             bus_loc_df.to_sql('bus_temp', self.conn, if_exists='replace', index=False)
-    #             self.conn.execute("""
-    #                 INSERT INTO BUS_LOC_DB(u_id, id, is_deleted, trip_update, alert, trip_id, start_time,
-    #                                        start_date, schedule_relationship, route_id, latitude, longitude, bearing,
-    #                                        odometer, speed, current_stop_sequence, current_status, timestamp, congestion_level,
-    #                                        stop_id, vehicle_id, label, license_plate, dt_colc)
-    #                 SELECT
-    #                     A.u_id,                  A.id,             A.is_deleted,
-    #                     A.trip_update,           A.alert,          A.trip_id,
-    #                     A.start_time,            A.start_date,     A.schedule_relationship,
-    #                     A.route_id,              A.latitude,       A.longitude,
-    #                     A.bearing,               A.odometer,       A.speed,
-    #                     A.current_stop_sequence, A.current_status, A.timestamp,
-    #                     A.congestion_level,      A.stop_id,        A.vehicle_id,
-    #                     A.label,                 A.license_plate,  A.dt_colc
-    #
-    #                 FROM
-    #                     bus_temp AS A
-    #
-    #                 WHERE NOT EXISTS (
-    #                     SELECT u_id FROM U_ID_TEMP AS B
-    #                     WHERE B.u_id = A.u_id)
-    #             """)
-    #             self.conn.execute('DROP TABLE IF EXISTS bus_temp')
-    #             self.conn.commit()
-    #
-    #             # Combine U_IDs From New Data & U_IDs In Most Recent Cache
-    #             all_uids = pd.concat([pd.read_sql_query("SELECT * FROM U_ID_TEMP", self.conn),
-    #                                   bus_loc_df[["u_id", "timestamp"]]
-    #                                   ])
-    #
-    #             # Sort, Where The Most Recent U_IDs Are At The Top, Remove Duplicates
-    #             all_uids["timestamp"] = all_uids["timestamp"].astype('int')
-    #             all_uids = all_uids.sort_values(by="timestamp", ascending=False)
-    #             all_uids = all_uids.drop_duplicates()
-    #
-    #             # Find The Max Time Stamp, And Only Keep Rows A Couple Of Min Back From That Value
-    #             min_back = 8
-    #             max_timestamp = all_uids["timestamp"].max() - (min_back * 60)
-    #             all_uids = all_uids[all_uids["timestamp"] >= max_timestamp]
-    #
-    #             # Now That We Have
-    #             all_uids.to_sql('U_ID_TEMP', self.conn, if_exists='replace', index=False)
-    #
-    #
-    #     except requests.exceptions.Timeout:
-    #         # When Did The Exception Occur?
-    #         print(f"Time: {dt_string}, Exception Timeout")
-    #         time.sleep(10)
-    #
-    #
-    #     except ConnectionError:
-    #         # When Did The Exception Occur?
-    #         print(f"Time: {dt_string}, Connection Error Timeout")
-    #         time.sleep(10)
-    #
-    #
-    #     except Exception as e:
-    #         r_data = requests.get(self.bus_loc_url, timeout=timeout_val)
-    #         data = json.loads(r_data.text)
-    #         print(f"Time: {dt_string}, Data Collection Error, Type: {e}")
-    #         print(f"->{data}<-")
-    #         time.sleep(10)
-    #
-    #
-    #
+
+    # -------------------------- Public Function 1 -----------------------------
+    def get_bus_loc(self):
+        """
+        When called, this function will navigate to Brampton Transit JSON GTFS
+        link, scrape, format, and then upload data to the linked database. It
+        will merge old data found in the database keeping new and old records.
+        """
+
+        # What Is The Start Time
+        start_time = time.time()
+
+        # Injest As JSON, and Load Into Pandas Dataframe, Include Timeout
+        timeout_val = (1.5, 1.5)
+        now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+
+        try:
+            response = requests.get(self.bus_loc_url, timeout=timeout_val)
+            data = json.loads(response.text)
+            resp_tsmp = data["header"]["timestamp"]
+
+            # Account For Situations Where The data["entity"] == []
+            if data["entity"] != []:
+                bus_loc_df = pd.json_normalize(data["entity"])
+
+                # Rename Columns With Periods In Name
+                bus_loc_df = bus_loc_df.rename(columns={
+                    'vehicle.trip.trip_id': 'trip_id', 'vehicle.trip.start_time': 'start_time', 'vehicle.trip.start_date': 'start_date',
+                    'vehicle.trip.schedule_relationship': 'schedule_relationship', 'vehicle.trip.route_id': 'route_id',
+                    'vehicle.position.latitude': 'latitude', 'vehicle.position.longitude': 'longitude', 'vehicle.position.bearing': 'bearing', 'vehicle.position.odometer': 'odometer', 'vehicle.position.speed': 'speed',
+                    'vehicle.current_stop_sequence': 'current_stop_sequence', 'vehicle.current_status': 'current_status', 'vehicle.timestamp': 'timestamp',
+                    'vehicle.congestion_level': 'congestion_level', 'vehicle.stop_id': 'stop_id', 'vehicle.vehicle.id': 'vehicle_id', 'vehicle.vehicle.label': 'label',
+                    'vehicle.vehicle.license_plate': 'license_plate'})
+
+                # Create A Datetime So We Know The Exact Time In Human Readable Rather Than Timestamp From EPOCH
+                bus_loc_df["dt_colc"] = pd.to_datetime(bus_loc_df["timestamp"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
+
+                # Create A U_ID Column Based On Route ID, Vehicle ID, And Timestamp To Act As A Unique ID For The Table
+                bus_loc_df["u_id"] = bus_loc_df["route_id"] + "_" + bus_loc_df["vehicle_id"] + "_" + bus_loc_df["timestamp"].astype(str)
+
+                # Upload New Data To An Intermediary Temp Table, Check If The U_IDs Are In A Cache From 10 Min Ago, If Not Add To Database
+                conn = sqlite3.connect(self.db_path)
+                bus_loc_df.to_sql('bus_temp', conn, if_exists='replace', index=False)
+                conn.execute("""
+                    INSERT INTO BUS_LOC_DB(u_id, id, is_deleted, trip_update, alert, trip_id, start_time,
+                                           start_date, schedule_relationship, route_id, latitude, longitude, bearing,
+                                           odometer, speed, current_stop_sequence, current_status, timestamp, congestion_level,
+                                           stop_id, vehicle_id, label, license_plate, dt_colc)
+                    SELECT
+                        A.u_id,                  A.id,             A.is_deleted,
+                        A.trip_update,           A.alert,          A.trip_id,
+                        A.start_time,            A.start_date,     A.schedule_relationship,
+                        A.route_id,              A.latitude,       A.longitude,
+                        A.bearing,               A.odometer,       A.speed,
+                        A.current_stop_sequence, A.current_status, A.timestamp,
+                        A.congestion_level,      A.stop_id,        A.vehicle_id,
+                        A.label,                 A.license_plate,  A.dt_colc
+
+                    FROM
+                        bus_temp AS A
+
+                    WHERE NOT EXISTS (
+                        SELECT u_id FROM U_ID_TEMP AS B
+                        WHERE B.u_id = A.u_id)
+                """)
+                conn.execute('DROP TABLE IF EXISTS bus_temp')
+                conn.commit()
+                conn.close()
+
+                # Combine U_IDs From New Data & U_IDs In Most Recent Cache
+                conn = sqlite3.connect(self.db_path)
+                all_uids = pd.concat([pd.read_sql_query("SELECT * FROM U_ID_TEMP", conn), bus_loc_df[["u_id", "timestamp"]]])
+                conn.close()
+
+                # Sort, Where The Most Recent U_IDs Are At The Top, Remove Duplicates
+                all_uids["timestamp"] = all_uids["timestamp"].astype('int')
+                all_uids = all_uids.sort_values(by="timestamp", ascending=False)
+                all_uids = all_uids.drop_duplicates()
+
+                # Find The Max Time Stamp, And Only Keep Rows A Couple Of Min Back From That Value
+                min_back = 8
+                max_timestamp = all_uids["timestamp"].max() - (min_back * 60)
+                all_uids = all_uids[all_uids["timestamp"] >= max_timestamp]
+
+                # Now That We Have
+                conn = sqlite3.connect(self.db_path)
+                all_uids.to_sql('U_ID_TEMP', conn, if_exists='replace', index=False)
+                conn.close()
+
+
+
+        except requests.exceptions.Timeout:
+            # When Did The Exception Occur?
+            print(f"{now}: Data Download Timeout Exception")
+            time.sleep(10)
+
+
+        except ConnectionError:
+            # When Did The Exception Occur?
+            print(f"{now}: Connection Error Timeout")
+            time.sleep(10)
+
+
+        except Exception as e:
+            r_data = requests.get(self.bus_loc_url, timeout=timeout_val)
+            data = json.loads(r_data.text)
+            print(f"{now}: Data Collection Error, (Type {e})")
+            print(f"{now}: Data ({data})")
+            time.sleep(10)
+
+
+
     # # -------------------------- Public Function 2 -----------------------------
     # def xprt_data(self, out_path, out_table, dup_col, input_val=True):
     #     """
