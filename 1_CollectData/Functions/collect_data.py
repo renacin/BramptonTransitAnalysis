@@ -134,6 +134,7 @@ class DataCollector:
             license_plate         TEXT, dt_colc               TEXT);
             ''')
 
+            conn.commit()
             conn.close()
 
         except sqlite3.OperationalError as e:
@@ -152,6 +153,8 @@ class DataCollector:
             timestamp               TEXT
             );
             ''')
+
+            conn.commit()
             conn.close()
 
         except sqlite3.OperationalError as e:
@@ -378,6 +381,7 @@ class DataCollector:
                 # Combine U_IDs From New Data & U_IDs In Most Recent Cache
                 conn = sqlite3.connect(self.db_path)
                 all_uids = pd.concat([pd.read_sql_query("SELECT * FROM U_ID_TEMP", conn), bus_loc_df[["u_id", "timestamp"]]])
+                conn.commit()
                 conn.close()
 
                 # Sort, Where The Most Recent U_IDs Are At The Top, Remove Duplicates
@@ -393,6 +397,7 @@ class DataCollector:
                 # Now That We Have
                 conn = sqlite3.connect(self.db_path)
                 all_uids.to_sql('U_ID_TEMP', conn, if_exists='replace', index=False)
+                conn.commit()
                 conn.close()
 
 
