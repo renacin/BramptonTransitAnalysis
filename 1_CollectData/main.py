@@ -24,8 +24,6 @@ def main():
     # Instantiate Data Collector
     Collector = DataCollector(skp_dwnld=False)
 
-
-    # Keep Data Collector Running Everyday
     while True:
 
         # Get The Current Time
@@ -33,13 +31,11 @@ def main():
         cur_hr = int(datetime.datetime.now().strftime('%H'))
 
         try:
-            # If It's 0300AM, Export Data To CSV, Clean DB Tables, Generate Graphics, Etc...
+
+            # If It's 0300AM, Do Certain Things
             if (cur_hr == alrm_hr and cur_dt == alrm_dt):
 
-                # Set New Alarm Date
                 alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime(td_s_dt_dsply_frmt))
-
-                # Wait To Gather Data Again
                 time.sleep(tm_delay)
 
             # If It's Not Scheduled Maintenance Just Collect Data
