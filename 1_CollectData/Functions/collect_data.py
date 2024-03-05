@@ -401,7 +401,6 @@ class DataCollector:
                 conn.close()
 
 
-
         except requests.exceptions.Timeout:
             # When Did The Exception Occur?
             print(f"{now}: Data Download Timeout Exception")
@@ -418,73 +417,73 @@ class DataCollector:
             r_data = requests.get(self.bus_loc_url, timeout=timeout_val)
             data = json.loads(r_data.text)
             print(f"{now}: Data Collection Error, (Type {e})")
-            print(f"{now}: Data ({data})")
+            print(f"{now}: Data Collection Error, ({data})")
             time.sleep(10)
 
 
 
-    # # -------------------------- Public Function 2 -----------------------------
-    # def xprt_data(self, out_path, out_table, dup_col, input_val=True):
-    #     """
-    #     When called, this function will gather all data in a given table, format
-    #     the data in that data table, export it as a CSV to a given path, and then
-    #     empty out the the chosen table if the appropriate choice is given.
-    #     """
-    #
-    #     # Define Needed Variables
-    #     dt_nw = datetime.now().strftime("%d-%m-%Y")
-    #     tm_nw = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-    #
-    #     out_path = self.out_dict[out_path]
-    #     db_path = out_path + f"/{out_table}_{dt_nw}.csv"
-    #
-    #     # Read Data From Defined Database, Remove Duplicates
-    #     df = pd.read_sql_query(f"SELECT * FROM {out_table}", self.conn)
-    #     df = df.drop_duplicates()
-    #
-    #     # We Need To Keep An A Version Of The Input Dataframe With No Rows & Just Columns
-    #     empty_df = df.iloc[:0].copy()
-    #
-    #     # If List Then All Cols In List
-    #     if type(input_val) == list:
-    #         df = df[input_val]
-    #         df = df.drop_duplicates(subset=[dup_col])
-    #
-    #     # If Value = True Then All
-    #     elif input_val == True:
-    #         pass
-    #
-    #     # If Invalid, Let The User Know
-    #     else:
-    #         print("Invalid Arguement")
-    #         raise ValueError("Invalid Choice: Choose Either List Of Columns, Or True")
-    #
-    #     # Export Data
-    #     df.to_csv(db_path, index=False)
-    #     del df
-    #
-    #     # Delete The SQL Table, See If That Helps Drop The Database Size?
-    #     self.conn.execute(f"""DROP TABLE IF EXISTS {out_table}""")
-    #     self.conn.commit()
-    #
-    #     # Write Over DB Table So It's Now Empty
-    #     empty_df.to_sql(f"{out_table}", self.conn, if_exists="replace", index=False)
-    #     print(f"Time: {tm_nw}, Data Successfully Export & DB Table - {out_table} Cleaned")
-    #
-    #
-    # # ------------------------- Private Function 5 -----------------------------
-    # def return_files_dates(self, out_path):
-    #     """
-    #     When called, this function will look at all the files in a folder and
-    #     return a formatted pandas dataframe for the user to query in later functions
-    #     """
-    #
-    #     # Navigate To Data Folder | Get All Appropriate Files
-    #     out_path = self.out_dict[out_path]
-    #     dir_list = [x for x in os.listdir(out_path) if ".csv" in x]
-    #     df = pd.DataFrame(dir_list, columns=['FILE_NAME'])
-    #     df[["DATE"]] = df["FILE_NAME"].str.split('_').str[3]
-    #     df["DATE"] = df["DATE"].str.replace(".csv", "", regex=False)
-    #     df["DATE"] = pd.to_datetime(df["DATE"], format='%d-%m-%Y')
-    #
-    #     return out_path, df
+    # -------------------------- Public Function 2 -----------------------------
+    def xprt_data(self, out_path, out_table, dup_col, input_val=True):
+        """
+        When called, this function will gather all data in a given table, format
+        the data in that data table, export it as a CSV to a given path, and then
+        empty out the the chosen table if the appropriate choice is given.
+        """
+
+        # Define Needed Variables
+        dt_nw = datetime.now().strftime("%d-%m-%Y")
+        tm_nw = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+
+        out_path = self.out_dict[out_path]
+        db_path = out_path + f"/{out_table}_{dt_nw}.csv"
+
+        # Read Data From Defined Database, Remove Duplicates
+        df = pd.read_sql_query(f"SELECT * FROM {out_table}", self.conn)
+        df = df.drop_duplicates()
+
+        # We Need To Keep An A Version Of The Input Dataframe With No Rows & Just Columns
+        empty_df = df.iloc[:0].copy()
+
+        # If List Then All Cols In List
+        if type(input_val) == list:
+            df = df[input_val]
+            df = df.drop_duplicates(subset=[dup_col])
+
+        # If Value = True Then All
+        elif input_val == True:
+            pass
+
+        # If Invalid, Let The User Know
+        else:
+            print("Invalid Arguement")
+            raise ValueError("Invalid Choice: Choose Either List Of Columns, Or True")
+
+        # Export Data
+        df.to_csv(db_path, index=False)
+        del df
+
+        # Delete The SQL Table, See If That Helps Drop The Database Size?
+        self.conn.execute(f"""DROP TABLE IF EXISTS {out_table}""")
+        self.conn.commit()
+
+        # Write Over DB Table So It's Now Empty
+        empty_df.to_sql(f"{out_table}", self.conn, if_exists="replace", index=False)
+        print(f"Time: {tm_nw}, Data Successfully Export & DB Table - {out_table} Cleaned")
+
+
+    # ------------------------- Private Function 5 -----------------------------
+    def return_files_dates(self, out_path):
+        """
+        When called, this function will look at all the files in a folder and
+        return a formatted pandas dataframe for the user to query in later functions
+        """
+
+        # Navigate To Data Folder | Get All Appropriate Files
+        out_path = self.out_dict[out_path]
+        dir_list = [x for x in os.listdir(out_path) if ".csv" in x]
+        df = pd.DataFrame(dir_list, columns=['FILE_NAME'])
+        df[["DATE"]] = df["FILE_NAME"].str.split('_').str[3]
+        df["DATE"] = df["DATE"].str.replace(".csv", "", regex=False)
+        df["DATE"] = pd.to_datetime(df["DATE"], format='%d-%m-%Y')
+
+        return out_path, df
