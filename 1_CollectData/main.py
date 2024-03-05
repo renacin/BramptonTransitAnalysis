@@ -21,7 +21,6 @@ def main():
     alrm_hr = 3
     alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime(td_s_dt_dsply_frmt))
 
-
     # Instantiate Data Collector                        | Set To False Once In Production
     Collector = DataCollector(skp_dwnld = False)
 
@@ -32,7 +31,6 @@ def main():
         cur_hr = int(datetime.datetime.now().strftime('%H'))
 
         try:
-
             # If It's 0300AM, Do Certain Things          | REMOVE True ONCE IN PRODUCTION!
             if (cur_hr == alrm_hr and cur_dt == alrm_dt):
 
@@ -74,7 +72,6 @@ def main():
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-
 # Entry Point Into Python Code
 if __name__ == "__main__":
     main()
