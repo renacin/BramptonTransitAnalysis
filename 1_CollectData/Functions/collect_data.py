@@ -431,15 +431,18 @@ class DataCollector:
         """
 
         # Define Needed Variables
-        dt_nw = datetime.now().strftime("%d-%m-%Y")
-        tm_nw = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+        dt_nw = datetime.now().strftime(self.td_s_dt_dsply_frmt)
+        tm_nw = datetime.now().strftime(self.td_l_dt_dsply_frmt)
 
+        # Define Where The File Will Be Written
         out_path = self.out_dict[out_path]
         db_path = out_path + f"/{out_table}_{dt_nw}.csv"
 
         # Read Data From Defined Database, Remove Duplicates
-        df = pd.read_sql_query(f"SELECT * FROM {out_table}", self.conn)
+        conn = sqlite3.connect(self.db_path)
+        df = pd.read_sql_query(f"SELECT * FROM {out_table}", conn)
         df = df.drop_duplicates()
+        conn.close()
 
         # We Need To Keep An A Version Of The Input Dataframe With No Rows & Just Columns
         empty_df = df.iloc[:0].copy()
@@ -463,12 +466,19 @@ class DataCollector:
         del df
 
         # Delete The SQL Table, See If That Helps Drop The Database Size?
-        self.conn.execute(f"""DROP TABLE IF EXISTS {out_table}""")
-        self.conn.commit()
+        conn = sqlite3.connect(self.db_path)
+        conn.execute(f"""DROP TABLE IF EXISTS {out_table}""")
+        conn.commit()
+        conn.close()
 
         # Write Over DB Table So It's Now Empty
-        empty_df.to_sql(f"{out_table}", self.conn, if_exists="replace", index=False)
-        print(f"Time: {tm_nw}, Data Successfully Export & DB Table - {out_table} Cleaned")
+        conn = sqlite3.connect(self.db_path)
+        empty_df.to_sql(f"{out_table}", conn, if_exists="replace", index=False)
+        conn.commit()
+        conn.close()
+
+        # For Logging
+        print(f"{tm_nw}: Exported CSV & DB Table - {out_table} Cleaned")
 
 
 
@@ -478,7 +488,7 @@ class DataCollector:
     #     When called, this function will look at all the files in a folder and
     #     return a formatted pandas dataframe for the user to query in later functions
     #     """
-	#
+    #
     #     # Navigate To Data Folder | Get All Appropriate Files
     #     out_path = self.out_dict[out_path]
     #     dir_list = [x for x in os.listdir(out_path) if ".csv" in x]
@@ -486,5 +496,5 @@ class DataCollector:
     #     df[["DATE"]] = df["FILE_NAME"].str.split('_').str[3]
     #     df["DATE"] = df["DATE"].str.replace(".csv", "", regex=False)
     #     df["DATE"] = pd.to_datetime(df["DATE"], format='%d-%m-%Y')
-	#
+    #
     #     return out_path, df

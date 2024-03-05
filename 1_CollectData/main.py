@@ -22,8 +22,8 @@ def main():
     alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime(td_s_dt_dsply_frmt))
 
 
-    # Instantiate Data Collector              | Set To False Once In Production
-    Collector = DataCollector(skp_dwnld = True)
+    # Instantiate Data Collector                        | Set To False Once In Production
+    Collector = DataCollector(skp_dwnld = False)
 
     while True:
 
@@ -33,8 +33,8 @@ def main():
 
         try:
 
-            # If It's 0300AM, Do Certain Things          | REMOVE ONCE IN PRODUCTION!
-            if (cur_hr == alrm_hr and cur_dt == alrm_dt) | True :
+            # If It's 0300AM, Do Certain Things          | REMOVE True ONCE IN PRODUCTION!
+            if (cur_hr == alrm_hr and cur_dt == alrm_dt):
 
                 # If It's Time, Export Data & Render Data Visualizations
                 Collector.xprt_data("BUS_LOC", "BUS_LOC_DB", "u_id", True)
@@ -51,9 +51,8 @@ def main():
                 # alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime(td_s_dt_dsply_frmt))
                 # time.sleep(tm_delay)
 
-                # FOR TESTING REMOVE ONCE IN PRODUCTION!
-                sys.exit()
-
+                # # FOR TESTING REMOVE ONCE IN PRODUCTION!
+                # sys.exit(0)
 
             # If It's Not Scheduled Maintenance Just Collect Data
             else:
