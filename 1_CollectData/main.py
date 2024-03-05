@@ -6,6 +6,7 @@
 from Functions.collect_data import *
 import datetime
 import time
+import sys
 # ----------------------------------------------------------------------------------------------------------------------
 
 # Main Logic Of Python Code
@@ -21,8 +22,8 @@ def main():
     alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime(td_s_dt_dsply_frmt))
 
 
-    # Instantiate Data Collector
-    Collector = DataCollector(skp_dwnld=False)
+    # Instantiate Data Collector              | Set To False Once In Production
+    Collector = DataCollector(skp_dwnld = True)
 
     while True:
 
@@ -32,11 +33,27 @@ def main():
 
         try:
 
-            # If It's 0300AM, Do Certain Things
-            if (cur_hr == alrm_hr and cur_dt == alrm_dt):
+            # If It's 0300AM, Do Certain Things          | REMOVE ONCE IN PRODUCTION!
+            if (cur_hr == alrm_hr and cur_dt == alrm_dt) | True :
 
-                alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime(td_s_dt_dsply_frmt))
-                time.sleep(tm_delay)
+                # If It's Time, Export Data & Render Data Visualizations
+                Collector.xprt_data("BUS_LOC", "BUS_LOC_DB", "u_id", True)
+
+                # # Define Needed Connections
+                # bus_loc_path, b_af = Collector.return_files_dates("BUS_LOC")
+                # graphics_path, g_af = Collector.return_files_dates("GRAPHICS")
+                #
+                # # Run Data Visualizations
+                # data_viz_1(graphics_path, bus_loc_path, b_af, str((datetime.datetime.now() + datetime.timedelta(days=-3)).strftime('%Y-%m-%d')))
+                # data_viz_2(graphics_path, bus_loc_path, b_af, str((datetime.datetime.now() + datetime.timedelta(days=-2)).strftime('%Y-%m-%d')))
+                #
+                # # Once Complete Set New Alarm
+                # alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime(td_s_dt_dsply_frmt))
+                # time.sleep(tm_delay)
+
+                # FOR TESTING REMOVE ONCE IN PRODUCTION!
+                sys.exit()
+
 
             # If It's Not Scheduled Maintenance Just Collect Data
             else:
