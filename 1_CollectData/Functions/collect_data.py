@@ -40,6 +40,7 @@ class DataCollector:
             print(f"{now}: Running On Macbook Pro")
 
             db_out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/3_Data"
+            self.db_folder = db_out_path
             self.csv_out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/3_Data"
             self.db_path = db_out_path + "/DataStorage.db"
 
@@ -48,6 +49,7 @@ class DataCollector:
             print(f"{now}: Running On RPI3")
 
             db_out_path = r"/home/pi/Documents/Python/BramptonTransitAnalysis/3_Data"
+            self.db_folder = db_out_path
             self.csv_out_path = r"/media/pi/STORAGE"
             self.db_path = db_out_path + "/DataStorage.db"
 
@@ -102,8 +104,8 @@ class DataCollector:
         them."""
 
         # First Check To See If The Main Folder Exists!
-        if not os.path.isdir(csv_out_path):
-            os.makedirs(csv_out_path)
+        if not os.path.isdir(self.db_folder):
+            os.makedirs(self.db_folder)
 
         # In The Out Directory Provided See If The Appropriate Sub Folders Exist!
         for fldr_nm in ['BUS_STP', 'BUS_LOC', 'GRAPHICS']:
