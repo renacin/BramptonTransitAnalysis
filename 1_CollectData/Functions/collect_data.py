@@ -62,7 +62,6 @@ class DataCollector:
         self.bus_routes_url = r"https://www1.brampton.ca/EN/residents/transit/plan-your-trip/Pages/Schedules-and-Maps.aspx"
         self.bus_stops_url  = r"https://opendata.arcgis.com/api/v3/datasets/1c9869fd805e45339a9e3373fc10ce08_0/downloads/data?format=csv&spatialRefId=3857&where=1%3D1"
 
-
         # Check To See If Appropriate Sub Folders Exist, Where Are We Writting Data?
         self.out_dict = {}
         self.__out_folder_check(self.csv_out_path)
@@ -72,7 +71,6 @@ class DataCollector:
 
         # Ensure Database Exists
         self.__db_check()
-
 
         # If Optionset Equals False, Grab Recent Bus Stop Info & Grab Route Data
         if skp_dwnld == False:
@@ -104,6 +102,8 @@ class DataCollector:
         them."""
 
         # First Check To See If The Main Folder Exists!
+        if not os.path.isdir(csv_out_path):
+            os.makedirs(csv_out_path)
 
         # In The Out Directory Provided See If The Appropriate Sub Folders Exist!
         for fldr_nm in ['BUS_STP', 'BUS_LOC', 'GRAPHICS']:
@@ -111,6 +111,9 @@ class DataCollector:
             self.out_dict[fldr_nm] = dir_chk
             if not os.path.exists(dir_chk):
                 os.makedirs(dir_chk)
+
+        now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+        print(f"{now}: Database & Folders Exist")
 
 
 
