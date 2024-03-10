@@ -21,54 +21,57 @@ def main():
     alrm_hr = 3
     alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime(td_s_dt_dsply_frmt))
 
-    # Instantiate Data Collector                        | Set To False Once In Production
-    Collector = DataCollector(skp_dwnld = False)
-
-    while True:
-
-        # Get The Current Time
-        cur_dt = str(datetime.datetime.now().strftime(td_s_dt_dsply_frmt))
-        cur_hr = int(datetime.datetime.now().strftime('%H'))
-
-        try:
-            # If It's 0300AM, Do Certain Things          | REMOVE True ONCE IN PRODUCTION!
-            if (cur_hr == alrm_hr and cur_dt == alrm_dt):
-
-                # If It's Time, Export Data & Render Data Visualizations
-                Collector.xprt_data("BUS_LOC", "BUS_LOC_DB", "u_id", True)
-
-                # # Define Needed Connections
-                # bus_loc_path, b_af = Collector.return_files_dates("BUS_LOC")
-                # graphics_path, g_af = Collector.return_files_dates("GRAPHICS")
-                #
-                # # Run Data Visualizations
-                # data_viz_1(graphics_path, bus_loc_path, b_af, str((datetime.datetime.now() + datetime.timedelta(days=-3)).strftime('%Y-%m-%d')))
-                # data_viz_2(graphics_path, bus_loc_path, b_af, str((datetime.datetime.now() + datetime.timedelta(days=-2)).strftime('%Y-%m-%d')))
-                #
-                # # Once Complete Set New Alarm
-                # alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime(td_s_dt_dsply_frmt))
-                # time.sleep(tm_delay)
-
-                # # FOR TESTING REMOVE ONCE IN PRODUCTION!
-                # sys.exit(0)
-
-            # If It's Not Scheduled Maintenance Just Collect Data
-            else:
-                Collector.get_bus_loc()
-                time.sleep(tm_delay)
+    # Instantiate Data Collector        | Set To False Once In Production
+    Collector = DataCollector(skp_dwnld = True)
 
 
-        except KeyboardInterrupt:
-            now = datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
-            print(f"{now}: Interrupt Error")
-            break
 
-
-        except Exception as e:
-            now = datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
-            print(f"{now}: Operation Error (Type - {e})")
-            time.sleep(tm_delay)
-
+	#
+    # while True:
+	#
+    #     # Get The Current Time
+    #     cur_dt = str(datetime.datetime.now().strftime(td_s_dt_dsply_frmt))
+    #     cur_hr = int(datetime.datetime.now().strftime('%H'))
+	#
+    #     try:
+    #         # If It's 0300AM, Do Certain Things          | REMOVE True ONCE IN PRODUCTION!
+    #         if (cur_hr == alrm_hr and cur_dt == alrm_dt):
+	#
+    #             # If It's Time, Export Data & Render Data Visualizations
+    #             Collector.xprt_data("BUS_LOC", "BUS_LOC_DB", "u_id", True)
+	#
+    #             # # Define Needed Connections
+    #             # bus_loc_path, b_af = Collector.return_files_dates("BUS_LOC")
+    #             # graphics_path, g_af = Collector.return_files_dates("GRAPHICS")
+    #             #
+    #             # # Run Data Visualizations
+    #             # data_viz_1(graphics_path, bus_loc_path, b_af, str((datetime.datetime.now() + datetime.timedelta(days=-3)).strftime('%Y-%m-%d')))
+    #             # data_viz_2(graphics_path, bus_loc_path, b_af, str((datetime.datetime.now() + datetime.timedelta(days=-2)).strftime('%Y-%m-%d')))
+    #             #
+    #             # # Once Complete Set New Alarm
+    #             # alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime(td_s_dt_dsply_frmt))
+    #             # time.sleep(tm_delay)
+	#
+    #             # # FOR TESTING REMOVE ONCE IN PRODUCTION!
+    #             # sys.exit(0)
+	#
+    #         # If It's Not Scheduled Maintenance Just Collect Data
+    #         else:
+    #             Collector.get_bus_loc()
+    #             time.sleep(tm_delay)
+	#
+	#
+    #     except KeyboardInterrupt:
+    #         now = datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
+    #         print(f"{now}: Interrupt Error")
+    #         break
+	#
+	#
+    #     except Exception as e:
+    #         now = datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
+    #         print(f"{now}: Operation Error (Type - {e})")
+    #         time.sleep(tm_delay)
+	#
 
 
 # ----------------------------------------------------------------------------------------------------------------------
