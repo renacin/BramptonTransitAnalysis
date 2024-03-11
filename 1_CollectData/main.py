@@ -24,7 +24,7 @@ def main():
     # Instantiate Data Collector                         | REMOVE TRUE ONCE IN PRODUCTION!
     Collector = DataCollector(skp_dwnld = True)
 
-	# Main Loop Of Code!
+    # Main Loop Of Code!
     while True:
 
         # Get The Current Time
@@ -45,13 +45,11 @@ def main():
                 # # Run Data Visualizations
                 # data_viz_1(graphics_path, bus_loc_path, b_af, str((datetime.datetime.now() + datetime.timedelta(days=-3)).strftime('%Y-%m-%d')))
                 # data_viz_2(graphics_path, bus_loc_path, b_af, str((datetime.datetime.now() + datetime.timedelta(days=-2)).strftime('%Y-%m-%d')))
-                #
-                # # Once Complete Set New Alarm
-                # alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime(td_s_dt_dsply_frmt))
-                # time.sleep(tm_delay)
 
-                # # FOR TESTING REMOVE ONCE IN PRODUCTION!
-                # sys.exit(0)
+                # Once Complete Set New Alarm
+                alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime(td_s_dt_dsply_frmt))
+                time.sleep(tm_delay)
+
 
             # If It's Not Scheduled Maintenance Just Collect Data
             else:
