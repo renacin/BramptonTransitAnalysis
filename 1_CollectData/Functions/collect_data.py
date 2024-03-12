@@ -317,7 +317,6 @@ class DataCollector:
 
 
 
-
     # -------------------------- Public Function 1 -----------------------------
     def get_bus_loc(self):
         """
