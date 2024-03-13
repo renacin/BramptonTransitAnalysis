@@ -489,19 +489,21 @@ class DataCollector:
 
 
 
-    # # ------------------------- Private Function 5 -----------------------------
-    # def return_files_dates(self, out_path):
-    #     """
-    #     When called, this function will look at all the files in a folder and
-    #     return a formatted pandas dataframe for the user to query in later functions
-    #     """
-    #
-    #     # Navigate To Data Folder | Get All Appropriate Files
-    #     out_path = self.out_dict[out_path]
-    #     dir_list = [x for x in os.listdir(out_path) if ".csv" in x]
-    #     df = pd.DataFrame(dir_list, columns=['FILE_NAME'])
-    #     df[["DATE"]] = df["FILE_NAME"].str.split('_').str[3]
-    #     df["DATE"] = df["DATE"].str.replace(".csv", "", regex=False)
-    #     df["DATE"] = pd.to_datetime(df["DATE"], format='%d-%m-%Y')
-    #
-    #     return out_path, df
+    # ------------------------- Private Function 5 -----------------------------
+    def return_files_dates(self, out_path):
+        """
+        When called, this function will look at all the files in a folder and
+        return a formatted pandas dataframe for the user to query in later functions
+        """
+
+        # Navigate To Data Folder | Get All Appropriate Files
+        out_path = self.out_dict[out_path]
+        dir_list = [x for x in os.listdir(out_path) if ".csv" in x]
+        df = pd.DataFrame(dir_list, columns=['FILE_NAME'])
+
+        # Create A Dataframe With The Time The File Was Created & Output
+        df[["DATE"]] = df["FILE_NAME"].str.split('_').str[3]
+        df["DATE"] = df["DATE"].str.replace(".csv", "", regex=False)
+        df["DATE"] = pd.to_datetime(df["DATE"], format = self.td_s_dt_dsply_frmt)
+
+        return out_path, df

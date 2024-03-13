@@ -4,6 +4,7 @@
 #
 # ----------------------------------------------------------------------------------------------------------------------
 from Functions.collect_data import *
+from Functions.visualize_data import *
 import datetime
 import time
 import sys
@@ -24,7 +25,7 @@ def main():
     # Instantiate Data Collector                         | REMOVE TRUE ONCE IN PRODUCTION!
     Collector = DataCollector(skp_dwnld = True)
 
-    # Main Loop Of Code!
+    # Main Loop Of Code
     while True:
 
         # Get The Current Time
@@ -36,14 +37,14 @@ def main():
             if (cur_hr == alrm_hr and cur_dt == alrm_dt) | True :
 
                 # If It's Time, Export Data & Render Data Visualizations
-                Collector.xprt_data("BUS_LOC", "BUS_LOC_DB", "u_id", True)
+                # Collector.xprt_data("BUS_LOC", "BUS_LOC_DB", "u_id", True)
 
-                # # Define Needed Connections
-                # bus_loc_path, b_af = Collector.return_files_dates("BUS_LOC")
-                # graphics_path, g_af = Collector.return_files_dates("GRAPHICS")
-                #
-                # # Run Data Visualizations
-                # data_viz_1(graphics_path, bus_loc_path, b_af, str((datetime.datetime.now() + datetime.timedelta(days=-3)).strftime('%Y-%m-%d')))
+                # Define Needed Connections
+                bus_loc_path, b_af = Collector.return_files_dates("BUS_LOC")
+                graphics_path, g_af = Collector.return_files_dates("GRAPHICS")
+
+                # Run Data Visualizations
+                data_viz_1(graphics_path, bus_loc_path, b_af, str((datetime.datetime.now() + datetime.timedelta(days=-3)).strftime('%Y-%m-%d')))
                 # data_viz_2(graphics_path, bus_loc_path, b_af, str((datetime.datetime.now() + datetime.timedelta(days=-2)).strftime('%Y-%m-%d')))
 
                 # Once Complete Set New Alarm
@@ -51,7 +52,7 @@ def main():
                 time.sleep(tm_delay)
 
                 # Remove Once In Production!
-                sys.exit(0)
+                raise KeyboardInterrupt
 
             # If It's Not Scheduled Maintenance Just Collect Data
             else:
