@@ -101,7 +101,7 @@ def data_viz_1(graphics_path, out_path, fl_data, td_dt_mx):
         wk_day = grped_time[grped_time["WK_NUM"] <= 4].sort_values(by=['SEC_FTR_12'])
         wk_end = grped_time[grped_time["WK_NUM"]  > 4].sort_values(by=['SEC_FTR_12'])
         del grped_time
-        
+
         # Collect Garbage So Everything Any Unused Memory Is Released
         gc.collect()
 
@@ -155,6 +155,7 @@ def data_viz_1(graphics_path, out_path, fl_data, td_dt_mx):
 
 
 
+
 # ----------------------------------------------------------------------------------------------------------------------
 
 def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
@@ -163,7 +164,7 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
     """
 
     # Make Sure We Have At Least 3 Days Worth Of Data
-    if len(fl_data["FILE_NAME"].tolist()) >= 3:
+    if len(fl_data["FILE_NAME"].tolist()) >= 2:
 
         # Find Days Between Today And Minus Only Look At CSVs That Are 3 Days Old Or Newer, Then Read In Data
         fl_data = fl_data[fl_data["DATE"] >= cur_dt_m2]

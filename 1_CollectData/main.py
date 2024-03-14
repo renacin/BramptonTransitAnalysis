@@ -44,7 +44,7 @@ def main():
                 graphics_path, g_af = Collector.return_files_dates("GRAPHICS")
 
                 # Run Data Visualizations
-                data_viz_1(graphics_path, bus_loc_path, b_af, str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt)))
+                # data_viz_1(graphics_path, bus_loc_path, b_af, str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt)))
                 # data_viz_2(graphics_path, bus_loc_path, b_af, str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt)))
 
                 # Once Complete Set New Alarm
