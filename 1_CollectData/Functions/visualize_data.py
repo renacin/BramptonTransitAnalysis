@@ -4,6 +4,7 @@
 #
 # ----------------------------------------------------------------------------------------------------------------------
 import os
+import gc
 import time
 import sqlite3
 import numpy as np
@@ -84,12 +85,10 @@ def data_viz_1(graphics_path, out_path, fl_data, td_dt_mx):
         # Find Days Between Today And Minus 1 Days
         fl_data = fl_data[fl_data["DATE"] >= td_dt_mx]
         df = pd.concat([pd.read_csv(path_, usecols=['u_id', 'dt_colc', 'vehicle_id']) for path_ in [f"{out_path}/{x}" for x in fl_data["FILE_NAME"].tolist()]])
+        del fl_data
 
-        # Data Formatting
-        df = __d1_s1(df)
-
-        # Data Grouping
-        grped_time, dates_in = __d1_s2(df)
+        # Data Formating & Grouping
+        grped_time, dates_in = __d1_s2(__d1_s1(df))
         del df
 
         # Visualize Data Basics For Plot Frame | Define Plot Size 3:2
@@ -101,6 +100,10 @@ def data_viz_1(graphics_path, out_path, fl_data, td_dt_mx):
         # Create Dataframes For Weekday & Weekend
         wk_day = grped_time[grped_time["WK_NUM"] <= 4].sort_values(by=['SEC_FTR_12'])
         wk_end = grped_time[grped_time["WK_NUM"]  > 4].sort_values(by=['SEC_FTR_12'])
+        del grped_time
+        
+        # Collect Garbage So Everything Any Unused Memory Is Released
+        gc.collect()
 
         # If Weekend Is Empty
         if wk_end.empty:
