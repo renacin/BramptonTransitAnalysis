@@ -424,7 +424,6 @@ class DataCollector:
             r_data = requests.get(self.bus_loc_url, timeout=timeout_val)
             data = json.loads(r_data.text)
             print(f"{now}: Data Collection Error, (Type {e})")
-            print(f"{now}: Data Collection Error, ({data})")
             time.sleep(10)
 
 
