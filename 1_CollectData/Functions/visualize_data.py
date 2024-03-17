@@ -105,7 +105,7 @@ def data_viz_1(graphics_path, out_path, fl_data, td_dt_mx):
         # Collect Garbage So Everything Any Unused Memory Is Released
         gc.collect()
 
-        # If Weekend Is Empty
+        # If Weekday
         if wk_end.empty:
 
             # Fit Curve To Data | Weekday
@@ -117,26 +117,19 @@ def data_viz_1(graphics_path, out_path, fl_data, td_dt_mx):
             ax.plot(wk_day["SEC_FTR_12"], yy, c="red", alpha=0.5, label='Line Best Fit: Weekday')
 
 
-        # If Weekend Is Not Empty
+        # If Weekend
         else:
-
-            # Fit Curve To Data | Weekday
-            curve = np.polyfit(wk_day["SEC_FTR_12"], wk_day["COUNT_BUS"], 15)
-            poly = np.poly1d(curve)
-            yy = poly(wk_day["SEC_FTR_12"])
-
-            ax.scatter(wk_day["SEC_FTR_12"], wk_day["COUNT_BUS"], marker ="+", c="grey", alpha=0.5, label='# Weekday Buses')
-            ax.plot(wk_day["SEC_FTR_12"], yy, c="red", alpha=0.5, label='Line Best Fit: Weekday')
-
             # Fit Curve To Data | Weekend
             curve = np.polyfit(wk_end["SEC_FTR_12"], wk_end["COUNT_BUS"], 15)
             poly = np.poly1d(curve)
             yy = poly(wk_end["SEC_FTR_12"])
 
+
             ax.scatter(wk_end["SEC_FTR_12"], wk_end["COUNT_BUS"], marker ="x", c="grey", alpha=0.5, label='# Weekend Buses')
             ax.plot(wk_end["SEC_FTR_12"], yy, c="blue", alpha=0.5, label='Line Best Fit: Weekend')
 
-            ax.legend()
+        # Draw Legend
+        ax.legend()
 
         # Manually Set X Ticks
         xlabels = [x for x in range(0, 26, 2)]
@@ -148,10 +141,20 @@ def data_viz_1(graphics_path, out_path, fl_data, td_dt_mx):
         ax.set_ylabel("# Of Buses")
 
         fig.suptitle('Number Of Brampton Transit Buses Every 10 Minutes')
-        ax.set_title(f"Data Collected Between: {dates_in[1]} & {dates_in[-1]}")
+        ax.set_title(f"Data Collected: {dates_in[1]}")
 
         # Save The Figure In Graphics Folder
         fig.savefig(f"{graphics_path}/NumBusesByHour.pdf")
+        now = datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
+        print(f"{now}: Rendered Data Viz #1")
+
+
+
+
+
+
+
+
 
 
 
