@@ -136,14 +136,16 @@ def data_viz_1(graphics_path, out_path, fl_data, td_dt_mx):
         xticks = [x*3600 for x in xlabels]
         xlabels = [f"{x}" for x in xlabels]
         ax.set_xticks(xticks, labels=xlabels)
+        ax.grid(linestyle='dotted', linewidth=0.5, alpha=0.4)
 
-        ax.set_xlabel("Time (24 Hour)")
-        ax.set_ylabel("# Of Buses")
+        ax.set_xlabel("Time (24 Hour)", style='italic')
+        ax.set_ylabel("# Of Buses", style='italic')
 
         fig.suptitle('Number Of Brampton Transit Buses Every 10 Minutes')
         ax.set_title(f"Data Collected: {dates_in[1]}")
 
         # Save The Figure In Graphics Folder
+        plt.tight_layout()
         fig.savefig(f"{graphics_path}/NumBusesByHour.pdf")
         now = datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
         print(f"{now}: Rendered Data Viz #1")
