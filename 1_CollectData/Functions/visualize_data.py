@@ -141,8 +141,12 @@ def data_viz_1(graphics_path, out_path, fl_data, td_dt_mx):
         ax.set_xlabel("Time (24 Hour)", style='italic')
         ax.set_ylabel("# Of Buses", style='italic')
 
-        fig.suptitle('Number Of Brampton Transit Buses Every 10 Minutes')
-        ax.set_title(f"Data Collected: {dates_in[1]}")
+        fig.suptitle('Number Of Brampton Transit Buses Every 10 Minutes', fontsize=13)
+        ax.set_title(f"Data Collected: {dates_in[1]}", fontsize=11)
+
+        # # Remove All Splines
+        # for dir in ["top", "bottom", "left", "right"]:
+        #     ax.spines[dir].set_visible(False)
 
         # Save The Figure In Graphics Folder
         plt.tight_layout()
