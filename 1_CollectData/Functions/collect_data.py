@@ -333,7 +333,7 @@ class DataCollector:
         now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
 
         try:
-            response = requests.get(self.bus_loc_url, timeout=timeout_val)
+            response = requests.get(self.bus_loc_url, verify=False, timeout=timeout_val)
             data = json.loads(response.text)
             resp_tsmp = data["header"]["timestamp"]
 
@@ -408,22 +408,28 @@ class DataCollector:
                 conn.close()
 
 
+        # For Each Error Where Data Was Not Collected Make Add Occurence Time To A Tracking Database!
         except requests.exceptions.Timeout:
             # When Did The Exception Occur?
             print(f"{now}: Data Download Timeout Exception")
             time.sleep(10)
 
 
+        except requests.exceptions.ConnectionError:
+            # When Did The Exception Occur?
+            print(f"{now}: Requests Connection Error Exception")
+            time.sleep(10)
+
+
         except ConnectionError:
             # When Did The Exception Occur?
-            print(f"{now}: Connection Error Timeout")
+            print(f"{now}: General Connection Error Timeout")
             time.sleep(10)
 
 
         except Exception as e:
-            r_data = requests.get(self.bus_loc_url, timeout=timeout_val)
-            data = json.loads(r_data.text)
-            print(f"{now}: Data Collection Error, (Type {e})")
+            # When Did The Exception Occur?
+            print(f"{now}: General Error, (Type {e})")
             time.sleep(10)
 
 

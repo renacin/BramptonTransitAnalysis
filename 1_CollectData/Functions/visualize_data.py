@@ -144,23 +144,11 @@ def data_viz_1(graphics_path, out_path, fl_data, td_dt_mx):
         fig.suptitle('Number Of Brampton Transit Buses Every 10 Minutes', fontsize=13)
         ax.set_title(f"Data Collected: {dates_in[1]}", fontsize=11)
 
-        # # Remove All Splines
-        # for dir in ["top", "bottom", "left", "right"]:
-        #     ax.spines[dir].set_visible(False)
-
         # Save The Figure In Graphics Folder
         plt.tight_layout()
         fig.savefig(f"{graphics_path}/NumBusesByHour.pdf")
         now = datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
         print(f"{now}: Rendered Data Viz #1")
-
-
-
-
-
-
-
-
 
 
 
