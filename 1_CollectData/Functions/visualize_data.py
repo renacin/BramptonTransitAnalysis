@@ -91,6 +91,9 @@ def data_viz_1(graphics_path, out_path, fl_data, td_dt_mx):
         grped_time, dates_in = __d1_s2(__d1_s1(df))
         del df
 
+        # Garbage Clean Up
+        gc.collect()
+
         # Visualize Data Basics For Plot Frame | Define Plot Size 3:2
         fig, ax = plt.subplots(figsize=(13, 7))
 
@@ -152,8 +155,96 @@ def data_viz_1(graphics_path, out_path, fl_data, td_dt_mx):
 
 
 
-
 # ----------------------------------------------------------------------------------------------------------------------
+
+def __d2_s1(dtfrm):
+    """ Data Visualization #2, Step #1 - Format Date To INTs For Easier Grouping By Interval"""
+
+    # For Sanity Of Copy
+    df = dtfrm.copy()
+
+    # Drop Duplicates To Be Safe
+    df.drop_duplicates(subset=['u_id'])
+
+    # Find All Data Points That Were Collected Yesterday (Cur Date Minus 1)
+    ystrdy = int((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime('%d'))
+    df[["YEAR", "MONTH", "DAY"]] = df["dt_colc"].str[:10].str.split('-', expand=True)
+    df[["HOUR", "MINUTE", "SECOND"]] = df["dt_colc"].str[11:19].str.split(':', expand=True)
+    df.drop(["u_id", "dt_colc", "SECOND"], axis=1, inplace=True)
+
+    # Round To The Nearest 10 Minutes (Be Careful, 60 Minutes Round Be Represented As 59 Min 59 Sec)
+    df["SECOND"] = "00"
+    df["MINUTE"] = df["MINUTE"].astype(int).round(-1).astype(str).str.zfill(2)
+
+    df.loc[df["MINUTE"] == "60", "SECOND"] = "59"
+    df.loc[df["MINUTE"] == "60", "MINUTE"] = "59"
+
+    # Create A New Datetime Timestamp | Keep Data That Was Recorded Yesterday | Delete Unneded Rows
+    df["DT_COL"] = df['YEAR'] + "-" + df['MONTH'] + "-" + df['DAY'] + " " + df['HOUR'] + ":" + df['MINUTE'] + ":" + df['SECOND']
+    df = df[df["DAY"] == str(ystrdy)].drop_duplicates().drop(['YEAR', 'MONTH', 'DAY'], axis=1)
+
+    # Split Route Number From Columns
+    df[["ROUTE", "ID"]] = df["route_id"].str.split('-', expand=True)
+    df = df.drop(['ID'], axis=1)
+
+    return df
+
+
+
+def __d2_s2(dtfrm):
+    """ Data Visualization #2, Step #2 - Format Data For Datavisualization """
+
+    # For Sanity Of Copy
+    df = dtfrm.copy()
+
+    # Find The Number Of Buses Operating On A Given Route At A Every 10 Time Interval
+    def num_ct(x): return len(x)
+    grped_time = df.groupby(['ROUTE', 'HOUR', 'MINUTE', 'SECOND', 'DT_COL'], as_index=False).agg(COUNT_BUS = ("ROUTE", num_ct))
+
+    # Create A Column Looking At Seconds Since 12:00AM
+    grped_time["SEC_FTR_12"] = grped_time["HOUR"].astype(int)*3600 + grped_time["MINUTE"].astype(int)*60 + grped_time["SECOND"].astype(int)
+
+    # There Is An Issue Where We Have Duplicates
+    grped_time["SEC_FTR_12"] = round(grped_time["SEC_FTR_12"], -1)
+
+    # Find The Number Of Routes Operating That Day
+    num_routes = [x for x in np.unique(grped_time["ROUTE"])]
+    grped_time = grped_time.drop(['HOUR', 'MINUTE', 'SECOND', 'DT_COL'], axis=1)
+    grped_time = grped_time.drop_duplicates(subset=["ROUTE", "COUNT_BUS", "SEC_FTR_12"], keep="first")
+
+    # Given Time Intervals Create A Version With The Route Name For Each Route
+    all_rows = []
+    for rt in num_routes:
+        all_rows.extend([f"{rt}_{x}" for x in range(0, 87000, 600)])
+
+    # Create Dataframe That Contains All Timestamps For Each Route
+    main_df = pd.DataFrame.from_dict({"RAW_DATA": all_rows})
+    main_df[["ROUTE", "SEC_FTR_12"]] = main_df["RAW_DATA"].str.split('_', expand=True)
+    main_df = main_df.drop(["RAW_DATA"], axis=1)
+
+    # Convert Columns To Similar Datatypes
+    main_df["ROUTE"] = main_df["ROUTE"].astype(str)
+    main_df["SEC_FTR_12"] = main_df["SEC_FTR_12"].astype(str)
+    grped_time["ROUTE"] = grped_time["ROUTE"].astype(str)
+    grped_time["SEC_FTR_12"] = grped_time["SEC_FTR_12"].astype(str)
+
+    # Using The Main Dataframe As A Main Population, Left Join Number Of Buses
+    cleaned_data = main_df.merge(grped_time, how="left", on=["ROUTE", "SEC_FTR_12"])
+    cleaned_data["COUNT_BUS"] = cleaned_data["COUNT_BUS"].fillna(0)
+    cleaned_data["SEC_FTR_12"] = cleaned_data["SEC_FTR_12"].astype(int)
+
+    # Note That We Only Want To Visualize Routes Where The Max Number Of Buses Is Greater Than 1/4 Of The Max
+    # We Have Too Much Data And Patterns Are Being Drowned Out
+    max_bus_pr_rt = cleaned_data.groupby(['ROUTE'], as_index=False).agg(MAX_BUS = ("COUNT_BUS", "max"))
+    max_bus_pr_rt.sort_values(by='MAX_BUS', ascending=False, inplace=True)
+    max_bus_pr_rt = max_bus_pr_rt[max_bus_pr_rt["MAX_BUS"] >= 4]
+
+    # Only Look At Data That Is Greater Than Threshold
+    cleaned_data = cleaned_data[cleaned_data["ROUTE"].isin(max_bus_pr_rt["ROUTE"])]
+
+    return cleaned_data, max_bus_pr_rt
+
+
 
 def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
     """
@@ -166,83 +257,23 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
         # Find Days Between Today And Minus Only Look At CSVs That Are 3 Days Old Or Newer, Then Read In Data
         fl_data = fl_data[fl_data["DATE"] >= cur_dt_m2]
         df = pd.concat([pd.read_csv(path_, usecols=['u_id', 'dt_colc', 'vehicle_id', 'route_id']) for path_ in [f"{out_path}/{x}" for x in fl_data["FILE_NAME"].tolist()]])
-        df = df.drop_duplicates(subset=['u_id'])
+        del fl_data
 
-        # Find All Data Points That Were Collected Yesterday (Cur Date Minus 1)
-        ystrdy = int((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime('%d'))
-        df[["YEAR", "MONTH", "DAY"]] = df["dt_colc"].str[:10].str.split('-', expand=True)
-        df[["HOUR", "MINUTE", "SECOND"]] = df["dt_colc"].str[11:19].str.split(':', expand=True)
-        df.drop(["u_id", "dt_colc", "SECOND"], axis=1, inplace=True)
-        df["SECOND"] = "00"
-        df["MINUTE"] = df["MINUTE"].astype(int).round(-1).astype(str).str.zfill(2)
+        # Perform Data Formatting & Cleaning
+        cleaned_data, max_bus_pr_rt = __d2_s2(__d2_s1(df))
+        del df
 
-        df.loc[df["MINUTE"] == "60", "SECOND"] = "59"
-        df.loc[df["MINUTE"] == "60", "MINUTE"] = "59"
-
-        # Create A New Datetime Timestamp | Keep Data That Was Recorded Yesterday | Delete Unneded Rows
-        df["DT_COL"] = df['YEAR'] + "-" + df['MONTH'] + "-" + df['DAY'] + " " + df['HOUR'] + ":" + df['MINUTE'] + ":" + df['SECOND']
-        df = df[df["DAY"] == str(ystrdy)].drop_duplicates().drop(['YEAR', 'MONTH', 'DAY'], axis=1)
-
-        # Split Route Number From Columns
-        df[["ROUTE", "ID"]] = df["route_id"].str.split('-', expand=True)
-        df = df.drop(['ID'], axis=1)
-
-        # Find The Number Of Buses Operating On A Given Route At A Every 10 Time Interval
-        def num_ct(x): return len(x)
-        grped_time = df.groupby(['ROUTE', 'HOUR', 'MINUTE', 'SECOND', 'DT_COL'], as_index=False).agg(COUNT_BUS = ("ROUTE", num_ct))
-
-        # Create A Column Looking At Seconds Since 12:00AM
-        grped_time["SEC_FTR_12"] = grped_time["HOUR"].astype(int)*3600 + grped_time["MINUTE"].astype(int)*60 + grped_time["SECOND"].astype(int)
-
-        # There Is An Issue Where We Have Duplicates
-        grped_time["SEC_FTR_12"] = round(grped_time["SEC_FTR_12"], -1)
-
-        # Find The Number Of Routes Operating That Day
-        num_routes = [x for x in np.unique(grped_time["ROUTE"])]
-        grped_time = grped_time.drop(['HOUR', 'MINUTE', 'SECOND', 'DT_COL'], axis=1)
-        grped_time = grped_time.drop_duplicates(subset=["ROUTE", "COUNT_BUS", "SEC_FTR_12"], keep="first")
-
-        # Given Time Intervals Create A Version With The Route Name For Each Route
-        all_rows = []
-        for rt in num_routes:
-            all_rows.extend([f"{rt}_{x}" for x in range(0, 87000, 600)])
-
-        # Create Dataframe That Contains All Timestamps For Each Route
-        main_df = pd.DataFrame.from_dict({"RAW_DATA": all_rows})
-        main_df[["ROUTE", "SEC_FTR_12"]] = main_df["RAW_DATA"].str.split('_', expand=True)
-        main_df = main_df.drop(["RAW_DATA"], axis=1)
-
-        # Convert Columns To Similar Datatypes
-        main_df["ROUTE"] = main_df["ROUTE"].astype(str)
-        main_df["SEC_FTR_12"] = main_df["SEC_FTR_12"].astype(str)
-        grped_time["ROUTE"] = grped_time["ROUTE"].astype(str)
-        grped_time["SEC_FTR_12"] = grped_time["SEC_FTR_12"].astype(str)
-
-        # Using The Main Dataframe As A Main Population, Left Join Number Of Buses
-        cleaned_data = main_df.merge(grped_time, how="left", on=["ROUTE", "SEC_FTR_12"])
-        cleaned_data["COUNT_BUS"] = cleaned_data["COUNT_BUS"].fillna(0)
-        cleaned_data["SEC_FTR_12"] = cleaned_data["SEC_FTR_12"].astype(int)
-
-
-        # What Is The Max Number Of Buses? We Need For Setting Y Limit
-        max_num_bus = cleaned_data["COUNT_BUS"].max()
-
-        # Note That We Only Want To Visualize Routes Where The Max Number Of Buses Is Greater Than 1/4 Of The Max
-        # We Have Too Much Data And Patterns Are Being Drowned Out
-        max_bus_pr_rt = cleaned_data.groupby(['ROUTE'], as_index=False).agg(MAX_BUS = ("COUNT_BUS", "max"))
-        max_bus_pr_rt.sort_values(by='MAX_BUS', ascending=False, inplace=True)
-        max_bus_pr_rt = max_bus_pr_rt[max_bus_pr_rt["MAX_BUS"] >= 4]
-
-        # Only Look At Data That Is Greater Than Threshold
-        cleaned_data = cleaned_data[cleaned_data["ROUTE"].isin(max_bus_pr_rt["ROUTE"])]
+        # Garbage Clean Up
+        gc.collect()
 
         # Define Basics | Grid Should Be 1 Cell Wide & Len(RTS) Long
-        yesterday_dt = (datetime.datetime.now() + datetime.timedelta(days=-1)).strftime('%Y-%m-%d')
+        yesterday_dt = (datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt)
         gs = (grid_spec.GridSpec(len(max_bus_pr_rt["ROUTE"].tolist()), 1))
         doc_len = (len(max_bus_pr_rt["ROUTE"].tolist()) -2)
-        fig = plt.figure(figsize=(6, doc_len))
+
         i = 0
         ax_objs = []
+        fig = plt.figure(figsize=(6, doc_len))
         max_num_bus = cleaned_data["COUNT_BUS"].max() + 1
 
         # Iterate Through Each Route
@@ -252,7 +283,7 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
             # Gather Appropriate Data
             temp_df = cleaned_data.copy()
             temp_df = temp_df[temp_df["ROUTE"] == rts]
-            temp_df['RLNG'] = temp_df['COUNT_BUS'].rolling(6).median().round().shift(-3)
+            # temp_df['RLNG'] = temp_df['COUNT_BUS'].rolling(6).median().round().shift(-3)
 
             # Create New Axis
             ax = fig.add_subplot(gs[i:i+1, 0:])
@@ -318,3 +349,5 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
         gs.update(hspace=0) # For Additional Formatting Or If You Want Them To
         plt.tight_layout()
         fig.savefig(f"{graphics_path}/NumBusesByHourByRoute.pdf")
+        now = datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
+        print(f"{now}: Rendered Data Viz #2")
