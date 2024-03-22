@@ -1,6 +1,6 @@
 # Name:                                            Renacin Matadeen
 # Date:                                               03/03/2024
-# Title                            Main Logic Of Data Collector: Version 2 Memory Optimized?
+# Title                          Main Logic Of Data Collector: Version 2 Memory Optimized?
 #
 # ----------------------------------------------------------------------------------------------------------------------
 from Functions.collect_data import *
