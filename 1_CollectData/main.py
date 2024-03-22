@@ -34,10 +34,10 @@ def main():
 
         try:
             # If It's 0300AM, Do Certain Things          | REMOVE TRUE ONCE IN PRODUCTION!
-            if (cur_hr == alrm_hr and cur_dt == alrm_dt):
+            if (cur_hr == alrm_hr and cur_dt == alrm_dt) | True:
 
-                # If It's Time, Export Data & Render Data Visualizations
-                Collector.xprt_data("BUS_LOC", "BUS_LOC_DB", "u_id", True)
+                ## If It's Time, Export Data & Render Data Visualizations
+                # Collector.xprt_data("BUS_LOC", "BUS_LOC_DB", "u_id", True)
 
                 # Define Needed Connections
                 bus_loc_path, b_af = Collector.return_files_dates("BUS_LOC")
@@ -62,7 +62,7 @@ def main():
 
         except KeyboardInterrupt:
             now = datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
-            print(f"{now}: Interrupt Error")
+            print(f"{now}: Keyboard Interrupt Error")
             break
 
 
