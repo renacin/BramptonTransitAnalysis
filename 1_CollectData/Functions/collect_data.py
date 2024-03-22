@@ -333,7 +333,7 @@ class DataCollector:
         now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
 
         try:
-            response = requests.get(self.bus_loc_url, verify=False, timeout=timeout_val)
+            response = requests.get(self.bus_loc_url, timeout=timeout_val)
             data = json.loads(response.text)
             resp_tsmp = data["header"]["timestamp"]
 
