@@ -338,6 +338,19 @@ class DataCollector:
 
 
 
+    # -------------------------- Private Function 5  ---------------------------
+    def __write_error(self, tm_stamp, er_type, er_delay):
+        """
+        When called this function will take the type of error, it's delay, and write it to the error dtabase for tracking.
+        """
+
+        sql = f'''INSERT INTO ERROR_DB(timestamp, e_type, delay) VALUES({tm_stamp}, {er_type}, {er_delay})'''
+        conn = sqlite3.connect(self.db_path)
+        conn.execute(sql)
+        conn.commit()
+
+
+
     # -------------------------- Public Function 1 -----------------------------
     def get_bus_loc(self):
         """
@@ -432,24 +445,28 @@ class DataCollector:
         # For Each Error Where Data Was Not Collected Make Add Occurence Time To A Tracking Database!
         except requests.exceptions.Timeout:
             # When Did The Exception Occur?
+            self.__write_error(now, "Data Download Timeout Exception", "10")
             print(f"{now}: Data Download Timeout Exception")
             time.sleep(10)
 
 
         except requests.exceptions.ConnectionError:
             # When Did The Exception Occur?
+            self.__write_error(now, "Requests Connection Error Exception", "10")
             print(f"{now}: Requests Connection Error Exception")
             time.sleep(10)
 
 
         except ConnectionError:
             # When Did The Exception Occur?
+            self.__write_error(now, "Connection Error Timeout", "10")
             print(f"{now}: General Connection Error Timeout")
             time.sleep(10)
 
 
         except Exception as e:
             # When Did The Exception Occur?
+            self.__write_error(now, "General Error", "10")
             print(f"{now}: General Error, (Type {e})")
             time.sleep(10)
 
