@@ -34,25 +34,22 @@ def main():
 
         try:
             # If It's 0300AM, Do Certain Things          | REMOVE TRUE ONCE IN PRODUCTION!
-            if (cur_hr == alrm_hr and cur_dt == alrm_dt) | True:
+            if (cur_hr == alrm_hr and cur_dt == alrm_dt):
 
                 ## If It's Time, Export Data & Render Data Visualizations
                 # Collector.xprt_data("BUS_LOC", "BUS_LOC_DB", "u_id", True)
 
-                # Define Needed Connections
-                bus_loc_path, b_af = Collector.return_files_dates("BUS_LOC")
-                graphics_path, g_af = Collector.return_files_dates("GRAPHICS")
+                # # Define Needed Connections
+                # bus_loc_path, b_af = Collector.return_files_dates("BUS_LOC")
+                # graphics_path, g_af = Collector.return_files_dates("GRAPHICS")
 
-                # Run Data Visualizations
-                data_viz_1(graphics_path, bus_loc_path, b_af, str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt)))
-                data_viz_2(graphics_path, bus_loc_path, b_af, str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt)))
+                # # Run Data Visualizations
+                # data_viz_1(graphics_path, bus_loc_path, b_af, str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt)))
+                # data_viz_2(graphics_path, bus_loc_path, b_af, str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt)))
 
-                # Once Complete Set New Alarm
-                alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=+1)).strftime(td_s_dt_dsply_frmt))
-                time.sleep(tm_delay)
-
-                # Remove Once In Production!
-                raise KeyboardInterrupt
+                # # Once Complete Set New Alarm
+                # alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=+1)).strftime(td_s_dt_dsply_frmt))
+                # time.sleep(tm_delay)
 
             # If It's Not Scheduled Maintenance Just Collect Data
             else:
@@ -68,7 +65,7 @@ def main():
 
         except Exception as e:
             now = datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
-            print(f"{now}: Operation Error (Type - {e})")
+            print(f"{now}: Logic Operation Error (Type - {e})")
             time.sleep(tm_delay)
 
 
