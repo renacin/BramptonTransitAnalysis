@@ -93,7 +93,6 @@ class DataCollector:
 
         # Collect Garbage So Everything Any Unused Memory Is Released
         gc.collect()
-        self.__write_error("DATETIME", "General Error", "10")
 
 
 
@@ -342,11 +341,15 @@ class DataCollector:
     # -------------------------- Private Function 5  ---------------------------
     def __write_error(self, tm_stamp, er_type, er_delay):
         """
-        When called this function will take the type of error, it's delay, and write it to the error dtabase for tracking.
+        When called this function will take the type of error, it's delay, and
+        write it to the error dtabase for tracking.
         """
 
-        sql = f''' INSERT INTO ERROR_DB(timestamp, e_type, delay)
-                   VALUES({tm_stamp}, {er_type}, {er_delay})'''
+        sql = f"""
+            INSERT INTO ERROR_DB (timestamp, e_type, delay)
+            VALUES ('{tm_stamp}', '{er_type}', '{er_delay}');
+            """
+
         conn = sqlite3.connect(self.db_path)
         conn.execute(sql)
         conn.commit()
