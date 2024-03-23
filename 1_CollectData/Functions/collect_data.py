@@ -108,7 +108,7 @@ class DataCollector:
             os.makedirs(self.db_folder)
 
         # In The Out Directory Provided See If The Appropriate Sub Folders Exist!
-        for fldr_nm in ['BUS_STP', 'BUS_LOC', 'GRAPHICS']:
+        for fldr_nm in ['BUS_STP', 'BUS_LOC', 'GRAPHICS', 'ERROR']:
             dir_chk = f"{csv_out_path}/{fldr_nm}"
             self.out_dict[fldr_nm] = dir_chk
             if not os.path.exists(dir_chk):
@@ -171,13 +171,24 @@ class DataCollector:
 
 
 
+        # Connect to database check if it has data in it | Create If Not There
+        try:
+            conn = sqlite3.connect(self.db_path)
+            conn.execute(
+            '''
+            CREATE TABLE IF NOT EXISTS ERROR_DB (
+            timestamp               TEXT,
+            e_type                  TEXT,
+            delay                   TEXT
+            );
+            ''')
 
+            conn.commit()
+            conn.close()
 
-
-
-
-
-
+        except sqlite3.OperationalError as e:
+            print(e)
+            sys.exit(1)
 
 
 
