@@ -501,43 +501,44 @@ class DataCollector:
         df = df.drop_duplicates()
         conn.close()
 
-        if not empty:
-            
-        # We Need To Keep An A Version Of The Input Dataframe With No Rows & Just Columns
-        empty_df = df.iloc[:0].copy()
+        # Only Export Data If Dataframe Isn't Empty
+        if not df.empty:
 
-        # If List Then All Cols In List
-        if type(input_val) == list:
-            df = df[input_val]
-            df = df.drop_duplicates(subset=[dup_col])
+            # We Need To Keep An A Version Of The Input Dataframe With No Rows & Just Columns
+            empty_df = df.iloc[:0].copy()
 
-        # If Value = True Then All
-        elif input_val == True:
-            pass
+            # If List Then All Cols In List
+            if type(input_val) == list:
+                df = df[input_val]
+                df = df.drop_duplicates(subset=[dup_col])
 
-        # If Invalid, Let The User Know
-        else:
-            print("Invalid Arguement")
-            raise ValueError("Invalid Choice: Choose Either List Of Columns, Or True")
+            # If Value = True Then All
+            elif input_val == True:
+                pass
 
-        # Export Data
-        df.to_csv(db_path, index=False)
-        del df
+            # If Invalid, Let The User Know
+            else:
+                print("Invalid Arguement")
+                raise ValueError("Invalid Choice: Choose Either List Of Columns, Or True")
 
-        # Delete The SQL Table, See If That Helps Drop The Database Size?
-        conn = sqlite3.connect(self.db_path)
-        conn.execute(f"""DROP TABLE IF EXISTS {out_table}""")
-        conn.commit()
-        conn.close()
+            # Export Data
+            df.to_csv(db_path, index=False)
+            del df
 
-        # Write Over DB Table So It's Now Empty
-        conn = sqlite3.connect(self.db_path)
-        empty_df.to_sql(f"{out_table}", conn, if_exists="replace", index=False)
-        conn.commit()
-        conn.close()
+            # Delete The SQL Table, See If That Helps Drop The Database Size?
+            conn = sqlite3.connect(self.db_path)
+            conn.execute(f"""DROP TABLE IF EXISTS {out_table}""")
+            conn.commit()
+            conn.close()
 
-        # For Logging
-        print(f"{tm_nw}: Exported CSV & DB Table - {out_table} Cleaned")
+            # Write Over DB Table So It's Now Empty
+            conn = sqlite3.connect(self.db_path)
+            empty_df.to_sql(f"{out_table}", conn, if_exists="replace", index=False)
+            conn.commit()
+            conn.close()
+
+            # For Logging
+            print(f"{tm_nw}: Exported CSV & DB Table - {out_table} Cleaned")
 
 
 
