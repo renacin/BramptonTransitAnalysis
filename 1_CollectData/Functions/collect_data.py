@@ -483,6 +483,8 @@ class DataCollector:
         When called, this function will gather all data in a given table, format
         the data in that data table, export it as a CSV to a given path, and then
         empty out the the chosen table if the appropriate choice is given.
+
+        Only export data if database has data in it. If it's empty then pass.
         """
 
         # Define Needed Variables
@@ -499,6 +501,8 @@ class DataCollector:
         df = df.drop_duplicates()
         conn.close()
 
+        if not empty:
+            
         # We Need To Keep An A Version Of The Input Dataframe With No Rows & Just Columns
         empty_df = df.iloc[:0].copy()
 
