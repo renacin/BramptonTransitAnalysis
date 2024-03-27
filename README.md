@@ -80,4 +80,4 @@ And so here we are. This is my 4th attempt at this project?
 
 ### 5. Can We Export Our Results (Graphics) To A Shared Folder?
 	Instead Of Logging Into RPI3, We Can Just Open A Shared Folder?
-	+ How do we upload to dropbox?
+	+ Can We Upload To Dropbox?
