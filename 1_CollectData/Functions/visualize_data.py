@@ -253,7 +253,7 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
 
 
     # Make Some Amendments To Dataviz #2 Make It A Bit Easier To Read!
-    
+
     # Make Sure We Have At Least 3 Days Worth Of Data
     if len(fl_data["FILE_NAME"].tolist()) >= 2:
 

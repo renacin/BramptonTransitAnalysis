@@ -25,8 +25,9 @@ And so here we are. This is my 4th attempt at this project?
 1. [12-29-2023] - For All Routes In A Given Transit System, Determine Which Stops A Bus Visits
 2. [01-15-2024] - Create A System That Can Effectively Parse, And Store GTFS Data Into A Database
 3. [01-22-2024] - For A Given Period Of Time, Run System - Gather GTFS Data On A Headless Computer. Build In Contingencies!
-4. [02-27-2024] - Memory issue identified w/ RPI3. Need to modify code to be more memory efficient
-4. [00-00-0000] - Having Collected Data, Can I Interpret Traffic Patterns From GTFS Data Collected?
+4. [02-27-2024] - Memory Issue Identified W/ RPI3. Need To Modify Code To Be More Memory Efficient
+4. [03-27-2024] - Having Collected Data, Can I Interpret Basic Temporal Patterns From GTFS Data Collected?
+5. [00-00-2024] - Before we move onto more difficult statistics, can we interpret system outages from the data collected?
 
 
 
@@ -67,9 +68,16 @@ And so here we are. This is my 4th attempt at this project?
 
 ### 4. Analyzing Test Data. How Can We Visualize The Data That We Have Collected?
 	Possible Research Questions:
-	+ How Much Data Are We Collecting, Does The Amount Of Data Vary By Time?
-	+ If Data Collected Does Vary By Time, IE There Are No Buses Running, Can We Run Another Script In Between?
-	+ Maybe A Script That Does Some Data Cleaning, And Maybe Does Some Basic Analysis? Maybe Even Makes A BackUp Of The Database, Just Incase?
-	+ What type of analytics do I want to do?
-	+ What type of data am I collecting? Does it make sense? Are there any errors preventing me from letting this run for a long period of time?
-	+ Identified an issue where the RPI3 Kernel will kill the script. I looks like a memory issue. I need to profile everything and optimize!
+	+ How Much Data Are We Collecting, Does The Amount Of Data Vary By Time?                                                                     | Yes
+	+ If Data Collected Does Vary By Time, IE There Are No Buses Running, Can We Run Another Script In Between?                                  | Yes
+	+ Maybe A Script That Does Some Data Cleaning, And Maybe Does Some Basic Analysis? Maybe Even Makes A BackUp Of The Database, Just Incase?   | Yes
+	+ What type of analytics do I want to do?                                                                                                    | Yes
+	+ What type of data am I collecting? Does it make sense? Are there any errors preventing me from letting this run for a long period of time? | Yes
+	+ Identified an issue where the RPI3 Kernel will kill the script. I looks like a memory issue. I need to profile everything and optimize!    | Yes
+	+ Can we identify long term patterns in our data?                                                                                            | ?
+	+ Do system outages happen, if so can we exclude impacted trips from our analysis?                                                           | ?
+
+
+### 5. Can We Export Our Results (Graphics) To A Shared Folder?
+	Instead Of Logging Into RPI3, We Can Just Open A Shared Folder?
+	+ How do we upload to dropbox?
