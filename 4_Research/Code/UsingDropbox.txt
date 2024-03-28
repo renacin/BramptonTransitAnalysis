@@ -1,0 +1,27 @@
+How do I use the dropbox API, to upload files using Python
+1) Log into dropbox with a dropbox account (or make one)
+2) Navigate to Account, then Settings, then Apps, and finally click on the Apps Center
+3) Under Manage Apps, click Build App, Create Apps
+4) Choose, Scoped Access, App Folder, input your folder name
+5) Under Permission, check off: All Account Info, All Files and folders, Click Submit
+6) Back at the Settings page of you App, copy the App Key & App Secret
+
+7) Navigate to this page: https://www.dropbox.com/oauth2/authorize?client_id=[APP_KEY]&token_access_type=offline&response_type=code
+   Grab the access code for your app.
+
+8) Use Curl & the Access Code you just got to retrieve a refresh code from the response:
+curl https://api.dropbox.com/oauth2/token \
+-d code=[ACCESS_CODE] \
+-d grant_type=authorization_code \
+-u [APP_KEY]:[APP_SECRET]
+
+9) Use Curl & the refresh code to retrieve a temporary access token
+curl https://api.dropbox.com/oauth2/token \
+-d grant_type=refresh_token \
+-d refresh_token=[REFRESH_TOKEN] \
+-u [APP_KEY]:[APP_SECRET]
+
+
+Helpful Links:
+0) Dropbox Refresh Token Documentation - https://dropbox.tech/developers/migrating-app-permissions-and-access-tokens
+1) Settings Page - https://www.dropbox.com/developers/apps/info/[APP_KEY]#settings

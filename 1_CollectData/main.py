@@ -49,9 +49,13 @@ def main():
                 data_viz_1(graphics_path, bus_loc_path, b_af, str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt)))
                 data_viz_2(graphics_path, bus_loc_path, b_af, str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt)))
 
+                # Upload Gaphics To Dropbox Folder
+                Collector.upld_2_dbx()
+
                 # Once Complete Set New Alarm
                 alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=+1)).strftime(td_s_dt_dsply_frmt))
                 time.sleep(tm_delay)
+
 
             # If It's Not Scheduled Maintenance Just Collect Data
             else:
