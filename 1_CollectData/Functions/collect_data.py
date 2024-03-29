@@ -600,7 +600,8 @@ class DataCollector:
             tm_nw = datetime.now().strftime(self.td_l_dt_dsply_frmt)
             print(f"{tm_nw}: Success, Uploaded Graphics To DropBox Folder")
 
-        except:
+        except Exception as e:
             # For Logging | Bad
             tm_nw = datetime.now().strftime(self.td_l_dt_dsply_frmt)
             print(f"{tm_nw}: Failure, Could Not Upload Graphics To DropBox Folder")
+            print(f"{e}")
