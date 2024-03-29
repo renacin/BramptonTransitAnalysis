@@ -457,8 +457,8 @@ class DataCollector:
         # For Each Error Where Data Was Not Collected Make Add Occurence Time To A Tracking Database!
         except requests.exceptions.Timeout:
             # When Did The Exception Occur?
-            self.__write_error(now, "Data Download Timeout Exception", "10")
-            print(f"{now}: Data Download Timeout Exception")
+            self.__write_error(now, "Requests Timeout Exception", "10")
+            print(f"{now}: Requests Timeout Exception")
             time.sleep(10)
 
 
