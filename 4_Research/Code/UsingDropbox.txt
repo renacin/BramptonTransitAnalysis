@@ -21,6 +21,8 @@ curl https://api.dropbox.com/oauth2/token \
 -d refresh_token=[REFRESH_TOKEN] \
 -u [APP_KEY]:[APP_SECRET]
 
+Additional Note: you can add the -o "Filename.txt" to output the response of the curl command to a text file.
+But be careful, when you run it in a Python script with subprocesses, it won't return anything.
 
 Helpful Links:
 0) Dropbox Refresh Token Documentation - https://dropbox.tech/developers/migrating-app-permissions-and-access-tokens
