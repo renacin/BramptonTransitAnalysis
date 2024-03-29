@@ -577,6 +577,9 @@ class DataCollector:
         folder and upload them to the connected dropbox application folder.
         """
 
+        # For Logging
+        tm_nw = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+
         try:
             # Navigate To Shell Script Location, And Generate A New Token
             raw_resp = subprocess.check_output(['sh', self.rfresh_tkn_path], stderr=subprocess.DEVNULL)
@@ -594,11 +597,11 @@ class DataCollector:
                     with open(file_path, "rb") as f:
                         file_data = f.read()
                         dbx.files_upload(file_data, f"/{file_}")
+                print(f"{tm_nw}: Uploaded Graphics To DropBox Folder")
 
-
-            # For Logging | Good
-            tm_nw = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-            print(f"{tm_nw}: Success, Uploaded Graphics To DropBox Folder")
+            # If No Files Exit
+            else:
+                print(f"{tm_nw}: No Files To Upload To DropBox Folder")
 
         except Exception as e:
             # For Logging | Bad
