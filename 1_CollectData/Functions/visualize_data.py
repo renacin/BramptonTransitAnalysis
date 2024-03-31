@@ -352,8 +352,8 @@ def data_viz_2(graphics_path, out_path, fl_data, e_out_path, e_fl_data, td_dt_mx
             # If Were Dealing With The Last Grid Object, Do Certain Things
             if (idx + 1) == max_rts:
                 ax.set_ylabel(f"({rts})")
-                # ax.set_yticklabels([])
-                # ax.set_yticks([])
+                ax.set_yticklabels([])
+                ax.set_yticks([])
                 xlabels = [x for x in range(0, 26, 2)]
                 ax.set_xticks([x*3600 for x in xlabels], [f"{x}" for x in xlabels])
                 ax.grid(linestyle='dotted', linewidth=0.5, alpha=0.3)
@@ -371,8 +371,8 @@ def data_viz_2(graphics_path, out_path, fl_data, e_out_path, e_fl_data, td_dt_mx
                 ax.set_ylabel(f"({rts})")
                 ax.set_xticklabels([])
                 ax.set_xticks([])
-                # ax.set_yticklabels([])
-                # ax.set_yticks([])
+                ax.set_yticklabels([])
+                ax.set_yticks([])
                 xlabels = [x for x in range(0, 26, 2)]
                 ax.set_xticks([x*3600 for x in xlabels])
                 ax.grid(linestyle='dotted', linewidth=0.5, alpha=0.3)
@@ -390,8 +390,8 @@ def data_viz_2(graphics_path, out_path, fl_data, e_out_path, e_fl_data, td_dt_mx
                 ax.set_ylabel(f"({rts})")
                 ax.set_xticklabels([])
                 ax.set_xticks([])
-                # ax.set_yticklabels([])
-                # ax.set_yticks([])
+                ax.set_yticklabels([])
+                ax.set_yticks([])
                 xlabels = [x for x in range(0, 26, 2)]
                 ax.set_xticks([x*3600 for x in xlabels])
                 ax.grid(linestyle='dotted', linewidth=0.5, alpha=0.3)
@@ -402,10 +402,6 @@ def data_viz_2(graphics_path, out_path, fl_data, e_out_path, e_fl_data, td_dt_mx
                     instnc_err = er_flgs["SEC_FTR_12"].tolist()
                     for err_ in instnc_err:
                         ax.axvline(x = int(err_), color = 'red', alpha=0.1)
-
-            # The First Figure Will Have The Number Of Buses
-            ax.yaxis.set_label_position("right")
-            ax.yaxis.tick_right()
 
             # Remove All Splines
             for dir in ["top", "bottom", "left", "right"]:
