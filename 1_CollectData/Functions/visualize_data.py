@@ -131,12 +131,17 @@ def data_viz_1(graphics_path, out_path, fl_data, e_out_path, e_fl_data, td_dt_mx
         del df
 
         # Check To See If There Is Any Downloading Error Data
-        e_fl_data = e_fl_data[e_fl_data["DATE"] >= td_dt_mx]
-        e_df = pd.concat([pd.read_csv(path_) for path_ in [f"{e_out_path}/{x}" for x in e_fl_data["FILE_NAME"].tolist()]])
+        try:
+            e_fl_data = e_fl_data[e_fl_data["DATE"] >= td_dt_mx]
+            e_df = pd.concat([pd.read_csv(path_) for path_ in [f"{e_out_path}/{x}" for x in e_fl_data["FILE_NAME"].tolist()]])
+        except:
+            e_df = pd.DataFrame()
 
         # Format Error Data
         if not e_df.empty:
             er_flgs = __ed1_s3(e_df, td_dt_mx, 0)
+        else:
+            er_flgs = pd.DataFrame()
 
         # Garbage Clean Up
         gc.collect()
@@ -291,7 +296,6 @@ def data_viz_2(graphics_path, out_path, fl_data, e_out_path, e_fl_data, td_dt_mx
     if len(fl_data["FILE_NAME"].tolist()) >= 2:
 
         # Find Data For Yesterday
-        td_dt_mx = '2024-03-28'                      # DELETE THIS!
         fl_data = fl_data[fl_data["DATE"] >= td_dt_mx]
         df = pd.concat([pd.read_csv(path_, usecols=['u_id', 'dt_colc', 'vehicle_id', 'route_id']) for path_ in [f"{out_path}/{x}" for x in fl_data["FILE_NAME"].tolist()]])
         del fl_data
@@ -304,12 +308,17 @@ def data_viz_2(graphics_path, out_path, fl_data, e_out_path, e_fl_data, td_dt_mx
         gc.collect()
 
         # Check To See If There Is Any Downloading Error Data
-        e_fl_data = e_fl_data[e_fl_data["DATE"] >= td_dt_mx]
-        e_df = pd.concat([pd.read_csv(path_) for path_ in [f"{e_out_path}/{x}" for x in e_fl_data["FILE_NAME"].tolist()]])
+        try:
+            e_fl_data = e_fl_data[e_fl_data["DATE"] >= td_dt_mx]
+            e_df = pd.concat([pd.read_csv(path_) for path_ in [f"{e_out_path}/{x}" for x in e_fl_data["FILE_NAME"].tolist()]])
+        except:
+            e_df = pd.DataFrame()
 
         # Format Error Data
         if not e_df.empty:
             er_flgs = __ed1_s3(e_df, td_dt_mx, -1)
+        else:
+            er_flgs = pd.DataFrame()
 
 
         # Define Basics | Grid Should Be 1 Cell Wide & Len(RTS) Long
@@ -351,7 +360,7 @@ def data_viz_2(graphics_path, out_path, fl_data, e_out_path, e_fl_data, td_dt_mx
 
             # If Were Dealing With The Last Grid Object, Do Certain Things
             if (idx + 1) == max_rts:
-                ax.set_ylabel(f"({rts})")
+                ax.set_ylabel(f"{rts}")
                 ax.set_yticklabels([])
                 ax.set_yticks([])
                 xlabels = [x for x in range(0, 26, 2)]
@@ -359,16 +368,10 @@ def data_viz_2(graphics_path, out_path, fl_data, e_out_path, e_fl_data, td_dt_mx
                 ax.grid(linestyle='dotted', linewidth=0.5, alpha=0.3)
                 plt.xlabel('Time (24 Hour)', style='italic')
 
-                # If There Are Errors
-                if not er_flgs.empty:
-                    instnc_err = er_flgs["SEC_FTR_12"].tolist()
-                    for err_ in instnc_err:
-                        ax.axvline(x = int(err_), color = 'red', alpha=0.1)
-
 
             # If Were Dealing With The First Grid Object, Do Certain Things
             elif (idx + 1) == 1:
-                ax.set_ylabel(f"({rts})")
+                ax.set_ylabel(f"{rts}")
                 ax.set_xticklabels([])
                 ax.set_xticks([])
                 ax.set_yticklabels([])
@@ -379,15 +382,10 @@ def data_viz_2(graphics_path, out_path, fl_data, e_out_path, e_fl_data, td_dt_mx
                 ax.tick_params(width=0, length=0)
                 plt.title(f"Brampton Transit Buses Operating Every Minute By Route \n Data Collected: {yesterday_dt}")
 
-                # If There Are Errors
-                if not er_flgs.empty:
-                    instnc_err = er_flgs["SEC_FTR_12"].tolist()
-                    for err_ in instnc_err:
-                        ax.axvline(x = int(err_), color = 'red', alpha=0.1)
 
             # If Were Dealing With Any Other Grid Object, Do Certain Things
             else:
-                ax.set_ylabel(f"({rts})")
+                ax.set_ylabel(f"{rts}")
                 ax.set_xticklabels([])
                 ax.set_xticks([])
                 ax.set_yticklabels([])
@@ -397,11 +395,11 @@ def data_viz_2(graphics_path, out_path, fl_data, e_out_path, e_fl_data, td_dt_mx
                 ax.grid(linestyle='dotted', linewidth=0.5, alpha=0.3)
                 ax.tick_params(width=0, length=0)
 
-                # If There Are Errors
-                if not er_flgs.empty:
-                    instnc_err = er_flgs["SEC_FTR_12"].tolist()
-                    for err_ in instnc_err:
-                        ax.axvline(x = int(err_), color = 'red', alpha=0.1)
+            # If There Are Errors
+            if not er_flgs.empty:
+                instnc_err = er_flgs["SEC_FTR_12"].tolist()
+                for err_ in instnc_err:
+                    ax.axvline(x = int(err_), color = 'red', alpha=0.1)
 
             # Remove All Splines
             for dir in ["top", "bottom", "left", "right"]:
