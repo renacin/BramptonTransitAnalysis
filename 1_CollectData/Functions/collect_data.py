@@ -558,11 +558,12 @@ class DataCollector:
 
         # Navigate To Data Folder | Get All Appropriate Files
         out_path = self.out_dict[out_path]
+
         dir_list = [x for x in os.listdir(out_path) if ".csv" in x]
         df = pd.DataFrame(dir_list, columns=['FILE_NAME'])
 
         # Create A Dataframe With The Time The File Was Created & Output
-        df[["DATE"]] = df["FILE_NAME"].str.split('_').str[3]
+        df["DATE"] = df["FILE_NAME"].str.split('_').str[-1]
         df["DATE"] = df["DATE"].str.replace(".csv", "", regex=False)
         df["DATE"] = pd.to_datetime(df["DATE"], format = self.td_s_dt_dsply_frmt)
 

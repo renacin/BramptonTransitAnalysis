@@ -15,25 +15,30 @@ import matplotlib.gridspec as grid_spec
 # ----------------------------------------------------------------------------------------------------------------------
 
 
-
 # Needed Variables For All Functions
 td_l_dt_dsply_frmt = "%d-%m-%Y %H:%M:%S"
 td_s_dt_dsply_frmt = "%d-%m-%Y"
 
 
-def __d1_s1(dtfrm):
+def __d1_s1(dtfrm, td_dt_mx):
     """ Data Visualization #1, Step #1 - Format Date To INTs For Easier Grouping By Interval"""
 
     # For Sanity Of Copy
     df = dtfrm.copy()
 
-    # Format Data To Ints, DT Accessor Took Too Long (50 Sec Before! Now Down To 10 Sec)
+    # Format Data To Ints, DT Accessor Took Too Long
     df = df.drop_duplicates(subset=['u_id'])
     df[["YEAR", "MONTH", "DAY"]] = df["dt_colc"].str[:10].str.split('-', expand=True)
     df[["HOUR", "MINUTE", "SECOND"]] = df["dt_colc"].str[11:19].str.split(':', expand=True)
+
+    # We Only Want Data From td_dt_mx Date
+    f_day = td_dt_mx.split("-")[0]
+    df = df[df["DAY"] == f_day]
     df.drop(["u_id", "dt_colc", "SECOND"], axis=1, inplace=True)
+
+    # Drop Seconds, We Only Want To Look At Data In Minute Intervals
     df["SECOND"] = "00"
-    df["MINUTE"] = df["MINUTE"].astype(int).round(-1).astype(str).str.zfill(2)
+    df["MINUTE"] = df["MINUTE"].astype(int).astype(str).str.zfill(2)
 
     # Can't Have 60, Remove 1 Second In Those Cases
     df.loc[df["MINUTE"] == "60", "SECOND"] = "59"
@@ -44,6 +49,7 @@ def __d1_s1(dtfrm):
     df.drop(['YEAR', 'MONTH', 'DAY'], axis=1, inplace=True)
 
     return df
+
 
 
 def __d1_s2(dtfrm):
@@ -61,7 +67,7 @@ def __d1_s2(dtfrm):
     grped_time["WK_NUM"] = grped_time["DT_COL"].dt.dayofweek
 
     # Convert Hour, Minute, And Seconds To Seconds After 0 (12AM), Remove Unneded Data
-    grped_time["SEC_FTR_12"] = grped_time["HOUR"].astype(int) * 3600 + grped_time["MINUTE"].astype(int) * 60 + grped_time["SECOND"].astype(int)
+    grped_time["SEC_FTR_12"] = (grped_time["HOUR"].astype(int) * 3600) + (grped_time["MINUTE"].astype(int) * 60) + grped_time["SECOND"].astype(int)
     grped_time.drop(['HOUR', 'MINUTE', 'SECOND'], axis=1, inplace=True)
 
     # Interate Through Each Day In Dataset
@@ -72,7 +78,40 @@ def __d1_s2(dtfrm):
 
 
 
-def data_viz_1(graphics_path, out_path, fl_data, td_dt_mx):
+def __ed1_s3(dtfrm, td_dt_mx):
+    """ Data Visualization #1, Step #3 - Format Error Data If Present"""
+
+    # For Sanity Of Copy
+    df = dtfrm.copy()
+
+    # Drop Duplicates, Format Data To Ints, DT Accessor Took Too Long
+    df = df.drop_duplicates(subset=['timestamp'])
+    df[["DAY", "MONTH", "YEAR"]] = df["timestamp"].str[:10].str.split('-', expand=True)
+    df[["HOUR", "MINUTE", "SECOND"]] = df["timestamp"].str[11:19].str.split(':', expand=True)
+
+    # We Only Want Data From td_dt_mx Date
+    f_day = td_dt_mx.split("-")[0]
+    df = df[df["DAY"] == f_day]
+    df.drop(["timestamp", "SECOND", "DAY", "MONTH", "YEAR"], axis=1, inplace=True)
+
+    # Drop Seconds, We Only Want To Look At Data In Minute Intervals
+    df["SECOND"] = "00"
+    df["MINUTE"] = df["MINUTE"].astype(int).astype(str).str.zfill(2)
+
+    # Can't Have 60, Remove 1 Second In Those Cases
+    df.loc[df["MINUTE"] == "60", "SECOND"] = "59"
+    df.loc[df["MINUTE"] == "60", "MINUTE"] = "59"
+    df = df.drop_duplicates()
+
+    # Convert Hour, Minute, And Seconds To Seconds After 0 (12AM), Remove Unneded Data
+    df["SEC_FTR_12"] = (df["HOUR"].astype(int) * 3600) + (df["MINUTE"].astype(int) * 60) + df["SECOND"].astype(int)
+    df.drop(['HOUR', 'MINUTE', 'SECOND'], axis=1, inplace=True)
+
+    return df
+
+
+
+def data_viz_1(graphics_path, out_path, fl_data, e_out_path, e_fl_data, td_dt_mx):
     """
     When called this function will create a scatterplot showing the number of
     unique buses at 10 minute intervals for the entire day. Data is split between
@@ -88,8 +127,16 @@ def data_viz_1(graphics_path, out_path, fl_data, td_dt_mx):
         del fl_data
 
         # Data Formating & Grouping
-        grped_time, dates_in = __d1_s2(__d1_s1(df))
+        grped_time, dates_in = __d1_s2(__d1_s1(df, td_dt_mx))
         del df
+
+        # Check To See If There Is Any Downloading Error Data
+        e_fl_data = e_fl_data[e_fl_data["DATE"] >= td_dt_mx]
+        e_df = pd.concat([pd.read_csv(path_) for path_ in [f"{e_out_path}/{x}" for x in e_fl_data["FILE_NAME"].tolist()]])
+
+        # Format Error Data
+        if not e_df.empty:
+            er_flgs = __ed1_s3(e_df, td_dt_mx)
 
         # Garbage Clean Up
         gc.collect()
@@ -97,61 +144,46 @@ def data_viz_1(graphics_path, out_path, fl_data, td_dt_mx):
         # Visualize Data Basics For Plot Frame | Define Plot Size 3:2
         fig, ax = plt.subplots(figsize=(13, 7))
 
-        # Only Want Data Between [1:-2], As It's Most Likely To Be Complete Days Picture
-        grped_time = grped_time[grped_time["STR_DT_COL"].isin(dates_in[1:-1])]
-
-        # Create Dataframes For Weekday & Weekend
-        wk_day = grped_time[grped_time["WK_NUM"] <= 4].sort_values(by=['SEC_FTR_12'])
-        wk_end = grped_time[grped_time["WK_NUM"]  > 4].sort_values(by=['SEC_FTR_12'])
-        del grped_time
-
         # Collect Garbage So Everything Any Unused Memory Is Released
         gc.collect()
 
-        # If Weekday
-        if wk_end.empty:
-
-            # Fit Curve To Data | Weekday
-            curve = np.polyfit(wk_day["SEC_FTR_12"], wk_day["COUNT_BUS"], 15)
-            poly = np.poly1d(curve)
-            yy = poly(wk_day["SEC_FTR_12"])
-
-            ax.scatter(wk_day["SEC_FTR_12"], wk_day["COUNT_BUS"], marker ="+", c="grey", alpha=0.5, label='# Weekday Buses')
-            ax.plot(wk_day["SEC_FTR_12"], yy, c="red", alpha=0.5, label='Line Best Fit: Weekday')
-
-
-        # If Weekend
-        else:
-            # Fit Curve To Data | Weekend
-            curve = np.polyfit(wk_end["SEC_FTR_12"], wk_end["COUNT_BUS"], 15)
-            poly = np.poly1d(curve)
-            yy = poly(wk_end["SEC_FTR_12"])
-
-
-            ax.scatter(wk_end["SEC_FTR_12"], wk_end["COUNT_BUS"], marker ="x", c="grey", alpha=0.5, label='# Weekend Buses')
-            ax.plot(wk_end["SEC_FTR_12"], yy, c="blue", alpha=0.5, label='Line Best Fit: Weekend')
+        # Fit Curve To Data | Weekday
+        curve = np.polyfit(grped_time["SEC_FTR_12"], grped_time["COUNT_BUS"], 15)
+        poly = np.poly1d(curve)
+        yy = poly(grped_time["SEC_FTR_12"])
+        ax.scatter(grped_time["SEC_FTR_12"], grped_time["COUNT_BUS"], marker ="x", c="grey", alpha=0.2, label='# Buses')
+        ax.plot(grped_time["SEC_FTR_12"], yy, c="black", alpha=0.5, label='Line Best Fit')
 
         # Draw Legend
         ax.legend()
 
-        # Manually Set X Ticks
+        # Manually Set X Ticks, Note There Are 3600 Seconds In An Hour
         xlabels = [x for x in range(0, 26, 2)]
         xticks = [x*3600 for x in xlabels]
         xlabels = [f"{x}" for x in xlabels]
         ax.set_xticks(xticks, labels=xlabels)
         ax.grid(linestyle='dotted', linewidth=0.5, alpha=0.4)
 
+        # If There Are Errors
+        if not er_flgs.empty:
+            instnc_err = er_flgs["SEC_FTR_12"].tolist()
+            for err_ in instnc_err:
+                ax.axvline(x = int(err_), color = 'red', alpha=0.1)
+
         ax.set_xlabel("Time (24 Hour)", style='italic')
         ax.set_ylabel("# Of Buses", style='italic')
 
-        fig.suptitle('Number Of Brampton Transit Buses Every 10 Minutes', fontsize=13)
-        ax.set_title(f"Data Collected: {dates_in[1]}", fontsize=11)
+        fig.suptitle('Brampton Transit Buses Per Minute', fontsize=13)
+        ax.set_title(f"Data Collected: {dates_in[0]}", fontsize=11)
 
         # Save The Figure In Graphics Folder
         plt.tight_layout()
         fig.savefig(f"{graphics_path}/NumBusesByHour.pdf")
         now = datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
         print(f"{now}: Rendered Data Viz #1")
+
+
+
 
 
 
