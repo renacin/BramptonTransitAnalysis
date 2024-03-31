@@ -78,7 +78,7 @@ def __d1_s2(dtfrm):
 
 
 
-def __ed1_s3(dtfrm, td_dt_mx):
+def __ed1_s3(dtfrm, td_dt_mx, mrker):
     """ Data Visualization #1, Step #3 - Format Error Data If Present"""
 
     # For Sanity Of Copy
@@ -90,7 +90,7 @@ def __ed1_s3(dtfrm, td_dt_mx):
     df[["HOUR", "MINUTE", "SECOND"]] = df["timestamp"].str[11:19].str.split(':', expand=True)
 
     # We Only Want Data From td_dt_mx Date
-    f_day = td_dt_mx.split("-")[0]
+    f_day = td_dt_mx.split("-")[mrker]
     df = df[df["DAY"] == f_day]
     df.drop(["timestamp", "SECOND", "DAY", "MONTH", "YEAR"], axis=1, inplace=True)
 
@@ -136,7 +136,7 @@ def data_viz_1(graphics_path, out_path, fl_data, e_out_path, e_fl_data, td_dt_mx
 
         # Format Error Data
         if not e_df.empty:
-            er_flgs = __ed1_s3(e_df, td_dt_mx)
+            er_flgs = __ed1_s3(e_df, td_dt_mx, 0)
 
         # Garbage Clean Up
         gc.collect()
@@ -173,7 +173,7 @@ def data_viz_1(graphics_path, out_path, fl_data, e_out_path, e_fl_data, td_dt_mx
         ax.set_xlabel("Time (24 Hour)", style='italic')
         ax.set_ylabel("# Of Buses", style='italic')
 
-        fig.suptitle('Brampton Transit Buses Per Minute', fontsize=13)
+        fig.suptitle('Number Of Brampton Transit Buses Operating Every Minute', fontsize=13)
         ax.set_title(f"Data Collected: {dates_in[0]}", fontsize=11)
 
         # Save The Figure In Graphics Folder
@@ -189,7 +189,7 @@ def data_viz_1(graphics_path, out_path, fl_data, e_out_path, e_fl_data, td_dt_mx
 
 # ----------------------------------------------------------------------------------------------------------------------
 
-def __d2_s1(dtfrm):
+def __d2_s1(dtfrm, td_dt_mx):
     """ Data Visualization #2, Step #1 - Format Date To INTs For Easier Grouping By Interval"""
 
     # For Sanity Of Copy
@@ -202,18 +202,22 @@ def __d2_s1(dtfrm):
     ystrdy = int((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime('%d'))
     df[["YEAR", "MONTH", "DAY"]] = df["dt_colc"].str[:10].str.split('-', expand=True)
     df[["HOUR", "MINUTE", "SECOND"]] = df["dt_colc"].str[11:19].str.split(':', expand=True)
+
+    # We Only Want Data From td_dt_mx Date
+    f_day = td_dt_mx.split("-")[-1]
+    df = df[df["DAY"] == f_day]
     df.drop(["u_id", "dt_colc", "SECOND"], axis=1, inplace=True)
 
-    # Round To The Nearest 10 Minutes (Be Careful, 60 Minutes Round Be Represented As 59 Min 59 Sec)
+    # Round To The Nearest Minute (Be Careful, 60 Minutes Round Be Represented As 59 Min 59 Sec)
     df["SECOND"] = "00"
-    df["MINUTE"] = df["MINUTE"].astype(int).round(-1).astype(str).str.zfill(2)
+    df["MINUTE"] = df["MINUTE"].astype(int).astype(str).str.zfill(2)
 
     df.loc[df["MINUTE"] == "60", "SECOND"] = "59"
     df.loc[df["MINUTE"] == "60", "MINUTE"] = "59"
 
     # Create A New Datetime Timestamp | Keep Data That Was Recorded Yesterday | Delete Unneded Rows
-    df["DT_COL"] = df['YEAR'] + "-" + df['MONTH'] + "-" + df['DAY'] + " " + df['HOUR'] + ":" + df['MINUTE'] + ":" + df['SECOND']
-    df = df[df["DAY"] == str(ystrdy)].drop_duplicates().drop(['YEAR', 'MONTH', 'DAY'], axis=1)
+    df["DT_COL"] = df['DAY'] + "-" + df['MONTH'] + "-" + df['YEAR'] + " " + df['HOUR'] + ":" + df['MINUTE'] + ":" + df['SECOND']
+    df = df.drop_duplicates().drop(['YEAR', 'MONTH', 'DAY'], axis=1)
 
     # Split Route Number From Columns
     df[["ROUTE", "ID"]] = df["route_id"].str.split('-', expand=True)
@@ -234,7 +238,7 @@ def __d2_s2(dtfrm):
     grped_time = df.groupby(['ROUTE', 'HOUR', 'MINUTE', 'SECOND', 'DT_COL'], as_index=False).agg(COUNT_BUS = ("ROUTE", num_ct))
 
     # Create A Column Looking At Seconds Since 12:00AM
-    grped_time["SEC_FTR_12"] = grped_time["HOUR"].astype(int)*3600 + grped_time["MINUTE"].astype(int)*60 + grped_time["SECOND"].astype(int)
+    grped_time["SEC_FTR_12"] = (grped_time["HOUR"].astype(int) * 3600) + (grped_time["MINUTE"].astype(int) * 60) + grped_time["SECOND"].astype(int)
 
     # There Is An Issue Where We Have Duplicates
     grped_time["SEC_FTR_12"] = round(grped_time["SEC_FTR_12"], -1)
@@ -247,7 +251,7 @@ def __d2_s2(dtfrm):
     # Given Time Intervals Create A Version With The Route Name For Each Route
     all_rows = []
     for rt in num_routes:
-        all_rows.extend([f"{rt}_{x}" for x in range(0, 87000, 600)])
+        all_rows.extend([f"{rt}_{x}" for x in range(0, (86400 + 60), 60)]) # Every minute intervals for the entire day
 
     # Create Dataframe That Contains All Timestamps For Each Route
     main_df = pd.DataFrame.from_dict({"RAW_DATA": all_rows})
@@ -278,28 +282,35 @@ def __d2_s2(dtfrm):
 
 
 
-def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
+def data_viz_2(graphics_path, out_path, fl_data, e_out_path, e_fl_data, td_dt_mx):
     """
     When called this function will create a ridgeline plot of the day before's data.
     """
 
-
-    # Make Some Amendments To Dataviz #2 Make It A Bit Easier To Read!
-
-    # Make Sure We Have At Least 3 Days Worth Of Data
+    # Make Sure We Have At Least 2 Days Worth Of Data
     if len(fl_data["FILE_NAME"].tolist()) >= 2:
 
-        # Find Days Between Today And Minus Only Look At CSVs That Are 3 Days Old Or Newer, Then Read In Data
-        fl_data = fl_data[fl_data["DATE"] >= cur_dt_m2]
+        # Find Data For Yesterday
+        td_dt_mx = '2024-03-28'                      # DELETE THIS!
+        fl_data = fl_data[fl_data["DATE"] >= td_dt_mx]
         df = pd.concat([pd.read_csv(path_, usecols=['u_id', 'dt_colc', 'vehicle_id', 'route_id']) for path_ in [f"{out_path}/{x}" for x in fl_data["FILE_NAME"].tolist()]])
         del fl_data
 
         # Perform Data Formatting & Cleaning
-        cleaned_data, max_bus_pr_rt = __d2_s2(__d2_s1(df))
+        cleaned_data, max_bus_pr_rt = __d2_s2(__d2_s1(df, td_dt_mx))
         del df
 
         # Garbage Clean Up
         gc.collect()
+
+        # Check To See If There Is Any Downloading Error Data
+        e_fl_data = e_fl_data[e_fl_data["DATE"] >= td_dt_mx]
+        e_df = pd.concat([pd.read_csv(path_) for path_ in [f"{e_out_path}/{x}" for x in e_fl_data["FILE_NAME"].tolist()]])
+
+        # Format Error Data
+        if not e_df.empty:
+            er_flgs = __ed1_s3(e_df, td_dt_mx, -1)
+
 
         # Define Basics | Grid Should Be 1 Cell Wide & Len(RTS) Long
         yesterday_dt = (datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt)
@@ -324,7 +335,7 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
             ax = fig.add_subplot(gs[i:i+1, 0:])
 
             # Fill Axis With Data
-            ax.plot(temp_df["SEC_FTR_12"], temp_df["COUNT_BUS"], alpha=1.0, linewidth=0.5, color='black')
+            ax.plot(temp_df["SEC_FTR_12"], temp_df["COUNT_BUS"], alpha=1.0, linewidth=0.2, color='black')
             ax.fill_between(temp_df["SEC_FTR_12"], temp_df["COUNT_BUS"], alpha=0.2, color='grey')
 
             # # Set Route Name For Each Grid
@@ -340,38 +351,61 @@ def data_viz_2(graphics_path, out_path, fl_data, cur_dt_m2):
 
             # If Were Dealing With The Last Grid Object, Do Certain Things
             if (idx + 1) == max_rts:
-                ax.set_ylabel(f"{rts}")
-                ax.set_yticklabels([])
-                ax.set_yticks([])
+                ax.set_ylabel(f"({rts})")
+                # ax.set_yticklabels([])
+                # ax.set_yticks([])
                 xlabels = [x for x in range(0, 26, 2)]
                 ax.set_xticks([x*3600 for x in xlabels], [f"{x}" for x in xlabels])
                 ax.grid(linestyle='dotted', linewidth=0.5, alpha=0.3)
                 plt.xlabel('Time (24 Hour)', style='italic')
 
+                # If There Are Errors
+                if not er_flgs.empty:
+                    instnc_err = er_flgs["SEC_FTR_12"].tolist()
+                    for err_ in instnc_err:
+                        ax.axvline(x = int(err_), color = 'red', alpha=0.1)
+
+
             # If Were Dealing With The First Grid Object, Do Certain Things
             elif (idx + 1) == 1:
-                ax.set_ylabel(f"{rts}")
+                ax.set_ylabel(f"({rts})")
                 ax.set_xticklabels([])
                 ax.set_xticks([])
-                ax.set_yticklabels([])
-                ax.set_yticks([])
+                # ax.set_yticklabels([])
+                # ax.set_yticks([])
                 xlabels = [x for x in range(0, 26, 2)]
                 ax.set_xticks([x*3600 for x in xlabels])
                 ax.grid(linestyle='dotted', linewidth=0.5, alpha=0.3)
                 ax.tick_params(width=0, length=0)
-                plt.title(f"Number Of Buses Operating / Route - {yesterday_dt}")
+                plt.title(f"Brampton Transit Buses Operating Every Minute By Route \n Data Collected: {yesterday_dt}")
+
+                # If There Are Errors
+                if not er_flgs.empty:
+                    instnc_err = er_flgs["SEC_FTR_12"].tolist()
+                    for err_ in instnc_err:
+                        ax.axvline(x = int(err_), color = 'red', alpha=0.1)
 
             # If Were Dealing With Any Other Grid Object, Do Certain Things
             else:
-                ax.set_ylabel(f"{rts}")
+                ax.set_ylabel(f"({rts})")
                 ax.set_xticklabels([])
                 ax.set_xticks([])
-                ax.set_yticklabels([])
-                ax.set_yticks([])
+                # ax.set_yticklabels([])
+                # ax.set_yticks([])
                 xlabels = [x for x in range(0, 26, 2)]
                 ax.set_xticks([x*3600 for x in xlabels])
                 ax.grid(linestyle='dotted', linewidth=0.5, alpha=0.3)
                 ax.tick_params(width=0, length=0)
+
+                # If There Are Errors
+                if not er_flgs.empty:
+                    instnc_err = er_flgs["SEC_FTR_12"].tolist()
+                    for err_ in instnc_err:
+                        ax.axvline(x = int(err_), color = 'red', alpha=0.1)
+
+            # The First Figure Will Have The Number Of Buses
+            ax.yaxis.set_label_position("right")
+            ax.yaxis.tick_right()
 
             # Remove All Splines
             for dir in ["top", "bottom", "left", "right"]:

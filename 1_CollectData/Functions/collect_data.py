@@ -597,7 +597,7 @@ class DataCollector:
                     file_path = f"{out_path}/{file_}"
                     with open(file_path, "rb") as f:
                         file_data = f.read()
-                        dbx.files_upload(file_data, f"/{file_}")
+                        dbx.files_upload(file_data, f"/{file_}", mode=dropbox.files.WriteMode.overwrite)
                 print(f"{tm_nw}: Uploaded Graphics To DropBox Folder")
 
             # If No Files Exit
