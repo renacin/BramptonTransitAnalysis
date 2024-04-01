@@ -341,7 +341,7 @@ class DataCollector:
         stp_data_df.to_csv(out_path, index=False)
 
         now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-        print(f"{now}: Exported Bus Route Data")
+        print(f"{now}: Exported Route Data")
 
 
 

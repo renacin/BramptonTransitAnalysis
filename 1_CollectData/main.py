@@ -23,7 +23,7 @@ def main():
     alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime(td_s_dt_dsply_frmt))
 
     # Instantiate Data Collector
-    Collector = DataCollector(skp_dwnld=True)
+    Collector = DataCollector(skp_dwnld=False)
 
     # Main Loop Of Code
     while True:
