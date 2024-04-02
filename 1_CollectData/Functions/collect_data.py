@@ -311,7 +311,7 @@ class DataCollector:
         # Which Bus Stops Are Missing?
         now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
         misng_stps = unq_parsed_stps[unq_parsed_stps["In_OpenData"] == "N"]
-        print(f"{now}: (Parsed DF Len: {len(parsed_df)}), (Downloaded DF Len: {len(downld_df)}), (Number Of Missing Stops: {len(misng_stps)})")
+        print(f"{now}: Parsed DF Len: {len(parsed_df)}, Downloaded DF Len: {len(downld_df)}, Number Of Missing Stops: {len(misng_stps)}")
 
         return parsed_df
 
