@@ -25,6 +25,7 @@ def main():
     # Instantiate Data Collector
     Collector = DataCollector(skp_dwnld=False)
 
+
     # Main Loop Of Code
     while True:
 

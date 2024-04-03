@@ -209,7 +209,7 @@ def __d2_s1(dtfrm, td_dt_mx):
     df[["HOUR", "MINUTE", "SECOND"]] = df["dt_colc"].str[11:19].str.split(':', expand=True)
 
     # We Only Want Data From td_dt_mx Date
-    f_day = td_dt_mx.split("-")[-1]
+    f_day = td_dt_mx.split("-")[0]
     df = df[df["DAY"] == f_day]
     df.drop(["u_id", "dt_colc", "SECOND"], axis=1, inplace=True)
 
@@ -223,6 +223,7 @@ def __d2_s1(dtfrm, td_dt_mx):
     # Create A New Datetime Timestamp | Keep Data That Was Recorded Yesterday | Delete Unneded Rows
     df["DT_COL"] = df['DAY'] + "-" + df['MONTH'] + "-" + df['YEAR'] + " " + df['HOUR'] + ":" + df['MINUTE'] + ":" + df['SECOND']
     df = df.drop_duplicates().drop(['YEAR', 'MONTH', 'DAY'], axis=1)
+
 
     # Split Route Number From Columns
     df[["ROUTE", "ID"]] = df["route_id"].str.split('-', expand=True)
