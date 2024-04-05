@@ -24,23 +24,24 @@ def main():
     alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime(td_s_dt_dsply_frmt))
 
     # Instantiate Data Collector
-    Collector = DataCollector(skp_dwnld=True)
-
-    # Needed Variables
-    bus_loc_path, b_af = Collector.return_files_dates("BUS_LOC")
-    bus_stp_path, bstp_af = Collector.return_files_dates("BUS_STP")
-    error_path, e_af = Collector.return_files_dates("ERROR")
-    graphics_path, g_af = Collector.return_files_dates("GRAPHICS")
-
-    # Run Function
-    main_attempt(graphics_path,
-                 bus_loc_path,
-                 b_af,
-                 bus_stp_path,
-                 bstp_af,
-                 error_path,
-                 e_af,
-                 str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt)))
+    Collector = DataCollector(skp_dwnld=False)
+    
+    #
+    # # Needed Variables
+    # bus_loc_path, b_af = Collector.return_files_dates("BUS_LOC")
+    # bus_stp_path, bstp_af = Collector.return_files_dates("BUS_STP")
+    # error_path, e_af = Collector.return_files_dates("ERROR")
+    # graphics_path, g_af = Collector.return_files_dates("GRAPHICS")
+    #
+    # # Run Function
+    # main_attempt(graphics_path,
+    #              bus_loc_path,
+    #              b_af,
+    #              bus_stp_path,
+    #              bstp_af,
+    #              error_path,
+    #              e_af,
+    #              str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt)))
 
 
     #
