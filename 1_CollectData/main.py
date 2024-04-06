@@ -32,6 +32,9 @@ def main():
     error_path, e_af = Collector.return_files_dates("ERROR")
     graphics_path, g_af = Collector.return_files_dates("GRAPHICS")
 
+
+
+
     # Run Function
     main_attempt(graphics_path,
                  bus_loc_path,
@@ -41,6 +44,8 @@ def main():
                  error_path,
                  e_af,
                  str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt)))
+
+
 
 
     #
@@ -64,7 +69,7 @@ def main():
     #             error_path, e_af = Collector.return_files_dates("ERROR")
     #             graphics_path, g_af = Collector.return_files_dates("GRAPHICS")
     #
-    #             # Run Data Visualizations
+    #             # Run Data Visualizations #1
     #             data_viz_1(graphics_path,
     #                         bus_loc_path,
     #                         b_af,
@@ -72,12 +77,14 @@ def main():
     #                         e_af,
     #                         str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt)))
     #
+    #             # Run Data Visualizations #2
     #             data_viz_2(graphics_path,
     #                         bus_loc_path,
     #                         b_af,
     #                         error_path,
     #                         e_af,
     #                         str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt)))
+    #
     #
     #             # Upload Gaphics To Dropbox Folder
     #             Collector.upld_2_dbx()

@@ -33,7 +33,7 @@ def __d1_s1(dtfrm, td_dt_mx):
     df[["HOUR", "MINUTE", "SECOND"]] = df["dt_colc"].str[11:19].str.split(':', expand=True)
 
     # We Only Want Data From td_dt_mx Date
-    f_day = td_dt_mx.split("-")[0]
+    f_day = str(td_dt_mx.day).zfill(2)
     df = df[df["DAY"] == f_day]
     df.drop(["u_id", "dt_colc", "SECOND"], axis=1, inplace=True)
 
@@ -91,7 +91,7 @@ def __ed1_s3(dtfrm, td_dt_mx, mrker):
     df[["HOUR", "MINUTE", "SECOND"]] = df["timestamp"].str[11:19].str.split(':', expand=True)
 
     # We Only Want Data From td_dt_mx Date
-    f_day = td_dt_mx.split("-")[mrker]
+    f_day = str(td_dt_mx.day).zfill(2)
     df = df[df["DAY"] == f_day]
     df.drop(["timestamp", "SECOND", "DAY", "MONTH", "YEAR"], axis=1, inplace=True)
 
@@ -120,9 +120,10 @@ def data_viz_1(graphics_path, out_path, fl_data, e_out_path, e_fl_data, td_dt_mx
     """
 
     # Make Sure We Have At Least 2 Days Worth Of Data
-    if len(fl_data["FILE_NAME"].tolist()) >= 2:
+    if len(fl_data["FILE_NAME"].tolist()) >= 1:
 
         # Find Days Between Today And Minus 1 Days
+        td_dt_mx = datetime.datetime.strptime(td_dt_mx, td_s_dt_dsply_frmt)
         fl_data = fl_data[fl_data["DATE"] >= td_dt_mx]
         df = pd.concat([pd.read_csv(path_, usecols=['u_id', 'dt_colc', 'vehicle_id']) for path_ in [f"{out_path}/{x}" for x in fl_data["FILE_NAME"].tolist()]])
         del fl_data
@@ -210,7 +211,7 @@ def __d2_s1(dtfrm, td_dt_mx):
     df[["HOUR", "MINUTE", "SECOND"]] = df["dt_colc"].str[11:19].str.split(':', expand=True)
 
     # We Only Want Data From td_dt_mx Date
-    f_day = td_dt_mx.split("-")[0]
+    f_day = str(td_dt_mx.day).zfill(2)
     df = df[df["DAY"] == f_day]
     df.drop(["u_id", "dt_colc", "SECOND"], axis=1, inplace=True)
 
@@ -295,9 +296,10 @@ def data_viz_2(graphics_path, out_path, fl_data, e_out_path, e_fl_data, td_dt_mx
     """
 
     # Make Sure We Have At Least 2 Days Worth Of Data
-    if len(fl_data["FILE_NAME"].tolist()) >= 2:
+    if len(fl_data["FILE_NAME"].tolist()) >= 1:
 
         # Find Data For Yesterday
+        td_dt_mx = datetime.datetime.strptime(td_dt_mx, td_s_dt_dsply_frmt)
         fl_data = fl_data[fl_data["DATE"] >= td_dt_mx]
         df = pd.concat([pd.read_csv(path_, usecols=['u_id', 'dt_colc', 'vehicle_id', 'route_id']) for path_ in [f"{out_path}/{x}" for x in fl_data["FILE_NAME"].tolist()]])
         del fl_data
@@ -324,7 +326,7 @@ def data_viz_2(graphics_path, out_path, fl_data, e_out_path, e_fl_data, td_dt_mx
 
 
         # Define Basics | Grid Should Be 1 Cell Wide & Len(RTS) Long
-        yesterday_dt = (datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt)
+        yesterday_dt = td_dt_mx
         gs = (grid_spec.GridSpec(len(max_bus_pr_rt["ROUTE"].tolist()), 1))
         doc_len = (len(max_bus_pr_rt["ROUTE"].tolist()) -2)
 
@@ -382,7 +384,7 @@ def data_viz_2(graphics_path, out_path, fl_data, e_out_path, e_fl_data, td_dt_mx
                 ax.set_xticks([x*3600 for x in xlabels])
                 ax.grid(linestyle='dotted', linewidth=0.5, alpha=0.3)
                 ax.tick_params(width=0, length=0)
-                plt.title(f"Brampton Transit Buses Operating Every Minute By Route \n Data Collected: {yesterday_dt}")
+                plt.title(f"Brampton Transit Buses Operating Every Minute By Route \n Data Collected: {yesterday_dt.strftime('%d-%m-%Y')}")
 
 
             # If Were Dealing With Any Other Grid Object, Do Certain Things
