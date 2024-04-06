@@ -115,7 +115,7 @@ class DataCollector:
             os.makedirs(self.db_folder)
 
         # In The Out Directory Provided See If The Appropriate Sub Folders Exist!
-        for fldr_nm in ['BUS_STP', 'BUS_LOC', 'GRAPHICS', 'ERROR']:
+        for fldr_nm in ['BUS_STP', 'BUS_LOC', 'FINAL', 'GRAPHICS', 'ERROR']:
             dir_chk = f"{csv_out_path}/{fldr_nm}"
             self.out_dict[fldr_nm] = dir_chk
             if not os.path.exists(dir_chk):
@@ -216,8 +216,8 @@ class DataCollector:
         # Created A Cleaned Station Name, If Bus Stop Located In Parent Station
         con = sqlite3.connect(":memory:")
         parent_bus_terminals.to_sql("parent_bus_terminals", con, index=False)
-        stops_in_terminals.to_sql("stops_in_terminals", con, index=False)
-        stops_not_terminals.to_sql("stops_not_terminals", con, index=False)
+        stops_in_terminals.to_sql("stops_in_terminals",     con, index=False)
+        stops_not_terminals.to_sql("stops_not_terminals",   con, index=False)
 
         sql_query = f'''
         -- Step #1: Left Join Parent Stop Information To Bus Terminals In Parent Station
@@ -639,7 +639,7 @@ class DataCollector:
 
 
 
-    # ------------------------- Public Function 3 ------------------------------
+    # ------------------------- Public Function 4 ------------------------------
     def upld_2_dbx(self):
         """
         When called, this function will upload all graphics found in the graphics
@@ -677,3 +677,16 @@ class DataCollector:
             tm_nw = datetime.now().strftime(self.td_l_dt_dsply_frmt)
             print(f"{tm_nw}: Failure, Could Not Upload Graphics To DropBox Folder")
             print(f"{e}")
+
+
+
+    # ------------------------- Public Function 5 ------------------------------
+    def frmt_rwbslc_data(self):
+        """
+        When called, this function will read the bus data collected, and exported
+        from the day before, format the data - determining speed, and time when it arrived
+        at a given bus stop, and keep only needed entries. The formatted data will then
+        be exported as a CSV to an output folder.
+        """
+
+        pass

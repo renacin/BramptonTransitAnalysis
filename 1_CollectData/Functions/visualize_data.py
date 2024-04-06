@@ -348,15 +348,15 @@ def data_viz_2(graphics_path, out_path, fl_data, e_out_path, e_fl_data, td_dt_mx
             ax = fig.add_subplot(gs[i:i+1, 0:])
 
             # Fill Axis With Data
-            ax.plot(temp_df["SEC_FTR_12"], temp_df["COUNT_BUS"], alpha=1.0, linewidth=0.2, color='black')
-            ax.fill_between(temp_df["SEC_FTR_12"], temp_df["COUNT_BUS"], alpha=0.2, color='grey')
+            ax.plot(temp_df["SEC_FTR_12"], temp_df["COUNT_BUS"], alpha = 1.0, linewidth = 0.2, color = 'black')
+            ax.fill_between(temp_df["SEC_FTR_12"], temp_df["COUNT_BUS"], alpha = 0.2, color = 'grey')
 
             # # Set Route Name For Each Grid
             # ax.text(-0.5, 2 ,f"{rts}", fontsize=8, ha="right", rotation=90)
 
             # Set Y Axis Limits
             ax.set_ylim([0, max_num_bus])
-            ax.set_xlim(left=0, right=87000)
+            ax.set_xlim(left = 0, right = 87000)
             ax.patch.set_alpha(0)
 
             # Add A Horizontal Line
@@ -368,7 +368,7 @@ def data_viz_2(graphics_path, out_path, fl_data, e_out_path, e_fl_data, td_dt_mx
                 ax.set_yticklabels([])
                 ax.set_yticks([])
                 xlabels = [x for x in range(0, 26, 2)]
-                ax.set_xticks([x*3600 for x in xlabels], [f"{x}" for x in xlabels])
+                ax.set_xticks([x * 3600 for x in xlabels], [f"{x}" for x in xlabels])
                 ax.grid(linestyle='dotted', linewidth=0.5, alpha=0.3)
                 plt.xlabel('Time (24 Hour)', style='italic')
 
@@ -381,7 +381,7 @@ def data_viz_2(graphics_path, out_path, fl_data, e_out_path, e_fl_data, td_dt_mx
                 ax.set_yticklabels([])
                 ax.set_yticks([])
                 xlabels = [x for x in range(0, 26, 2)]
-                ax.set_xticks([x*3600 for x in xlabels])
+                ax.set_xticks([x * 3600 for x in xlabels])
                 ax.grid(linestyle='dotted', linewidth=0.5, alpha=0.3)
                 ax.tick_params(width=0, length=0)
                 plt.title(f"Brampton Transit Buses Operating Every Minute By Route \n Data Collected: {yesterday_dt.strftime('%d-%m-%Y')}")
@@ -395,7 +395,7 @@ def data_viz_2(graphics_path, out_path, fl_data, e_out_path, e_fl_data, td_dt_mx
                 ax.set_yticklabels([])
                 ax.set_yticks([])
                 xlabels = [x for x in range(0, 26, 2)]
-                ax.set_xticks([x*3600 for x in xlabels])
+                ax.set_xticks([x * 3600 for x in xlabels])
                 ax.grid(linestyle='dotted', linewidth=0.5, alpha=0.3)
                 ax.tick_params(width=0, length=0)
 
