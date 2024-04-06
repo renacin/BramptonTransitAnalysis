@@ -13,6 +13,9 @@ import pandas as pd
 import datetime
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as grid_spec
+
+import warnings
+warnings.filterwarnings("ignore")
 # ----------------------------------------------------------------------------------------------------------------------
 
 
