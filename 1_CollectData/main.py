@@ -33,8 +33,8 @@ def main():
     while True:
 
         # Get The Current Time
-        cur_dt = str(datetime.datetime.now().strftime(td_s_dt_dsply_frmt))
-        cur_hr = int(datetime.datetime.now().strftime('%H'))
+        cur_dt =   str(datetime.datetime.now().strftime(td_s_dt_dsply_frmt))
+        cur_hr =   int(datetime.datetime.now().strftime('%H'))
         td_dt_mx = str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt))
 
         try:
@@ -46,8 +46,8 @@ def main():
                 Collector.xprt_data("ERROR", "ERROR_DB", "timestamp", True)
 
                 # Define Needed Connections
-                bus_loc_path, b_af = Collector.return_files_dates("BUS_LOC")
-                error_path, e_af = Collector.return_files_dates("ERROR")
+                bus_loc_path, b_af =  Collector.return_files_dates("BUS_LOC")
+                error_path, e_af =    Collector.return_files_dates("ERROR")
                 graphics_path, g_af = Collector.return_files_dates("GRAPHICS")
 
                 # Run Main Data Formatter
