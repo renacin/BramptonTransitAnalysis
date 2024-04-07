@@ -429,7 +429,7 @@ def data_viz_2(graphics_path, out_path, fl_data, e_out_path, e_fl_data, td_dt_mx
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-def data_viz_3(graphics_path, fmted_path, f_af, e_out_path, e_fl_data, td_dt_mx):
+def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_path, e_fl_data, td_dt_mx):
     """
     Using the formatted data, this function will derive general statistics about
     when buses arrived at certain bus stops on a given route.
@@ -466,11 +466,29 @@ def data_viz_3(graphics_path, fmted_path, f_af, e_out_path, e_fl_data, td_dt_mx)
                  'MINUTES_BTW', 'KPH_BTW']]
 
 
+        # Find File, If Not Exist, Raise Error
+        for file in os.listdir(bus_stp_path):
+            if "BUS_RTE_DATA" in file:
+                rte_path = f'{bus_stp_path}/{file}'
+
+        # Read In Data & Catch Possible Error, Create A Column Called Segment ID
+        try:
+            bus_rutes = pd.read_csv(rte_path)
+            bus_rutes['NXT_STP'] = bus_rutes.groupby(["RT_NM"])['STP_NM'].shift(-1)
+            bus_rutes['NXT_STP'] = bus_rutes['NXT_STP'].fillna(bus_rutes['STP_NM'])
+            bus_rutes["SEGMENT_NAME"] = bus_rutes['STP_NM'] + " -- TO -- " + bus_rutes['NXT_STP']
+            del bus_rutes["RT_LINK"]
+
+        except Exception:
+            now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+            print(f"{now}: Error Bus Stop / Bus Route Files Do Not Exist")
+            sys.exit(1)
+
+        
+
+        print(bus_rutes)
 
 
-
-        # Add Data From Bus Routes
-        print(df.info())
 
         # print(df.head())
         # df.to_csv("Test.csv")

@@ -37,6 +37,7 @@ def main():
 
     # Define Needed Connections
     bus_loc_path, b_af =  Collector.return_files_dates("BUS_LOC")
+    bus_stp_path, bstp_af =  Collector.return_files_dates("BUS_STP")
     fmted_path, f_af =    Collector.return_files_dates("FRMTD_DATA")
     error_path, e_af =    Collector.return_files_dates("ERROR")
     graphics_path, g_af = Collector.return_files_dates("GRAPHICS")
@@ -45,6 +46,8 @@ def main():
     data_viz_3(graphics_path,
                 fmted_path,
                 f_af,
+                bus_stp_path,
+                bstp_af,
                 error_path,
                 e_af,
                 td_dt_mx)
