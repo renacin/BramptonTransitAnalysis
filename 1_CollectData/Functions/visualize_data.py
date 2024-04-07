@@ -421,3 +421,32 @@ def data_viz_2(graphics_path, out_path, fl_data, e_out_path, e_fl_data, td_dt_mx
         fig.savefig(f"{graphics_path}/NumBusesByHourByRoute.pdf")
         now = datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
         print(f"{now}: Rendered Data Viz #2")
+
+
+
+
+
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+def data_viz_3(graphics_path, fmted_path, f_af, e_out_path, e_fl_data, td_dt_mx):
+    """
+    Using the formatted data, this function will derive general statistics about
+    when buses arrived at certain bus stops on a given route.
+    """
+
+    # Make Sure We Have At Least 2 Days Worth Of Data
+    if len(f_af["FILE_NAME"].tolist()) >= 1:
+
+        # Find Days Between Today And Minus 1 Days
+        td_dt_mx = datetime.datetime.strptime(td_dt_mx, td_s_dt_dsply_frmt)
+        f_af = f_af[f_af["DATE"] >= td_dt_mx]
+
+        df = pd.concat([pd.read_csv(path_) for path_ in [f"{fmted_path}/{x}" for x in f_af["FILE_NAME"].tolist()]])
+        del f_af
+
+        print(df.info())
+
+        # # Data Formating & Grouping
+        # grped_time, dates_in = __d1_s2(__d1_s1(df, td_dt_mx))
+        # del df
