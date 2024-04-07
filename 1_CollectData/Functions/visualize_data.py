@@ -169,7 +169,7 @@ def data_viz_1(graphics_path, out_path, fl_data, e_out_path, e_fl_data, td_dt_mx
 
         # Manually Set X Ticks, Note There Are 3600 Seconds In An Hour
         xlabels = [x for x in range(0, 26, 2)]
-        xticks = [x*3600 for x in xlabels]
+        xticks = [x * 3600 for x in xlabels]
         xlabels = [f"{x}" for x in xlabels]
         ax.set_xticks(xticks, labels=xlabels)
         ax.grid(linestyle='dotted', linewidth=0.5, alpha=0.4)
@@ -445,8 +445,35 @@ def data_viz_3(graphics_path, fmted_path, f_af, e_out_path, e_fl_data, td_dt_mx)
         df = pd.concat([pd.read_csv(path_) for path_ in [f"{fmted_path}/{x}" for x in f_af["FILE_NAME"].tolist()]])
         del f_af
 
+        # Convert To INT
+        for col in ["CUR_STP_TIME", "NXT_STP_TIME"]:
+            df[col] == df[col].astype(int)
+
+        # The Convert To Human Readable Time
+        df["CUR_STP_TIME_C"] = pd.to_datetime(df["CUR_STP_TIME"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
+        df["NXT_STP_TIME_C"] = pd.to_datetime(df["NXT_STP_TIME"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
+
+        # Determine Time, Speed Between Stops
+        df["MINUTES_BTW"] = round((df["NXT_STP_TIME"] - df["CUR_STP_TIME"]) / 60, 2)
+        df["KPH_BTW"] = round(df["DST_BTW_STPS"] / (df["MINUTES_BTW"] / 60), 2)
+
+        # Remove Unneeded Columns
+        df = df[['U_NAME', 'ID', 'V_ID', 'ROUTE_ID', 'TRIP_ID',
+                 'TRIP_TYPE',  'CUR_STP_ID', 'CUR_STP_NM', 'CUR_STP_LAT',
+                 'CUR_STP_LONG', 'SEGMENT_NAME', 'NXT_STP_ID',
+                 'NXT_STP_NAME', 'NXT_STP_LAT', 'NXT_STP_LONG',
+                 'CUR_STP_TIME_C', 'NXT_STP_TIME_C', 'DST_BTW_STPS',
+                 'MINUTES_BTW', 'KPH_BTW']]
+
+
+
+
+
+        # Add Data From Bus Routes
         print(df.info())
 
+        # print(df.head())
+        # df.to_csv("Test.csv")
         # # Data Formating & Grouping
         # grped_time, dates_in = __d1_s2(__d1_s1(df, td_dt_mx))
         # del df
