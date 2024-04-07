@@ -457,13 +457,21 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
         df["MINUTES_BTW"] = round((df["NXT_STP_TIME"] - df["CUR_STP_TIME"]) / 60, 2)
         df["KPH_BTW"] = round(df["DST_BTW_STPS"] / (df["MINUTES_BTW"] / 60), 2)
 
+
+        # # Remove Unneeded Columns
+        # df = df[['ID', 'V_ID', 'ROUTE_ID', 'TRIP_ID',
+        #          'TRIP_TYPE',
+        #          'CUR_STP_ID', 'CUR_STP_LAT', 'CUR_STP_LONG',
+        #          'SEGMENT_NAME',
+        #          'NXT_STP_ID', 'NXT_STP_LAT', 'NXT_STP_LONG',
+        #          'CUR_STP_TIME_C', 'NXT_STP_TIME_C',
+        #          'DST_BTW_STPS', 'MINUTES_BTW', 'KPH_BTW']]
+
+
         # Remove Unneeded Columns
-        df = df[['U_NAME', 'ID', 'V_ID', 'ROUTE_ID', 'TRIP_ID',
-                 'TRIP_TYPE',  'CUR_STP_ID', 'CUR_STP_NM', 'CUR_STP_LAT',
-                 'CUR_STP_LONG', 'SEGMENT_NAME', 'NXT_STP_ID',
-                 'NXT_STP_NAME', 'NXT_STP_LAT', 'NXT_STP_LONG',
-                 'CUR_STP_TIME_C', 'NXT_STP_TIME_C', 'DST_BTW_STPS',
-                 'MINUTES_BTW', 'KPH_BTW']]
+        df = df[['V_ID', 'ROUTE_ID',
+                 'SEGMENT_NAME', 'CUR_STP_TIME_C',
+                 'DST_BTW_STPS', 'MINUTES_BTW', 'KPH_BTW']]
 
 
         # Find File, If Not Exist, Raise Error
@@ -477,17 +485,29 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
             bus_rutes['NXT_STP'] = bus_rutes.groupby(["RT_NM"])['STP_NM'].shift(-1)
             bus_rutes['NXT_STP'] = bus_rutes['NXT_STP'].fillna(bus_rutes['STP_NM'])
             bus_rutes["SEGMENT_NAME"] = bus_rutes['STP_NM'] + " -- TO -- " + bus_rutes['NXT_STP']
-            del bus_rutes["RT_LINK"]
+            del bus_rutes["RT_LINK"], bus_rutes["STP_NM"], bus_rutes["NXT_STP"]
 
         except Exception:
             now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
             print(f"{now}: Error Bus Stop / Bus Route Files Do Not Exist")
             sys.exit(1)
 
-        
 
-        print(bus_rutes)
+        # Using Bus Routes As A Main Table, Left Join Observations
+        new_data = bus_rutes.merge(df, on='SEGMENT_NAME', how='left')
+        new_data = new_data.groupby(["RT_NM", "RT_STP_NUM"]).agg(
+                                            TIME_AVG = ('MINUTES_BTW', 'mean'),
+                                            TIME_STD = ('MINUTES_BTW', 'std'),
+                                            TIME_MIN = ('MINUTES_BTW', 'min'),
+                                            TIME_MAX = ('MINUTES_BTW', 'max'),
+                                            KPH_AVG = ('KPH_BTW', 'mean'),
+                                            KPH_STD = ('KPH_BTW', 'std'),
+                                            KPH_MIN = ('KPH_BTW', 'min'),
+                                            KPH_MAX = ('KPH_BTW', 'max')
+                                            )
 
+        print(new_data)
+        new_data.to_csv("Agre.csv")
 
 
         # print(df.head())
