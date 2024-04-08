@@ -447,7 +447,7 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
 
         # Convert To INT
         for col in ["CUR_STP_TIME", "NXT_STP_TIME"]:
-            df[col] == df[col].astype(int)
+            df[col] == df[col].astype("Int64", errors='ignore')
 
         # The Convert To Human Readable Time
         df["CUR_STP_TIME_C"] = pd.to_datetime(df["CUR_STP_TIME"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
@@ -495,7 +495,8 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
 
         # Using Bus Routes As A Main Table, Left Join Observations
         new_data = bus_rutes.merge(df, on='SEGMENT_NAME', how='left')
-        new_data = new_data.groupby(["RT_NM", "RT_STP_NUM"]).agg(
+        del bus_rutes, df
+        new_data = new_data.groupby(["RT_NM", "RT_STP_NUM", "SEGMENT_NAME"]).agg(
                                             TIME_AVG = ('MINUTES_BTW', 'mean'),
                                             TIME_STD = ('MINUTES_BTW', 'std'),
                                             TIME_MIN = ('MINUTES_BTW', 'min'),
@@ -503,11 +504,20 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
                                             KPH_AVG = ('KPH_BTW', 'mean'),
                                             KPH_STD = ('KPH_BTW', 'std'),
                                             KPH_MIN = ('KPH_BTW', 'min'),
-                                            KPH_MAX = ('KPH_BTW', 'max')
+                                            KPH_MAX = ('KPH_BTW', 'max'),
+                                            NUM_OBS = ('SEGMENT_NAME', 'count')
                                             )
+        new_data["NUM_OBS"] = new_data["NUM_OBS"] - 1
 
-        print(new_data)
-        new_data.to_csv("Agre.csv")
+        # Round Columns For Readability
+        for col in ["TIME_AVG", "TIME_STD", "TIME_MIN", "TIME_MAX", "KPH_AVG", "KPH_STD", "KPH_MIN", "KPH_MAX"]:
+            new_data[col] = round(new_data[col], 2)
+
+        new_data = new_data.reset_index()
+        # f"{fmted_path}/SegmentStatistics.csv"
+
+        out_path = f"/Users/renacin/Desktop/SegmentStatistics.csv"
+        new_data.to_csv(out_path, index=False)
 
 
         # print(df.head())

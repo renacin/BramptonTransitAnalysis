@@ -81,8 +81,6 @@ def get_bearing(coord1, coord2):
 
 
 
-
-
 # ----------------------------------------------------------------------------------------------------------------------
 class DataCollector:
     """ This class will gather data on both bus locations as well as weather data """
