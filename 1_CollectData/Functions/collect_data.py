@@ -890,53 +890,50 @@ class DataCollector:
             # Calculate Distance Between Current Location & Previous Location | Create A Dataframe Elaborating Distance Traveled & Speed
             transit_df["DST_BTW_LOCS"] = vec_haversine((transit_df["P_LAT"].values, transit_df["P_LONG"].values), (transit_df["C_LAT"].values, transit_df["C_LONG"].values))
 
+            # Determine The Average Speed For The Trip
             speed_df = transit_df.copy()
             speed_df["P_EP_TIME"] = speed_df.groupby(["U_NAME"])["EP_TIME"].shift(+1)
             speed_df = speed_df.dropna(subset=["P_EP_TIME"])
+            speed_df["TRIP_DUR"] = (((speed_df["EP_TIME"] - speed_df["P_EP_TIME"]) / 60) /60)
+            speed_df["TRIP_SPD"] = speed_df["DST_BTW_LOCS"] / speed_df["TRIP_DUR"]
+            speed_df = speed_df.groupby(["ID", "ROUTE_ID", "TRIP_ID", "AVG_DIR"], as_index=False).agg(TRIP_SPD = ("TRIP_SPD", "mean"))
+
+
+            # If Next Stop Is Equal To Previous Stop, Replace With Blank, Foward Fill Next Stop Values & Replace First
+            for n_col, p_col in zip(["NXT_STP_ID", "NXT_STP_NAME", "NXT_STP_LAT", "NXT_STP_LONG"], ["PRV_STP_ID", "PRV_STP_NAME", "PRV_STP_LAT", "PRV_STP_LONG"]):
+                transit_df.loc[transit_df[n_col] == transit_df[p_col], p_col] = np.nan
+                transit_df[p_col] = transit_df.groupby(["ID", "ROUTE_ID", "TRIP_ID", "AVG_DIR"])[p_col].ffill()
+                transit_df[p_col] = transit_df[p_col].fillna(transit_df[n_col])
+            transit_df = transit_df.drop_duplicates(subset=["ID", "ROUTE_ID", "TRIP_ID", "AVG_DIR", "NXT_STP_ID", "PRV_STP_ID"], keep="last")
 
 
 
-            speed_df.to_csv("/Users/renacin/Desktop/Transit_DF.csv")
+            speed_df.to_csv("/Users/renacin/Desktop/SpeedDF.csv")
+
+
+
+            #===============================================================================
+            # Step #4: Determine Distance, Speed, and Bearing Between Stops, Determine Trip Type (Weekend, Weekday, Holiday Etc...)
+            #===============================================================================
+            transit_df["DST_PSTP_NXTSTP"] = vec_haversine((transit_df["PRV_STP_LAT"].values, transit_df["PRV_STP_LONG"].values), (transit_df["NXT_STP_LAT"].values, transit_df["NXT_STP_LONG"].values))
+            transit_df["DST_2_PBSTP"] = vec_haversine((transit_df["PRV_STP_LAT"].values, transit_df["PRV_STP_LONG"].values), (transit_df["C_LAT"].values, transit_df["C_LONG"].values))
+
+            transit_df = transit_df.merge(speed_df, how="left", on=["ROUTE_ID", "TRIP_ID", "ID", "AVG_DIR"])
+            transit_df["TME_2_PBSTP"] = ((transit_df["DST_2_PBSTP"] / transit_df["TRIP_SPD"])*60)*60
+            transit_df["ARV_TME_PBSTP"] = transit_df["EP_TIME"] - transit_df["TME_2_PBSTP"]
+            del speed_df
+
+            transit_df["SEG_BEARING"] = round(transit_df.apply(lambda x: get_bearing((x["PRV_STP_LAT"], x["PRV_STP_LONG"]), (x["NXT_STP_LAT"], x["NXT_STP_LONG"])), axis=1), 0)
+            transit_df["TRIP_TYPE"] = transit_df["TRIP_ID"].str.split("-").str[-2]
+
+
+            transit_df.to_csv("/Users/renacin/Desktop/TransitDF.csv")
+
+
+
+
 
             #
-            # speed_df = transit_df.groupby(["ID", "ROUTE_ID", "TRIP_ID", "AVG_DIR"], as_index=False).agg(
-            #     TRIP_DUR = ("EP_TIME", lambda s: round((((s.iloc[-1] - s.iloc[0])/60))/60, 2)),
-            #     TRIP_LEN = ("DST_BTW_LOCS", lambda s: round(s.sum(), 2)),
-            # )
-            # speed_df["TRIP_SPD"] = speed_df["TRIP_LEN"] / speed_df["TRIP_DUR"]
-            #
-            #
-            # print(speed_df)
-            # speed_df.to_csv("/Users/renacin/Desktop/Speed_DF.csv")
-            #
-            # # If Next Stop Is Equal To Previous Stop, Replace With Blank, Foward Fill Next Stop Values & Replace First
-            # for n_col, p_col in zip(["NXT_STP_ID", "NXT_STP_NAME", "NXT_STP_LAT", "NXT_STP_LONG"], ["PRV_STP_ID", "PRV_STP_NAME", "PRV_STP_LAT", "PRV_STP_LONG"]):
-            #     transit_df.loc[transit_df[n_col] == transit_df[p_col], p_col] = np.nan
-            #     transit_df[p_col] = transit_df.groupby(["ID", "ROUTE_ID", "TRIP_ID", "AVG_DIR"])[p_col].ffill()
-            #     transit_df[p_col] = transit_df[p_col].fillna(transit_df[n_col])
-            # transit_df = transit_df.drop_duplicates(subset=["ID", "ROUTE_ID", "TRIP_ID", "AVG_DIR", "NXT_STP_ID", "PRV_STP_ID"], keep="last")
-            #
-            #
-            #
-            # #===============================================================================
-            # # Step #4: Determine Distance, Speed, and Bearing Between Stops, Determine Trip Type (Weekend, Weekday, Holiday Etc...)
-            # #===============================================================================
-            # transit_df["DST_PSTP_NXTSTP"] = vec_haversine((transit_df["PRV_STP_LAT"].values, transit_df["PRV_STP_LONG"].values), (transit_df["NXT_STP_LAT"].values, transit_df["NXT_STP_LONG"].values))
-            # transit_df["DST_2_PBSTP"] = vec_haversine((transit_df["PRV_STP_LAT"].values, transit_df["PRV_STP_LONG"].values), (transit_df["C_LAT"].values, transit_df["C_LONG"].values))
-            #
-            # transit_df = transit_df.merge(speed_df, how="left", on=["ROUTE_ID", "TRIP_ID", "ID", "AVG_DIR"])
-            # transit_df["TME_2_PBSTP"] = ((transit_df["DST_2_PBSTP"] / transit_df["TRIP_SPD"])*60)*60
-            # transit_df["ARV_TME_PBSTP"] = transit_df["EP_TIME"] - transit_df["TME_2_PBSTP"]
-            # del speed_df
-            #
-            # transit_df["SEG_BEARING"] = round(transit_df.apply(lambda x: get_bearing((x["PRV_STP_LAT"], x["PRV_STP_LONG"]), (x["NXT_STP_LAT"], x["NXT_STP_LONG"])), axis=1), 0)
-            # transit_df["TRIP_TYPE"] = transit_df["TRIP_ID"].str.split("-").str[-2]
-
-
-
-
-
-
             # #===============================================================================
             # # Step #5: Reorganize Data
             # #===============================================================================
