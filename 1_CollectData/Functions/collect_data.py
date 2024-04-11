@@ -748,6 +748,11 @@ class DataCollector:
         """
 
 
+
+        td_dt_mx = "09-04-2024"
+
+
+
         #===============================================================================
         # Step #1: Gather Yesterday's Bus Location Data
         #===============================================================================
@@ -795,140 +800,145 @@ class DataCollector:
             sys.exit(1)
 
 
-        # Makre Sure We Have Data Before Doing All Of This
-        if len(df) > 0:
-
-            #===============================================================================
-            # Step #2: Upload Yesterday's Bus Data & Bus Stop Data To Temp SQL Table, Compare
-            #===============================================================================
-            con = sqlite3.connect(":memory:")
-            bus_stops.to_sql("BusStops", con, if_exists="replace", index=False)
-            df.to_sql("TRANSIT_LOCATION_DB", con, if_exists="replace", index=False)
-            del df, bus_stops
-
-            sql_query = f'''
-            -- Step #1: Pull Certain Fields, And Create New Ones
-            WITH
-            RawData AS (
-            	SELECT
-            		A.timestamp                                                                                                AS EP_TIME,
-            		A.id                                                                                                       AS ID,
-            		A.route_id                                                                                                 AS ROUTE_ID,
-            		A.trip_id                                                                                                  AS TRIP_ID,
-                    A.vehicle_id                                                                                               AS V_ID,
-            		CAST(A.bearing AS INTERGER)                                                                                AS DIR,
-            		CAST(AVG(A.bearing)
-            		OVER (PARTITION BY A.ROUTE_ID, A.TRIP_ID, A.ID) AS INTERGER)                                               AS AVG_DIR,
-
-            		A.latitude                                                                                                 AS C_LAT,
-            		A.longitude                                                                                                AS C_LONG,
-
-            		A.stop_id                                                                                                  AS NXT_STP_ID
-
-
-            	FROM TRANSIT_LOCATION_DB AS A
-            	ORDER BY A.TRIP_ID, A.ID, A.TIMESTAMP
-            ),
-
-            -- Step #2: Previous Stop ID Needs To Be Determined With Average Direction
-            RD AS (
-            	SELECT
-            		A.*,
-
-            		COALESCE(LAG(A.C_LAT)
-            		OVER (PARTITION BY A.ROUTE_ID, A.TRIP_ID, A.ID, A.AVG_DIR ORDER BY A.EP_TIME), A.C_LAT)                    AS P_LAT,
-
-            		COALESCE(LAG(A.C_LONG)
-            		OVER (PARTITION BY A.ROUTE_ID, A.TRIP_ID, A.ID, A.AVG_DIR ORDER BY A.EP_TIME), A.C_LONG)                   AS P_LONG,
-
-            		COALESCE(LAG(A.NXT_STP_ID)
-            		OVER (PARTITION BY A.ROUTE_ID, A.TRIP_ID, A.ID, A.AVG_DIR ORDER BY A.EP_TIME), A.NXT_STP_ID)               AS PRV_STP_ID
-            	FROM RawData AS A
-            ),
-
-            -- Step #3: Merge Bus Stop Information Onto Main Table
-            WithStopData AS (
-            	SELECT
-            		A.ID || '_' || A.ROUTE_ID || '_' || A.TRIP_ID || '_' || A.AVG_DIR       AS U_NAME,
-            		A.*,
-
-            		B2.CLEANED_STOP_NAME_                                                            AS PRV_STP_NAME,
-            		B2.CLEANED_STOP_LAT_                                                             AS PRV_STP_LAT,
-            		B2.CLEANED_STOP_LON_                                                             AS PRV_STP_LONG,
-
-            		B1.CLEANED_STOP_NAME_                                                            AS NXT_STP_NAME,
-            		B1.CLEANED_STOP_LAT_                                                             AS NXT_STP_LAT,
-            		B1.CLEANED_STOP_LON_                                                             AS NXT_STP_LONG
-
-
-            	FROM RD AS A
-            	LEFT JOIN BusStops AS B1 ON (A.NXT_STP_ID = B1.stop_id)
-            	LEFT JOIN BusStops AS B2 ON (A.PRV_STP_ID = B2.stop_id)
-            )
-
-            SELECT *
-            FROM WithStopData AS A
-            '''
-
-            # Read SQL Query & Perform Basic Sorting & Duplicate Removal
-            data_pull = pd.read_sql_query(sql_query, con)
-            con.close()
-            data_pull.sort_values(["ID", "ROUTE_ID", "TRIP_ID", "EP_TIME"], inplace=True)
-            data_pull.drop_duplicates(inplace=True)
+        print("Done")
 
 
 
-            #===============================================================================
-            # Step #3: Remove Unneeded Information - Clean Up Dataset!
-            #===============================================================================
-
-            # Remove Entries Where Bus Is Idling, Or Has Kept Transponder Running After The First Occurence At The Last Stop | Append All Dta To New Dataframe
-            gb = data_pull.groupby("U_NAME")
-            transit_df = pd.concat([x[1].loc[x[1]["NXT_STP_NAME"].where(x[1]["NXT_STP_NAME"]==x[1]["NXT_STP_NAME"].iloc[0]).last_valid_index():x[1]["PRV_STP_NAME"].where(x[1]["PRV_STP_NAME"]==x[1]["PRV_STP_NAME"].iloc[-1]).first_valid_index()] for x in gb])
-            del data_pull, gb
-
-            # Calculate Distance Between Current Location & Previous Location | Create A Dataframe Elaborating Distance Traveled & Speed
-            transit_df["DST_BTW_LOCS"] = vec_haversine((transit_df["P_LAT"].values, transit_df["P_LONG"].values), (transit_df["C_LAT"].values, transit_df["C_LONG"].values))
-
-            # Determine The Average Speed For The Trip
-            speed_df = transit_df.copy()
-            speed_df["P_EP_TIME"] = speed_df.groupby(["U_NAME"])["EP_TIME"].shift(+1)
-            speed_df = speed_df.dropna(subset=["P_EP_TIME"])
-            speed_df["TRIP_DUR"] = (((speed_df["EP_TIME"] - speed_df["P_EP_TIME"]) / 60) /60)
-            speed_df["TRIP_SPD"] = speed_df["DST_BTW_LOCS"] / speed_df["TRIP_DUR"]
-            speed_df = speed_df.groupby(["ID", "ROUTE_ID", "TRIP_ID", "AVG_DIR"], as_index=False).agg(TRIP_SPD = ("TRIP_SPD", "mean"))
-
-
-            # If Next Stop Is Equal To Previous Stop, Replace With Blank, Foward Fill Next Stop Values & Replace First
-            for n_col, p_col in zip(["NXT_STP_ID", "NXT_STP_NAME", "NXT_STP_LAT", "NXT_STP_LONG"], ["PRV_STP_ID", "PRV_STP_NAME", "PRV_STP_LAT", "PRV_STP_LONG"]):
-                transit_df.loc[transit_df[n_col] == transit_df[p_col], p_col] = np.nan
-                transit_df[p_col] = transit_df.groupby(["ID", "ROUTE_ID", "TRIP_ID", "AVG_DIR"])[p_col].ffill()
-                transit_df[p_col] = transit_df[p_col].fillna(transit_df[n_col])
-            transit_df = transit_df.drop_duplicates(subset=["ID", "ROUTE_ID", "TRIP_ID", "AVG_DIR", "NXT_STP_ID", "PRV_STP_ID"], keep="last")
-
-
-
-            speed_df.to_csv("/Users/renacin/Desktop/SpeedDF.csv")
-
-
-
-            #===============================================================================
-            # Step #4: Determine Distance, Speed, and Bearing Between Stops, Determine Trip Type (Weekend, Weekday, Holiday Etc...)
-            #===============================================================================
-            transit_df["DST_PSTP_NXTSTP"] = vec_haversine((transit_df["PRV_STP_LAT"].values, transit_df["PRV_STP_LONG"].values), (transit_df["NXT_STP_LAT"].values, transit_df["NXT_STP_LONG"].values))
-            transit_df["DST_2_PBSTP"] = vec_haversine((transit_df["PRV_STP_LAT"].values, transit_df["PRV_STP_LONG"].values), (transit_df["C_LAT"].values, transit_df["C_LONG"].values))
-
-            transit_df = transit_df.merge(speed_df, how="left", on=["ROUTE_ID", "TRIP_ID", "ID", "AVG_DIR"])
-            transit_df["TME_2_PBSTP"] = ((transit_df["DST_2_PBSTP"] / transit_df["TRIP_SPD"])*60)*60
-            transit_df["ARV_TME_PBSTP"] = transit_df["EP_TIME"] - transit_df["TME_2_PBSTP"]
-            del speed_df
-
-            transit_df["SEG_BEARING"] = round(transit_df.apply(lambda x: get_bearing((x["PRV_STP_LAT"], x["PRV_STP_LONG"]), (x["NXT_STP_LAT"], x["NXT_STP_LONG"])), axis=1), 0)
-            transit_df["TRIP_TYPE"] = transit_df["TRIP_ID"].str.split("-").str[-2]
-
-
-            transit_df.to_csv("/Users/renacin/Desktop/TransitDF.csv")
-
+        #
+        # # Makre Sure We Have Data Before Doing All Of This
+        # if len(df) > 0:
+        #
+        #     #===============================================================================
+        #     # Step #2: Upload Yesterday's Bus Data & Bus Stop Data To Temp SQL Table, Compare
+        #     #===============================================================================
+        #     con = sqlite3.connect(":memory:")
+        #     bus_stops.to_sql("BusStops", con, if_exists="replace", index=False)
+        #     df.to_sql("TRANSIT_LOCATION_DB", con, if_exists="replace", index=False)
+        #     del df, bus_stops
+        #
+        #     sql_query = f'''
+        #     -- Step #1: Pull Certain Fields, And Create New Ones
+        #     WITH
+        #     RawData AS (
+        #     	SELECT
+        #     		A.timestamp                                                                                                AS EP_TIME,
+        #     		A.id                                                                                                       AS ID,
+        #     		A.route_id                                                                                                 AS ROUTE_ID,
+        #     		A.trip_id                                                                                                  AS TRIP_ID,
+        #             A.vehicle_id                                                                                               AS V_ID,
+        #     		CAST(A.bearing AS INTERGER)                                                                                AS DIR,
+        #     		CAST(AVG(A.bearing)
+        #     		OVER (PARTITION BY A.ROUTE_ID, A.TRIP_ID, A.ID) AS INTERGER)                                               AS AVG_DIR,
+        #
+        #     		A.latitude                                                                                                 AS C_LAT,
+        #     		A.longitude                                                                                                AS C_LONG,
+        #
+        #     		A.stop_id                                                                                                  AS NXT_STP_ID
+        #
+        #
+        #     	FROM TRANSIT_LOCATION_DB AS A
+        #     	ORDER BY A.TRIP_ID, A.ID, A.TIMESTAMP
+        #     ),
+        #
+        #     -- Step #2: Previous Stop ID Needs To Be Determined With Average Direction
+        #     RD AS (
+        #     	SELECT
+        #     		A.*,
+        #
+        #     		COALESCE(LAG(A.C_LAT)
+        #     		OVER (PARTITION BY A.ROUTE_ID, A.TRIP_ID, A.ID, A.AVG_DIR ORDER BY A.EP_TIME), A.C_LAT)                    AS P_LAT,
+        #
+        #     		COALESCE(LAG(A.C_LONG)
+        #     		OVER (PARTITION BY A.ROUTE_ID, A.TRIP_ID, A.ID, A.AVG_DIR ORDER BY A.EP_TIME), A.C_LONG)                   AS P_LONG,
+        #
+        #     		COALESCE(LAG(A.NXT_STP_ID)
+        #     		OVER (PARTITION BY A.ROUTE_ID, A.TRIP_ID, A.ID, A.AVG_DIR ORDER BY A.EP_TIME), A.NXT_STP_ID)               AS PRV_STP_ID
+        #     	FROM RawData AS A
+        #     ),
+        #
+        #     -- Step #3: Merge Bus Stop Information Onto Main Table
+        #     WithStopData AS (
+        #     	SELECT
+        #     		A.ID || '_' || A.ROUTE_ID || '_' || A.TRIP_ID || '_' || A.AVG_DIR       AS U_NAME,
+        #     		A.*,
+        #
+        #     		B2.CLEANED_STOP_NAME_                                                            AS PRV_STP_NAME,
+        #     		B2.CLEANED_STOP_LAT_                                                             AS PRV_STP_LAT,
+        #     		B2.CLEANED_STOP_LON_                                                             AS PRV_STP_LONG,
+        #
+        #     		B1.CLEANED_STOP_NAME_                                                            AS NXT_STP_NAME,
+        #     		B1.CLEANED_STOP_LAT_                                                             AS NXT_STP_LAT,
+        #     		B1.CLEANED_STOP_LON_                                                             AS NXT_STP_LONG
+        #
+        #
+        #     	FROM RD AS A
+        #     	LEFT JOIN BusStops AS B1 ON (A.NXT_STP_ID = B1.stop_id)
+        #     	LEFT JOIN BusStops AS B2 ON (A.PRV_STP_ID = B2.stop_id)
+        #     )
+        #
+        #     SELECT *
+        #     FROM WithStopData AS A
+        #     '''
+        #
+        #     # Read SQL Query & Perform Basic Sorting & Duplicate Removal
+        #     data_pull = pd.read_sql_query(sql_query, con)
+        #     con.close()
+        #     data_pull.sort_values(["ID", "ROUTE_ID", "TRIP_ID", "EP_TIME"], inplace=True)
+        #     data_pull.drop_duplicates(inplace=True)
+        #
+        #
+        #
+        #     #===============================================================================
+        #     # Step #3: Remove Unneeded Information - Clean Up Dataset!
+        #     #===============================================================================
+        #
+        #     # Remove Entries Where Bus Is Idling, Or Has Kept Transponder Running After The First Occurence At The Last Stop | Append All Dta To New Dataframe
+        #     gb = data_pull.groupby("U_NAME")
+        #     transit_df = pd.concat([x[1].loc[x[1]["NXT_STP_NAME"].where(x[1]["NXT_STP_NAME"]==x[1]["NXT_STP_NAME"].iloc[0]).last_valid_index():x[1]["PRV_STP_NAME"].where(x[1]["PRV_STP_NAME"]==x[1]["PRV_STP_NAME"].iloc[-1]).first_valid_index()] for x in gb])
+        #     del data_pull, gb
+        #
+        #     # Calculate Distance Between Current Location & Previous Location | Create A Dataframe Elaborating Distance Traveled & Speed
+        #     transit_df["DST_BTW_LOCS"] = vec_haversine((transit_df["P_LAT"].values, transit_df["P_LONG"].values), (transit_df["C_LAT"].values, transit_df["C_LONG"].values))
+        #
+        #     # Determine The Average Speed For The Trip
+        #     speed_df = transit_df.copy()
+        #     speed_df["P_EP_TIME"] = speed_df.groupby(["U_NAME"])["EP_TIME"].shift(+1)
+        #     speed_df = speed_df.dropna(subset=["P_EP_TIME"])
+        #     speed_df["TRIP_DUR"] = (((speed_df["EP_TIME"] - speed_df["P_EP_TIME"]) / 60) /60)
+        #     speed_df["TRIP_SPD"] = speed_df["DST_BTW_LOCS"] / speed_df["TRIP_DUR"]
+        #     speed_df = speed_df.groupby(["ID", "ROUTE_ID", "TRIP_ID", "AVG_DIR"], as_index=False).agg(TRIP_SPD = ("TRIP_SPD", "mean"))
+        #
+        #
+        #     # If Next Stop Is Equal To Previous Stop, Replace With Blank, Foward Fill Next Stop Values & Replace First
+        #     for n_col, p_col in zip(["NXT_STP_ID", "NXT_STP_NAME", "NXT_STP_LAT", "NXT_STP_LONG"], ["PRV_STP_ID", "PRV_STP_NAME", "PRV_STP_LAT", "PRV_STP_LONG"]):
+        #         transit_df.loc[transit_df[n_col] == transit_df[p_col], p_col] = np.nan
+        #         transit_df[p_col] = transit_df.groupby(["ID", "ROUTE_ID", "TRIP_ID", "AVG_DIR"])[p_col].ffill()
+        #         transit_df[p_col] = transit_df[p_col].fillna(transit_df[n_col])
+        #     transit_df = transit_df.drop_duplicates(subset=["ID", "ROUTE_ID", "TRIP_ID", "AVG_DIR", "NXT_STP_ID", "PRV_STP_ID"], keep="last")
+        #
+        #
+        #
+        #     speed_df.to_csv("/Users/renacin/Desktop/SpeedDF.csv")
+        #
+        #
+        #
+        #     #===============================================================================
+        #     # Step #4: Determine Distance, Speed, and Bearing Between Stops, Determine Trip Type (Weekend, Weekday, Holiday Etc...)
+        #     #===============================================================================
+        #     transit_df["DST_PSTP_NXTSTP"] = vec_haversine((transit_df["PRV_STP_LAT"].values, transit_df["PRV_STP_LONG"].values), (transit_df["NXT_STP_LAT"].values, transit_df["NXT_STP_LONG"].values))
+        #     transit_df["DST_2_PBSTP"] = vec_haversine((transit_df["PRV_STP_LAT"].values, transit_df["PRV_STP_LONG"].values), (transit_df["C_LAT"].values, transit_df["C_LONG"].values))
+        #
+        #     transit_df = transit_df.merge(speed_df, how="left", on=["ROUTE_ID", "TRIP_ID", "ID", "AVG_DIR"])
+        #     transit_df["TME_2_PBSTP"] = ((transit_df["DST_2_PBSTP"] / transit_df["TRIP_SPD"])*60)*60
+        #     transit_df["ARV_TME_PBSTP"] = transit_df["EP_TIME"] - transit_df["TME_2_PBSTP"]
+        #     del speed_df
+        #
+        #     transit_df["SEG_BEARING"] = round(transit_df.apply(lambda x: get_bearing((x["PRV_STP_LAT"], x["PRV_STP_LONG"]), (x["NXT_STP_LAT"], x["NXT_STP_LONG"])), axis=1), 0)
+        #     transit_df["TRIP_TYPE"] = transit_df["TRIP_ID"].str.split("-").str[-2]
+        #
+        #
+        #     transit_df.to_csv("/Users/renacin/Desktop/TransitDF.csv")
+        #
 
 
 
