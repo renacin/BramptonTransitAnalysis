@@ -776,7 +776,7 @@ class DataCollector:
         # We Only Want Data From td_dt_mx Date
         f_day = str(td_dt_mx.day).zfill(2)
         df = df[df["DAY"] == f_day]
-        df = df.drop(["YEAR", "MONTH", "MINUTE", "SECOND", "u_id"], axis=1)
+        df = df.drop(["YEAR", "MINUTE", "SECOND", "u_id"], axis=1)
         df.rename(columns = {"timestamp": "EP_TIME",
                              "route_id": "ROUTE_ID",
                              "trip_id": "TRIP_ID",
@@ -864,6 +864,7 @@ class DataCollector:
         speed_df["TRIP_DUR"] = (((speed_df["EP_TIME"] - speed_df["P_EP_TIME"]) / 60) /60)
         speed_df["TRIP_SPD"] = speed_df["DST_BTW_LOCS"] / speed_df["TRIP_DUR"]
         speed_df = speed_df.groupby(["ROUTE_ID", "TRIP_ID", "AVG_DIR"], as_index=False).agg(TRIP_SPD = ("TRIP_SPD", "mean"),
+                                                                                               MONTH = ("MONTH", "first"),
                                                                                                  DAY = ("DAY", "first"),
                                                                                                 HOUR = ("HOUR", "first"))
 
@@ -883,7 +884,7 @@ class DataCollector:
         transit_df["DST_2_PBSTP"]     = vec_haversine((transit_df["PRV_STP_LAT"].values, transit_df["PRV_STP_LONG"].values), (transit_df["C_LAT"].values, transit_df["C_LONG"].values))
 
         transit_df = transit_df.merge(speed_df, how="left", on=["ROUTE_ID", "TRIP_ID", "AVG_DIR"])
-        transit_df.drop(['DAY_y', 'DAY_x', 'HOUR_y', 'HOUR_x'], axis=1, inplace=True)
+        transit_df.drop(['MONTH_y', 'MONTH_x', 'DAY_y', 'DAY_x', 'HOUR_y', 'HOUR_x'], axis=1, inplace=True)
 
         # Define Where The File Will Be Written
         out_path = self.out_dict["BUS_SPEED"]
