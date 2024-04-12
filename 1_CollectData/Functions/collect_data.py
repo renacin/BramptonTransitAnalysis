@@ -747,6 +747,7 @@ class DataCollector:
         be exported as a CSV to an output folder.
         """
 
+
         td_dt_mx = "08-04-2024"
 
 
@@ -775,7 +776,7 @@ class DataCollector:
         # We Only Want Data From td_dt_mx Date
         f_day = str(td_dt_mx.day).zfill(2)
         df = df[df["DAY"] == f_day]
-        df = df.drop(["YEAR", "MONTH", "DAY", "HOUR", "MINUTE", "SECOND", "u_id"], axis=1)
+        df = df.drop(["YEAR", "MONTH", "MINUTE", "SECOND", "u_id"], axis=1)
         df.rename(columns = {"timestamp": "EP_TIME",
                              "route_id": "ROUTE_ID",
                              "trip_id": "TRIP_ID",
@@ -857,11 +858,15 @@ class DataCollector:
 
         # Determine The Average Speed For The Trip
         speed_df = transit_df.copy()
+
         speed_df["P_EP_TIME"] = speed_df.groupby(["U_NAME"])["EP_TIME"].shift(+1)
         speed_df = speed_df.dropna(subset=["P_EP_TIME"])
         speed_df["TRIP_DUR"] = (((speed_df["EP_TIME"] - speed_df["P_EP_TIME"]) / 60) /60)
         speed_df["TRIP_SPD"] = speed_df["DST_BTW_LOCS"] / speed_df["TRIP_DUR"]
-        speed_df = speed_df.groupby(["ROUTE_ID", "TRIP_ID", "AVG_DIR"], as_index=False).agg(TRIP_SPD = ("TRIP_SPD", "mean"))
+        speed_df = speed_df.groupby(["ROUTE_ID", "TRIP_ID", "AVG_DIR"], as_index=False).agg(TRIP_SPD = ("TRIP_SPD", "mean"),
+                                                                                                 DAY = ("DAY", "first"),
+                                                                                                HOUR = ("HOUR", "first"))
+
 
         # If Next Stop Is Equal To Previous Stop, Replace With Blank, Foward Fill Next Stop Values & Replace First
         for n_col, p_col in zip(["NXT_STP_ID", "NXT_STP_NAME", "NXT_STP_LAT", "NXT_STP_LONG"], ["PRV_STP_ID", "PRV_STP_NAME", "PRV_STP_LAT", "PRV_STP_LONG"]):
@@ -872,12 +877,20 @@ class DataCollector:
 
 
         # ----------------------------------------------------------------------
-        # Step #4: Determine Speed & Bearing
+        # Step #4: Determine Speed & Bearing, And Export Speed DF
         # ----------------------------------------------------------------------
         transit_df["DST_PSTP_NXTSTP"] = vec_haversine((transit_df["PRV_STP_LAT"].values, transit_df["PRV_STP_LONG"].values), (transit_df["NXT_STP_LAT"].values, transit_df["NXT_STP_LONG"].values))
         transit_df["DST_2_PBSTP"]     = vec_haversine((transit_df["PRV_STP_LAT"].values, transit_df["PRV_STP_LONG"].values), (transit_df["C_LAT"].values, transit_df["C_LONG"].values))
 
         transit_df = transit_df.merge(speed_df, how="left", on=["ROUTE_ID", "TRIP_ID", "AVG_DIR"])
+        transit_df.drop(['DAY_y', 'DAY_x', 'HOUR_y', 'HOUR_x'], axis=1, inplace=True)
+
+        # Define Where The File Will Be Written
+        out_path = self.out_dict["BUS_SPEED"]
+        db_path = out_path + f"/BUS_SPEED_DATA_{td_dt_mx.strftime(self.td_s_dt_dsply_frmt)}.csv"
+        speed_df.to_csv(db_path)
+        del speed_df
+
         transit_df["TME_2_PBSTP"]   = ((transit_df["DST_2_PBSTP"] / transit_df["TRIP_SPD"])*60)*60
         transit_df["ARV_TME_PBSTP"] = transit_df["EP_TIME"] - transit_df["TME_2_PBSTP"]
 
@@ -928,11 +941,6 @@ class DataCollector:
         out_path = self.out_dict["FRMTD_DATA"]
         db_path = out_path + f"/FRMTED_BUS_DATA_{td_dt_mx.strftime(self.td_s_dt_dsply_frmt)}.csv"
         main_data.to_csv(db_path)
-
-        # Define Where The File Will Be Written
-        out_path = self.out_dict["BUS_SPEED"]
-        db_path = out_path + f"/BUS_SPEED_DATA_{td_dt_mx.strftime(self.td_s_dt_dsply_frmt)}.csv"
-        speed_df.to_csv(db_path)
 
         # For Logging
         now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
