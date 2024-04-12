@@ -747,13 +747,10 @@ class DataCollector:
         be exported as a CSV to an output folder.
         """
 
-
-        td_dt_mx = "08-04-2024"
-
-
         # ----------------------------------------------------------------------
         # Step #1: Gather Yesterday's Bus Location Data
         # ----------------------------------------------------------------------
+        dt_copy = td_dt_mx
         dir_list = [x for x in os.listdir(self.out_dict["BUS_LOC"]) if ".csv" in x]
         df = pd.DataFrame(dir_list, columns=['FILE_NAME'])
 
@@ -776,7 +773,7 @@ class DataCollector:
         # We Only Want Data From td_dt_mx Date
         f_day = str(td_dt_mx.day).zfill(2)
         df = df[df["DAY"] == f_day]
-        df = df.drop(["YEAR", "MINUTE", "SECOND", "u_id"], axis=1)
+        df = df.drop(["YEAR", "MONTH", "DAY", "MINUTE", "SECOND", "u_id"], axis=1)
         df.rename(columns = {"timestamp": "EP_TIME",
                              "route_id": "ROUTE_ID",
                              "trip_id": "TRIP_ID",
@@ -790,6 +787,8 @@ class DataCollector:
         # We Need To Determine Average DIR For Each Trip
         avg_dir = df[["TRIP_ID", "DIR"]].copy()
         avg_dir = avg_dir.groupby(["TRIP_ID"], as_index=False).agg(AVG_DIR = ("DIR", "mean"))
+        avg_dir["AVG_DIR"] = round(avg_dir["AVG_DIR"], 0)
+        avg_dir["AVG_DIR"] = avg_dir["AVG_DIR"].astype(int)
         df = df.merge(avg_dir, how="left", on=["TRIP_ID"])
         df.sort_values(["TRIP_ID", "EP_TIME"], inplace=True)
         del avg_dir
@@ -855,6 +854,7 @@ class DataCollector:
 
         # Calculate Distance Between Current Location & Previous Location | Create A Dataframe Elaborating Distance Traveled & Speed
         transit_df["DST_BTW_LOCS"] = vec_haversine((transit_df["P_LAT"].values, transit_df["P_LONG"].values), (transit_df["C_LAT"].values, transit_df["C_LONG"].values))
+        transit_df["DST_BTW_LOCS"] = round(transit_df["DST_BTW_LOCS"], 2)
 
         # Determine The Average Speed For The Trip
         speed_df = transit_df.copy()
@@ -864,10 +864,8 @@ class DataCollector:
         speed_df["TRIP_DUR"] = (((speed_df["EP_TIME"] - speed_df["P_EP_TIME"]) / 60) /60)
         speed_df["TRIP_SPD"] = speed_df["DST_BTW_LOCS"] / speed_df["TRIP_DUR"]
         speed_df = speed_df.groupby(["ROUTE_ID", "TRIP_ID", "AVG_DIR"], as_index=False).agg(TRIP_SPD = ("TRIP_SPD", "mean"),
-                                                                                               MONTH = ("MONTH", "first"),
-                                                                                                 DAY = ("DAY", "first"),
                                                                                                 HOUR = ("HOUR", "first"))
-
+        speed_df["TRIP_SPD"] = round(speed_df["TRIP_SPD"], 2)
 
         # If Next Stop Is Equal To Previous Stop, Replace With Blank, Foward Fill Next Stop Values & Replace First
         for n_col, p_col in zip(["NXT_STP_ID", "NXT_STP_NAME", "NXT_STP_LAT", "NXT_STP_LONG"], ["PRV_STP_ID", "PRV_STP_NAME", "PRV_STP_LAT", "PRV_STP_LONG"]):
@@ -882,18 +880,22 @@ class DataCollector:
         # ----------------------------------------------------------------------
         transit_df["DST_PSTP_NXTSTP"] = vec_haversine((transit_df["PRV_STP_LAT"].values, transit_df["PRV_STP_LONG"].values), (transit_df["NXT_STP_LAT"].values, transit_df["NXT_STP_LONG"].values))
         transit_df["DST_2_PBSTP"]     = vec_haversine((transit_df["PRV_STP_LAT"].values, transit_df["PRV_STP_LONG"].values), (transit_df["C_LAT"].values, transit_df["C_LONG"].values))
+        transit_df["DST_PSTP_NXTSTP"] = round(transit_df["DST_PSTP_NXTSTP"], 2)
+        transit_df["DST_2_PBSTP"]     = round(transit_df["DST_2_PBSTP"], 2)
 
         transit_df = transit_df.merge(speed_df, how="left", on=["ROUTE_ID", "TRIP_ID", "AVG_DIR"])
-        transit_df.drop(['MONTH_y', 'MONTH_x', 'DAY_y', 'DAY_x', 'HOUR_y', 'HOUR_x'], axis=1, inplace=True)
+        transit_df.drop(["HOUR_x", "HOUR_y"], axis=1, inplace=True)
 
         # Define Where The File Will Be Written
         out_path = self.out_dict["BUS_SPEED"]
         db_path = out_path + f"/BUS_SPEED_DATA_{td_dt_mx.strftime(self.td_s_dt_dsply_frmt)}.csv"
+        speed_df["DATE"] = dt_copy
         speed_df.to_csv(db_path)
         del speed_df
 
         transit_df["TME_2_PBSTP"]   = ((transit_df["DST_2_PBSTP"] / transit_df["TRIP_SPD"])*60)*60
         transit_df["ARV_TME_PBSTP"] = transit_df["EP_TIME"] - transit_df["TME_2_PBSTP"]
+        transit_df["ARV_TME_PBSTP"] = round(transit_df["ARV_TME_PBSTP"], 0)
 
         transit_df["SEG_BEARING"] = round(transit_df.apply(lambda x: get_bearing((x["PRV_STP_LAT"], x["PRV_STP_LONG"]), (x["NXT_STP_LAT"], x["NXT_STP_LONG"])), axis=1), 0)
         transit_df["TRIP_TYPE"]   = transit_df["TRIP_ID"].str.split("-").str[-2]
@@ -930,7 +932,7 @@ class DataCollector:
             A.NXT_STP_NAME,
             A.NXT_STP_LAT,
             A.NXT_STP_LONG,
-            LEAD(A.ARV_TME_PBSTP) OVER (PARTITION BY A.ROUTE_ID, A.TRIP_ID, A.AVG_DIR ORDER BY A.EP_TIME)    AS NXT_STP_TIME
+            LEAD(A.ARV_TME_PBSTP) OVER (PARTITION BY A.ROUTE_ID, A.TRIP_ID, A.AVG_DIR ORDER BY A.EP_TIME) AS NXT_STP_TIME
 
         FROM main_data AS A
         WHERE A.DST_PSTP_NXTSTP > 0
