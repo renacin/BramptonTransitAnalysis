@@ -747,61 +747,68 @@ class DataCollector:
         be exported as a CSV to an output folder.
         """
 
+        td_dt_mx = "08-04-2024"
 
 
-        td_dt_mx = "09-04-2024"
-
-
-
-        #===============================================================================
+        # ----------------------------------------------------------------------
         # Step #1: Gather Yesterday's Bus Location Data
-        #===============================================================================
-        try:
-            dir_list = [x for x in os.listdir(self.out_dict["BUS_LOC"]) if ".csv" in x]
-            df = pd.DataFrame(dir_list, columns=['FILE_NAME'])
+        # ----------------------------------------------------------------------
+        dir_list = [x for x in os.listdir(self.out_dict["BUS_LOC"]) if ".csv" in x]
+        df = pd.DataFrame(dir_list, columns=['FILE_NAME'])
 
-            # Create A Dataframe With The Time The File Was Created & Output
-            df["DATE"] = df["FILE_NAME"].str.split('_').str[-1]
-            df["DATE"] = df["DATE"].str.replace(".csv", "", regex=False)
-            df["DATE"] = pd.to_datetime(df["DATE"], format = self.td_s_dt_dsply_frmt)
+        # Create A Dataframe With The Time The File Was Created & Output
+        df["DATE"] = df["FILE_NAME"].str.split('_').str[-1]
+        df["DATE"] = df["DATE"].str.replace(".csv", "", regex=False)
+        df["DATE"] = pd.to_datetime(df["DATE"], format = self.td_s_dt_dsply_frmt)
 
+        # We Only Need Certain Columns On Data Ingest
+        td_dt_mx = datetime.strptime(td_dt_mx, self.td_s_dt_dsply_frmt)
+        df = df[df["DATE"] >= td_dt_mx]
+        needed_cols = ['u_id', 'timestamp', 'id', 'route_id', 'trip_id', 'vehicle_id', 'bearing', 'latitude', 'longitude', 'stop_id', 'dt_colc']
+        df = pd.concat([pd.read_csv(path_, usecols = needed_cols) for path_ in [f'{self.out_dict["BUS_LOC"]}/{x}' for x in df["FILE_NAME"].tolist()]])
 
-            td_dt_mx = datetime.strptime(td_dt_mx, self.td_s_dt_dsply_frmt)
-            df = df[df["DATE"] >= td_dt_mx]
-            df = pd.concat([pd.read_csv(path_) for path_ in [f'{self.out_dict["BUS_LOC"]}/{x}' for x in df["FILE_NAME"].tolist()]])
+        # Format Data To Ints, DT Accessor Took Too Long
+        df = df.drop_duplicates(subset=['u_id'])
+        df[["YEAR", "MONTH", "DAY"]] = df["dt_colc"].str[:10].str.split('-', expand=True)
+        df[["HOUR", "MINUTE", "SECOND"]] = df["dt_colc"].str[11:19].str.split(':', expand=True)
 
-            # Format Data To Ints, DT Accessor Took Too Long
-            df = df.drop_duplicates(subset=['u_id'])
-            df[["YEAR", "MONTH", "DAY"]] = df["dt_colc"].str[:10].str.split('-', expand=True)
-            df[["HOUR", "MINUTE", "SECOND"]] = df["dt_colc"].str[11:19].str.split(':', expand=True)
+        # We Only Want Data From td_dt_mx Date
+        f_day = str(td_dt_mx.day).zfill(2)
+        df = df[df["DAY"] == f_day]
+        df = df.drop(["YEAR", "MONTH", "DAY", "HOUR", "MINUTE", "SECOND", "u_id"], axis=1)
+        df.rename(columns = {"timestamp": "EP_TIME",
+                             "id": "ID",
+                             "route_id": "ROUTE_ID",
+                             "trip_id": "TRIP_ID",
+                             "vehicle_id": "V_ID",
+                             "bearing": "DIR",
+                             "latitude": "C_LAT",
+                             "longitude": "C_LONG",
+                             "stop_id": "NXT_STP_ID",
+                             "dt_colc": "DATE_TM"}, inplace=True)
 
-            # We Only Want Data From td_dt_mx Date
-            f_day = str(td_dt_mx.day).zfill(2)
-            df = df[df["DAY"] == f_day]
-
-        except:
-            now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-            print(f"{now}: Error Cannot Load Bus Location Information")
-            sys.exit(1)
-
-
-        # Find File, If Not Exist, Raise Error
-        for file in os.listdir(self.out_dict["BUS_STP"]):
-            if "BUS_STP_DATA" in file:
-                file_path = f'{self.out_dict["BUS_STP"]}/{file}'
-
-        # Read In Data & Catch Possible Error
-        try:
-            bus_stops = pd.read_csv(file_path)
-
-        except NameError:
-            now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-            print(f"{now}: Error Bus Stop File Does Not Exist")
-            sys.exit(1)
+        # We Need To Determine Average DIR For Each Trip
+        avg_dir = df[["TRIP_ID", "DIR"]].copy()
+        avg_dir = avg_dir.groupby(["TRIP_ID"], as_index=False).agg(AVG_DIR = ("DIR", "mean"))
+        df = df.merge(avg_dir, how="left", on=["TRIP_ID"])
+        df.sort_values(["TRIP_ID", "ID", "EP_TIME"], inplace=True)
+        del avg_dir
 
 
-        print("Done")
 
+        #
+        #
+        # # ----------------------------------------------------------------------
+        # # Step #2: Do Some Initial Data Formatting On Dataframe, Remove Unneeded
+        # # ----------------------------------------------------------------------
+
+
+        #
+        # # Find File, If Not Exist, Raise Error
+        # for file in os.listdir(self.out_dict["BUS_STP"]):
+        #     if "BUS_STP_DATA" in file:
+        #         file_path = f'{self.out_dict["BUS_STP"]}/{file}'
+        # bus_stops = pd.read_csv(file_path)
 
 
         #
@@ -816,30 +823,8 @@ class DataCollector:
         #     df.to_sql("TRANSIT_LOCATION_DB", con, if_exists="replace", index=False)
         #     del df, bus_stops
         #
-        #     sql_query = f'''
-        #     -- Step #1: Pull Certain Fields, And Create New Ones
-        #     WITH
-        #     RawData AS (
-        #     	SELECT
-        #     		A.timestamp                                                                                                AS EP_TIME,
-        #     		A.id                                                                                                       AS ID,
-        #     		A.route_id                                                                                                 AS ROUTE_ID,
-        #     		A.trip_id                                                                                                  AS TRIP_ID,
-        #             A.vehicle_id                                                                                               AS V_ID,
-        #     		CAST(A.bearing AS INTERGER)                                                                                AS DIR,
-        #     		CAST(AVG(A.bearing)
-        #     		OVER (PARTITION BY A.ROUTE_ID, A.TRIP_ID, A.ID) AS INTERGER)                                               AS AVG_DIR,
-        #
-        #     		A.latitude                                                                                                 AS C_LAT,
-        #     		A.longitude                                                                                                AS C_LONG,
-        #
-        #     		A.stop_id                                                                                                  AS NXT_STP_ID
-        #
-        #
-        #     	FROM TRANSIT_LOCATION_DB AS A
-        #     	ORDER BY A.TRIP_ID, A.ID, A.TIMESTAMP
-        #     ),
-        #
+
+        
         #     -- Step #2: Previous Stop ID Needs To Be Determined With Average Direction
         #     RD AS (
         #     	SELECT
