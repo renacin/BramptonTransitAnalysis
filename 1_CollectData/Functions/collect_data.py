@@ -764,7 +764,7 @@ class DataCollector:
         # We Only Need Certain Columns On Data Ingest
         td_dt_mx = datetime.strptime(td_dt_mx, self.td_s_dt_dsply_frmt)
         df = df[df["DATE"] >= td_dt_mx]
-        needed_cols = ['u_id', 'timestamp', 'id', 'route_id', 'trip_id', 'vehicle_id', 'bearing', 'latitude', 'longitude', 'stop_id', 'dt_colc']
+        needed_cols = ['u_id', 'timestamp', 'route_id', 'trip_id', 'vehicle_id', 'bearing', 'latitude', 'longitude', 'stop_id', 'dt_colc']
         df = pd.concat([pd.read_csv(path_, usecols = needed_cols) for path_ in [f'{self.out_dict["BUS_LOC"]}/{x}' for x in df["FILE_NAME"].tolist()]])
 
         # Format Data To Ints, DT Accessor Took Too Long
@@ -777,7 +777,6 @@ class DataCollector:
         df = df[df["DAY"] == f_day]
         df = df.drop(["YEAR", "MONTH", "DAY", "HOUR", "MINUTE", "SECOND", "u_id"], axis=1)
         df.rename(columns = {"timestamp": "EP_TIME",
-                             "id": "ID",
                              "route_id": "ROUTE_ID",
                              "trip_id": "TRIP_ID",
                              "vehicle_id": "V_ID",
@@ -791,88 +790,60 @@ class DataCollector:
         avg_dir = df[["TRIP_ID", "DIR"]].copy()
         avg_dir = avg_dir.groupby(["TRIP_ID"], as_index=False).agg(AVG_DIR = ("DIR", "mean"))
         df = df.merge(avg_dir, how="left", on=["TRIP_ID"])
-        df.sort_values(["TRIP_ID", "ID", "EP_TIME"], inplace=True)
+        df.sort_values(["TRIP_ID", "EP_TIME"], inplace=True)
         del avg_dir
 
+        # For Each Stop Entry, We Need To Know The Previous Lat, Long, And STP_ID,
+        for col in [("P_LAT", "C_LAT"), ("P_LONG", "C_LONG"), ("PRV_STP_ID", "NXT_STP_ID")]:
+            df[col[0]] = df.groupby(['ROUTE_ID', 'TRIP_ID', 'AVG_DIR'])[col[1]].shift(1)
+            df[col[0]].fillna(df[col[1]], inplace=True)
 
 
-        #
-        #
-        # # ----------------------------------------------------------------------
-        # # Step #2: Do Some Initial Data Formatting On Dataframe, Remove Unneeded
-        # # ----------------------------------------------------------------------
+        # Find Bus Stop Data
+        for file in os.listdir(self.out_dict["BUS_STP"]):
+            if "BUS_STP_DATA" in file:
+                file_path = f'{self.out_dict["BUS_STP"]}/{file}'
+        bus_stops = pd.read_csv(file_path)
 
 
-        #
-        # # Find File, If Not Exist, Raise Error
-        # for file in os.listdir(self.out_dict["BUS_STP"]):
-        #     if "BUS_STP_DATA" in file:
-        #         file_path = f'{self.out_dict["BUS_STP"]}/{file}'
-        # bus_stops = pd.read_csv(file_path)
+        # ----------------------------------------------------------------------
+        # Step #2: Combine Bus Location Data With Bus Stop Data
+        # ----------------------------------------------------------------------
+        con = sqlite3.connect(":memory:")
+        bus_stops.to_sql("BusStops", con, if_exists="replace", index=False)
+        del bus_stops
+        df.to_sql("RD", con, if_exists="replace", index=False)
+        del df
+
+        sql_query = '''
+            -- Merge Bus Stop Information Onto Main Table
+            SELECT
+            	A.ROUTE_ID || '_' || A.TRIP_ID || '_' || A.AVG_DIR                               AS U_NAME,
+            	A.*,
+
+            	B2.CLEANED_STOP_NAME_                                                            AS PRV_STP_NAME,
+            	B2.CLEANED_STOP_LAT_                                                             AS PRV_STP_LAT,
+            	B2.CLEANED_STOP_LON_                                                             AS PRV_STP_LONG,
+
+            	B1.CLEANED_STOP_NAME_                                                            AS NXT_STP_NAME,
+            	B1.CLEANED_STOP_LAT_                                                             AS NXT_STP_LAT,
+            	B1.CLEANED_STOP_LON_                                                             AS NXT_STP_LONG
 
 
-        #
-        # # Makre Sure We Have Data Before Doing All Of This
-        # if len(df) > 0:
-        #
-        #     #===============================================================================
-        #     # Step #2: Upload Yesterday's Bus Data & Bus Stop Data To Temp SQL Table, Compare
-        #     #===============================================================================
-        #     con = sqlite3.connect(":memory:")
-        #     bus_stops.to_sql("BusStops", con, if_exists="replace", index=False)
-        #     df.to_sql("TRANSIT_LOCATION_DB", con, if_exists="replace", index=False)
-        #     del df, bus_stops
-        #
+            FROM RD AS A
+            LEFT JOIN BusStops AS B1 ON (A.NXT_STP_ID = B1.stop_id)
+            LEFT JOIN BusStops AS B2 ON (A.PRV_STP_ID = B2.stop_id)
 
-        
-        #     -- Step #2: Previous Stop ID Needs To Be Determined With Average Direction
-        #     RD AS (
-        #     	SELECT
-        #     		A.*,
-        #
-        #     		COALESCE(LAG(A.C_LAT)
-        #     		OVER (PARTITION BY A.ROUTE_ID, A.TRIP_ID, A.ID, A.AVG_DIR ORDER BY A.EP_TIME), A.C_LAT)                    AS P_LAT,
-        #
-        #     		COALESCE(LAG(A.C_LONG)
-        #     		OVER (PARTITION BY A.ROUTE_ID, A.TRIP_ID, A.ID, A.AVG_DIR ORDER BY A.EP_TIME), A.C_LONG)                   AS P_LONG,
-        #
-        #     		COALESCE(LAG(A.NXT_STP_ID)
-        #     		OVER (PARTITION BY A.ROUTE_ID, A.TRIP_ID, A.ID, A.AVG_DIR ORDER BY A.EP_TIME), A.NXT_STP_ID)               AS PRV_STP_ID
-        #     	FROM RawData AS A
-        #     ),
-        #
-        #     -- Step #3: Merge Bus Stop Information Onto Main Table
-        #     WithStopData AS (
-        #     	SELECT
-        #     		A.ID || '_' || A.ROUTE_ID || '_' || A.TRIP_ID || '_' || A.AVG_DIR       AS U_NAME,
-        #     		A.*,
-        #
-        #     		B2.CLEANED_STOP_NAME_                                                            AS PRV_STP_NAME,
-        #     		B2.CLEANED_STOP_LAT_                                                             AS PRV_STP_LAT,
-        #     		B2.CLEANED_STOP_LON_                                                             AS PRV_STP_LONG,
-        #
-        #     		B1.CLEANED_STOP_NAME_                                                            AS NXT_STP_NAME,
-        #     		B1.CLEANED_STOP_LAT_                                                             AS NXT_STP_LAT,
-        #     		B1.CLEANED_STOP_LON_                                                             AS NXT_STP_LONG
-        #
-        #
-        #     	FROM RD AS A
-        #     	LEFT JOIN BusStops AS B1 ON (A.NXT_STP_ID = B1.stop_id)
-        #     	LEFT JOIN BusStops AS B2 ON (A.PRV_STP_ID = B2.stop_id)
-        #     )
-        #
-        #     SELECT *
-        #     FROM WithStopData AS A
-        #     '''
-        #
-        #     # Read SQL Query & Perform Basic Sorting & Duplicate Removal
-        #     data_pull = pd.read_sql_query(sql_query, con)
-        #     con.close()
-        #     data_pull.sort_values(["ID", "ROUTE_ID", "TRIP_ID", "EP_TIME"], inplace=True)
-        #     data_pull.drop_duplicates(inplace=True)
-        #
-        #
-        #
+            '''
+
+        # Read SQL Query & Perform Basic Sorting & Duplicate Removal
+        data_pull = pd.read_sql_query(sql_query, con)
+        con.close()
+        data_pull.sort_values(["ROUTE_ID", "TRIP_ID", "EP_TIME"], inplace=True)
+        data_pull.drop_duplicates(inplace=True)
+
+
+
         #     #===============================================================================
         #     # Step #3: Remove Unneeded Information - Clean Up Dataset!
         #     #===============================================================================
