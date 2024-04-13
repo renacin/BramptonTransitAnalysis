@@ -435,6 +435,8 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
     when buses arrived at certain bus stops on a given route.
     """
 
+    td_dt_mx = "08-04-2024"
+
     # Make Sure We Have At Least 2 Days Worth Of Data
     if len(f_af["FILE_NAME"].tolist()) >= 1:
 
@@ -455,7 +457,7 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
 
         # Determine Time, Speed Between Stops
         df["MINUTES_BTW"] = round((df["NXT_STP_TIME"] - df["CUR_STP_TIME"]) / 60, 2)
-        df["KPH_BTW"] = round(df["DST_BTW_STPS"] / (df["MINUTES_BTW"] / 60), 2)
+        df["KPH_BTW"]     = round(df["DST_BTW_STPS"] / (df["MINUTES_BTW"] / 60), 2)
 
 
         # # Remove Unneeded Columns

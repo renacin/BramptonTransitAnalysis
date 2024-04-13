@@ -846,7 +846,6 @@ class DataCollector:
         # ----------------------------------------------------------------------
         # Step #3: Perfom Additional Data Formatting
         # ----------------------------------------------------------------------
-
         # Remove Entries Where Bus Is Idling, Or Has Kept Transponder Running After The First Occurence At The Last Stop | Append All Dta To New Dataframe
         gb = data_pull.groupby("U_NAME")
         transit_df = pd.concat([x[1].loc[x[1]["NXT_STP_NAME"].where(x[1]["NXT_STP_NAME"]==x[1]["NXT_STP_NAME"].iloc[0]).last_valid_index():x[1]["PRV_STP_NAME"].where(x[1]["PRV_STP_NAME"]==x[1]["PRV_STP_NAME"].iloc[-1]).first_valid_index()] for x in gb])

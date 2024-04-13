@@ -32,25 +32,25 @@ def main():
 
     td_dt_mx = str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt))
 
-    # Run Main Data Formatter
-    Collector.frmt_rwbslc_data(td_dt_mx)
+    # # Run Main Data Formatter
+    # Collector.frmt_rwbslc_data(td_dt_mx)
 
-    # # Define Needed Connections
-    # bus_loc_path, b_af =  Collector.return_files_dates("BUS_LOC")
-    # bus_stp_path, bstp_af =  Collector.return_files_dates("BUS_STP")
-    # fmted_path, f_af =    Collector.return_files_dates("FRMTD_DATA")
-    # error_path, e_af =    Collector.return_files_dates("ERROR")
-    # graphics_path, g_af = Collector.return_files_dates("GRAPHICS")
-    #
-    # # Run Data Visualizations #1
-    # data_viz_3(graphics_path,
-    #             fmted_path,
-    #             f_af,
-    #             bus_stp_path,
-    #             bstp_af,
-    #             error_path,
-    #             e_af,
-    #             td_dt_mx)
+    # Define Needed Connections
+    bus_loc_path, b_af =  Collector.return_files_dates("BUS_LOC")
+    bus_stp_path, bstp_af =  Collector.return_files_dates("BUS_STP")
+    fmted_path, f_af =    Collector.return_files_dates("FRMTD_DATA")
+    error_path, e_af =    Collector.return_files_dates("ERROR")
+    graphics_path, g_af = Collector.return_files_dates("GRAPHICS")
+
+    # Run Data Visualizations #1
+    data_viz_3(graphics_path,
+                fmted_path,
+                f_af,
+                bus_stp_path,
+                bstp_af,
+                error_path,
+                e_af,
+                td_dt_mx)
 
 
 
