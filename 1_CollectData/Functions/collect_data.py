@@ -768,6 +768,7 @@ class DataCollector:
         df = df[df["DATE"] >= td_dt_mx]
         needed_cols = ['u_id', 'timestamp', 'route_id', 'trip_id', 'vehicle_id', 'bearing', 'latitude', 'longitude', 'stop_id', 'dt_colc']
         df = pd.concat([pd.read_csv(path_, usecols = needed_cols) for path_ in [f'{self.out_dict["BUS_LOC"]}/{x}' for x in df["FILE_NAME"].tolist()]])
+        del needed_cols
 
         # Format Data To Ints, DT Accessor Took Too Long
         df = df.drop_duplicates(subset=['u_id'])
@@ -871,6 +872,7 @@ class DataCollector:
                                                                                                 HOUR = ("HOUR", "first"))
         speed_df["TRIP_SPD"] = round(speed_df["TRIP_SPD"], 2)
 
+
         # If Next Stop Is Equal To Previous Stop, Replace With Blank, Foward Fill Next Stop Values & Replace First
         for n_col, p_col in zip(["NXT_STP_ID", "NXT_STP_NAME", "NXT_STP_LAT", "NXT_STP_LONG"], ["PRV_STP_ID", "PRV_STP_NAME", "PRV_STP_LAT", "PRV_STP_LONG"]):
             transit_df.loc[transit_df[n_col] == transit_df[p_col], p_col] = np.nan
@@ -892,6 +894,7 @@ class DataCollector:
         transit_df["NXT_STP_ARV_TM"] = transit_df["NXT_STP_ARV_TM"].astype(dtype = int, errors = 'ignore')
         transit_df["NXT_STP_ARV_DTTM"] = pd.to_datetime(transit_df["NXT_STP_ARV_TM"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
 
+
         # Delete Old Data & Reorganize
         del speed_df
         gc.collect()
@@ -905,10 +908,30 @@ class DataCollector:
                                    'NXT_STP_LONG': "STP_LONG", 'NXT_STP_ARV_TM': "STP_ARV_TM",
                                    'NXT_STP_ARV_DTTM': "STP_ARV_DTTM"}, inplace=True)
 
+        # Create A Column That Tracks The Data Created, So Far We've Determine The Arrival Time Using Some Estimation
+        # Moving Forward, We Will Use Mostly Estimations
+        transit_df["DATA_TYPE"] = "IE" # Informed Estimation
 
-        # Why Do We Have Negative Times?
-        out_path = f"/Users/renacin/Desktop/Testing.csv"
-        transit_df.to_csv(out_path, index=False)
+
+
+        # We Need To Determine The Stops In Between
+        transit_df = transit_df[transit_df["TRIP_ID"].isin(["23861158-240304-MULTI-Sunday-01", "23861159-240304-MULTI-Sunday-01"])]
+        trips_obs = transit_df.groupby(["TRIP_ID"], as_index=False).agg(TRIP_ID = ("TRIP_ID", "first"),
+                                                                        ROUTE_ID = ("ROUTE_ID", "first"))
+        trips_obs["ROUTE_ID"] = trips_obs["ROUTE_ID"].str.replace("-344", "")
+        trips_obs["COMB_T_NM"] = trips_obs["TRIP_ID"] + "__" + trips_obs["ROUTE_ID"]
+        print(trips_obs)
+
+
+
+
+
+
+
+
+        # # Why Do We Have Negative Times?
+        # out_path = f"/Users/renacin/Desktop/Testing.csv"
+        # transit_df.to_csv(out_path, index=False)
 
 
 
