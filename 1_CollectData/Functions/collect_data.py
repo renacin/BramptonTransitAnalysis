@@ -920,7 +920,8 @@ class DataCollector:
                                                                         ROUTE_ID = ("ROUTE_ID", "first"))
         trips_obs["ROUTE_ID"] = trips_obs["ROUTE_ID"].str.replace("-344", "")
         trips_obs["COMB_T_NM"] = trips_obs["TRIP_ID"] + "__" + trips_obs["ROUTE_ID"]
-        print(trips_obs)
+
+        # How am I gonna do this?
 
 
 
