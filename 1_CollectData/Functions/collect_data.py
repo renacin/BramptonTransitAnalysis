@@ -803,12 +803,12 @@ class DataCollector:
             df[col[0]] = df.groupby(['ROUTE_ID', 'TRIP_ID', 'AVG_DIR'])[col[1]].shift(1)
             df[col[0]].fillna(df[col[1]], inplace=True)
 
-
         # Find Bus Stop Data
         for file in os.listdir(self.out_dict["BUS_STP"]):
             if "BUS_STP_DATA" in file:
                 file_path = f'{self.out_dict["BUS_STP"]}/{file}'
         bus_stops = pd.read_csv(file_path)
+
 
 
         # ----------------------------------------------------------------------
@@ -846,6 +846,7 @@ class DataCollector:
         con.close()
         data_pull.sort_values(["ROUTE_ID", "TRIP_ID", "EP_TIME"], inplace=True)
         data_pull.drop_duplicates(inplace=True)
+
 
 
         # ----------------------------------------------------------------------
@@ -894,10 +895,15 @@ class DataCollector:
         transit_df["NXT_STP_ARV_TM"] = transit_df["NXT_STP_ARV_TM"].astype(dtype = int, errors = 'ignore')
         transit_df["NXT_STP_ARV_DTTM"] = pd.to_datetime(transit_df["NXT_STP_ARV_TM"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
 
-
         # Delete Old Data & Reorganize
         del speed_df
         gc.collect()
+
+
+
+        # ----------------------------------------------------------------------
+        # Step #4: Reorganize Data & Determine
+        # ----------------------------------------------------------------------
         transit_df = transit_df[['TRIP_ID', 'ROUTE_ID', 'V_ID',
                                  'DIR', 'AVG_DIR', 'NXT_STP_ID',
                                  'NXT_STP_NAME', 'NXT_STP_LAT',
@@ -908,110 +914,34 @@ class DataCollector:
                                    'NXT_STP_LONG': "STP_LONG", 'NXT_STP_ARV_TM': "STP_ARV_TM",
                                    'NXT_STP_ARV_DTTM': "STP_ARV_DTTM"}, inplace=True)
 
-        # Create A Column That Tracks The Data Created, So Far We've Determine The Arrival Time Using Some Estimation
-        # Moving Forward, We Will Use Mostly Estimations
+        # Create A Column That Tracks How The Data Was Determined, Do Far It Was A Small Estimation
         transit_df["DATA_TYPE"] = "IE" # Informed Estimation
 
-
-
         # We Need To Determine The Stops In Between
-        transit_df = transit_df[transit_df["TRIP_ID"].isin(["23861158-240304-MULTI-Sunday-01", "23861159-240304-MULTI-Sunday-01"])]
-        trips_obs = transit_df.groupby(["TRIP_ID"], as_index=False).agg(TRIP_ID = ("TRIP_ID", "first"),
-                                                                        ROUTE_ID = ("ROUTE_ID", "first"))
+        transit_df = transit_df[transit_df["TRIP_ID"].isin(["23861158-240304-MULTI-Sunday-01", "23861159-240304-MULTI-Sunday-01"])]   # REMOVE THIS!! IN PRODUCTION!!
+
+        trips_obs = transit_df.groupby(["TRIP_ID"], as_index=False).agg(TRIP_ID = ("TRIP_ID", "first"), ROUTE_ID = ("ROUTE_ID", "first"))
         trips_obs["ROUTE_ID"] = trips_obs["ROUTE_ID"].str.replace("-344", "")
         trips_obs["COMB_T_NM"] = trips_obs["TRIP_ID"] + "__" + trips_obs["ROUTE_ID"]
 
-        print(trips_obs)
+        # We Need Te Unique Trips & Unique Routes
+        u_trips = trips_obs["COMB_T_NM"].to_list()
+        u_routes = trips_obs["ROUTE_ID"].unique().tolist()
 
-        # How am I gonna do this?
-
-
-
-
-
-
-
-
-        # # Why Do We Have Negative Times?
-        # out_path = f"/Users/renacin/Desktop/Testing.csv"
-        # transit_df.to_csv(out_path, index=False)
+        # Read In Routes Data
+        for file in os.listdir(self.out_dict["BUS_STP"]):
+            if "BUS_RTE_DATA" in file:
+                stp_file_path = f'{self.out_dict["BUS_STP"]}/{file}'
+        bus_routes = pd.read_csv(stp_file_path)
 
 
 
+
+
+        # Looks Like We Have An Issue With The Route Number Being Parsed Need To Fix That First
         #
-        # # ----------------------------------------------------------------------
-        # # Step #4: Determine Speed & Bearing, And Export Speed DF
-        # # ----------------------------------------------------------------------
-        # transit_df["DST_PSTP_NXTSTP"] = vec_haversine((transit_df["PRV_STP_LAT"].values, transit_df["PRV_STP_LONG"].values), (transit_df["NXT_STP_LAT"].values, transit_df["NXT_STP_LONG"].values))
-        # transit_df["DST_2_PBSTP"]     = vec_haversine((transit_df["PRV_STP_LAT"].values, transit_df["PRV_STP_LONG"].values), (transit_df["C_LAT"].values, transit_df["C_LONG"].values))
-        # transit_df["DST_PSTP_NXTSTP"] = round(transit_df["DST_PSTP_NXTSTP"], 2)
-        # transit_df["DST_2_PBSTP"]     = round(transit_df["DST_2_PBSTP"], 2)
-
-
-
-        # # Define Where The File Will Be Written
-        # out_path = self.out_dict["BUS_SPEED"]
-        # db_path = out_path + f"/BUS_SPEED_DATA_{td_dt_mx.strftime(self.td_s_dt_dsply_frmt)}.csv"
-        # speed_df["DATE"] = dt_copy
-        # speed_df.to_csv(db_path)
-        # del speed_df
-        #
-        # transit_df["TME_2_PBSTP"]   = ((transit_df["DST_2_PBSTP"] / transit_df["TRIP_SPD"])*60)*60
-        # transit_df["ARV_TME_PBSTP"] = transit_df["EP_TIME"] - transit_df["TME_2_PBSTP"]
-        # transit_df["ARV_TME_PBSTP"] = round(transit_df["ARV_TME_PBSTP"], 0)
-        #
-        # transit_df["SEG_BEARING"] = round(transit_df.apply(lambda x: get_bearing((x["PRV_STP_LAT"], x["PRV_STP_LONG"]), (x["NXT_STP_LAT"], x["NXT_STP_LONG"])), axis=1), 0)
-        # transit_df["TRIP_TYPE"]   = transit_df["TRIP_ID"].str.split("-").str[-2]
-
-
-
-
-
-        #
-        # # ----------------------------------------------------------------------
-        # # Step #5: Reorganize Data & Output
-        # # ----------------------------------------------------------------------
-        # con = sqlite3.connect(":memory:")
-        # transit_df.to_sql("main_data", con, index=False)
-        # del transit_df
-        #
-        # sql_query = f'''
-        # -- Step #1: Reorganize Data & Keep Only Needed Columns
-        # SELECT
-        #     A.U_NAME,
-        #     A.V_ID,
-        #     A.ROUTE_ID,
-        #     A.TRIP_ID,
-        #     A.TRIP_TYPE,
-        #
-        #     A.DST_PSTP_NXTSTP                                                                             AS DST_BTW_STPS,
-        #     A.PRV_STP_ID                                                                                  AS CUR_STP_ID,
-        #     A.PRV_STP_NAME                                                                                AS CUR_STP_NM,
-        #     A.PRV_STP_LAT                                                                                 AS CUR_STP_LAT,
-        #     A.PRV_STP_LONG                                                                                AS CUR_STP_LONG,
-        #     A.ARV_TME_PBSTP                                                                               AS CUR_STP_TIME,
-        #
-        #     A.PRV_STP_NAME || ' -- TO -- ' || A.NXT_STP_NAME                                              AS SEGMENT_NAME,
-        #     CAST(AVG(A.SEG_BEARING)
-        #     OVER (PARTITION BY A.U_NAME) AS INTERGER)                                                     AS AVG_DIR,
-        #
-        #     A.NXT_STP_ID,
-        #     A.NXT_STP_NAME,
-        #     A.NXT_STP_LAT,
-        #     A.NXT_STP_LONG,
-        #     LEAD(A.ARV_TME_PBSTP) OVER (PARTITION BY A.ROUTE_ID, A.TRIP_ID, A.AVG_DIR ORDER BY A.EP_TIME) AS NXT_STP_TIME
-        #
-        # FROM main_data AS A
-        # WHERE A.DST_PSTP_NXTSTP > 0
-        # '''
-        # main_data = pd.read_sql_query(sql_query, con).dropna()
-        # con.close()
-        #
-        #
-        # out_path = f"/Users/renacin/Desktop/Testing_2.csv"
-        # main_data.to_csv(out_path, index=False)
-        #
-
+        # print(u_trips, u_routes)
+        # print(bus_routes.columns)
         #
         # # Define Where The File Will Be Written
         # out_path = self.out_dict["FRMTD_DATA"]
