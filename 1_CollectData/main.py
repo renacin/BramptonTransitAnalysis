@@ -27,13 +27,13 @@ def main():
     alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime(td_s_dt_dsply_frmt))
 
     # Instantiate Data Collector
-    Collector = DataCollector(skp_dwnld=True)
+    Collector = DataCollector(skp_dwnld=False)
 
 
-    td_dt_mx = str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt))
-
-    # Run Main Data Formatter
-    Collector.frmt_rwbslc_data(td_dt_mx)
+    # td_dt_mx = str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt))
+    #
+    # # Run Main Data Formatter
+    # Collector.frmt_rwbslc_data(td_dt_mx)
 
     # # Define Needed Connections
     # bus_loc_path, b_af =  Collector.return_files_dates("BUS_LOC")

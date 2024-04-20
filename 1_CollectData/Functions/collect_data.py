@@ -392,27 +392,41 @@ class DataCollector:
             soup = BeautifulSoup(page.content, "html.parser")
             hrefs = soup.find_all(class_="link-to-stop")
 
-            # Create A List Of The Bus Stops Found W/ Name For Join To Main Data
-            rw_bs = [name + "###" + str(x).split('">')[1].replace("</a>", "") for x in hrefs]
-            stp_data.extend(rw_bs)
-            counter += 1
+            # Find Additional Information
+            rt_info = soup.find_all(class_="partner-lines-item no-padding bold")
 
-        # Return A Pandas Dataframe With Route Data
-        stp_df = pd.DataFrame(stp_data, columns=["RAW_DATA"])
-        stp_df[["RT_NM", "STP_NM"]] = stp_df["RAW_DATA"].str.split("###", n=1, expand=True)
-        stp_df.drop(["RAW_DATA"], axis=1, inplace=True)
+            # print(f"{link}, {name}")
+            # print(f"{rt_num}, {rt_name}")
+            print(rt_info)
 
-        # Add A Column That Shows Row Number For Each Bus Stop In A Route
-        stp_df["RT_STP_NUM"] = stp_df.groupby(["RT_NM"]).cumcount() + 1
 
-        # Add A Column That Shows How Many Bus Stops Are In A Given Route
-        num_stps_df = stp_df.groupby("RT_NM", as_index=False).agg(RT_NUM_STPS = ("RT_NM", "count"))
-        stp_df = stp_df.merge(num_stps_df, on='RT_NM', how='left')
 
-        now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-        print(f"{now}: Downloaded Bus Route Data")
+            # # Create A List Of The Bus Stops Found W/ Name For Join To Main Data
+            # rw_bs = [name + "###" + str(x).split('">')[1].replace("</a>", "") for x in hrefs]
+            # stp_data.extend(rw_bs)
+            # counter += 1
 
-        return stp_df
+
+        # # Return A Pandas Dataframe With Route Data
+        # stp_df = pd.DataFrame(stp_data, columns=["RAW_DATA"])
+        # stp_df[["RT_NM", "STP_NM"]] = stp_df["RAW_DATA"].str.split("###", n=1, expand=True)
+        # stp_df.drop(["RAW_DATA"], axis=1, inplace=True)
+        #
+        # # Add A Column That Shows Row Number For Each Bus Stop In A Route
+        # stp_df["RT_STP_NUM"] = stp_df.groupby(["RT_NM"]).cumcount() + 1
+        #
+        # # Add A Column That Shows How Many Bus Stops Are In A Given Route
+        # num_stps_df = stp_df.groupby("RT_NM", as_index=False).agg(RT_NUM_STPS = ("RT_NM", "count"))
+        # stp_df = stp_df.merge(num_stps_df, on='RT_NM', how='left')
+        #
+        # now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+        # print(f"{now}: Downloaded Bus Route Data")
+        #
+        #
+        #
+        # print(stp_df)
+
+        # return stp_df
 
 
 
@@ -455,19 +469,19 @@ class DataCollector:
         rt_df = self.__get_rts()
         stp_df = self.__get_rt_stops(rt_df["RT_LINK"].to_list(), rt_df["RT_NM"].to_list())
 
-        # Merge Data
-        stp_data_df = stp_df.merge(rt_df, on='RT_NM', how='left')
+        # # Merge Data
+        # stp_data_df = stp_df.merge(rt_df, on='RT_NM', how='left')
 
-        # Compare Bus Stop Names, Ensure All Names Are Consistent
-        stp_data_df = self.__comp_data(stp_data_df, dwnld_stp_data_df)
+        # # Compare Bus Stop Names, Ensure All Names Are Consistent
+        # stp_data_df = self.__comp_data(stp_data_df, dwnld_stp_data_df)
 
-        # Export To Folder
-        dt_string = datetime.now().strftime(self.td_s_dt_dsply_frmt)
-        out_path = self.out_dict["BUS_STP"] + f"/BUS_RTE_DATA_{dt_string}.csv"
-        stp_data_df.to_csv(out_path, index=False)
-
-        now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-        print(f"{now}: Exported Route Data")
+        # # Export To Folder
+        # dt_string = datetime.now().strftime(self.td_s_dt_dsply_frmt)
+        # out_path = self.out_dict["BUS_STP"] + f"/BUS_RTE_DATA_{dt_string}.csv"
+        # stp_data_df.to_csv(out_path, index=False)
+        #
+        # now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+        # print(f"{now}: Exported Route Data")
 
 
 
