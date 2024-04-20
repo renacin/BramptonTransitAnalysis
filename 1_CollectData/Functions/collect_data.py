@@ -13,6 +13,7 @@ import math
 import socket
 import sqlite3
 import requests
+import urllib.request
 import dropbox
 import dropbox.files
 import subprocess
@@ -372,7 +373,7 @@ class DataCollector:
                 rt_data.append(full_data)
 
         # Return A Pandas Dataframe With Route Data
-        return pd.DataFrame(rt_data, columns=["RT_LINK", "RT_DIR", "RT_GRP", "RT_NUM", "RT_NM"])
+        return pd.DataFrame(rt_data, columns=["RT_LINK", "RT_DIR", "RT_GRP", "RT_GRP_NUM", "RT_NAME_RAW"])
 
 
 
@@ -387,67 +388,80 @@ class DataCollector:
         data_dict = {"stp_data": [], "rt_number_data": [],
                      "rt_name_data": [], "rt_version_data": []}
 
+        # Need Faster Get Requests
+        session = requests.session()
 
         # Ierate Through Each Link And Grab Bus Stop Information
         for link, name in zip(rt_links, rt_names):
 
-            # Navigate To WebPage, Pull All HTML, Convert To String, Use Regex To Pull All Stop Names
-            page = requests.get(link)
-            soup = BeautifulSoup(page.content, "html.parser")
+            # Use A Context Manager
+            with urllib.request.urlopen(link) as response:
+                html = response.read()
+                
+            # # Navigate To WebPage, Pull All HTML, Convert To String, Use Regex To Pull All Stop Names
+            # page = session.get(link)
+            # soup = BeautifulSoup(page.content, "html.parser")
 
-            # Find Additional Route Information, Make A Large String And Use RE To Search
-            raw_rt_info = [str(raw_data) for raw_data in soup.find_all(class_="partner-lines-item no-padding bold")]
-            raw_rt_info = "".join(raw_rt_info)
-
-            # Find Route Number
-            re_pat = r'item-line item-line-color-\d{3,5}">(.{1,5})</span>'
-            route_num = re.search(re_pat, raw_rt_info).group(1)
-
-            # Find Route Name
-            re_pat = r'item-text no-decoration">(.{1,20})</span></p>'
-            route_name = re.search(re_pat, raw_rt_info).group(1)
-
-            # Find Route Version
-            route_ver = link.split("/")[-1]
-            route_ver = route_ver.replace("#trips", "")
-
-            # Create A List Of The Bus Stops Found W/ Name For Join To Main Data
-            hrefs = soup.find_all(class_="link-to-stop")
-            rw_bs = [name + "###" + str(x).split('">')[1].replace("</a>", "") for x in hrefs]
-
-            # Add Data To Dictionary
-            data_dict["stp_data"].extend(rw_bs)
-            data_dict["rt_number_data"].extend([route_num for x in range(len(rw_bs))])
-            data_dict["rt_name_data"].extend([route_name for x in range(len(rw_bs))])
-            data_dict["rt_version_data"].extend([route_ver for x in range(len(rw_bs))])
+                now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+                print(f"{now}")
 
 
-        # Return A Pandas Dataframe With Route Data
-        data_dict = pd.DataFrame(data_dict)
 
-        data_dict[["RT_NM", "STP_NM"]] = data_dict["stp_data"].str.split("###", n=1, expand=True)
-        data_dict.drop(["stp_data"], axis=1, inplace=True)
 
-        # Add A Column That Shows Row Number For Each Bus Stop In A Route
-        data_dict["RT_STP_NUM"] = data_dict.groupby(["RT_NM"]).cumcount() + 1
 
-        # Add A Column That Shows How Many Bus Stops Are In A Given Route
-        num_stps_df = data_dict.groupby("RT_NM", as_index=False).agg(RT_NUM_STPS = ("RT_NM", "count"))
-        data_dict = data_dict.merge(num_stps_df, on='RT_NM', how='left')
-        data_dict["RT_ID_VER"] = data_dict["rt_number_data"].astype(str) + "_" + data_dict["rt_version_data"].astype(str)
-        data_dict.rename(columns={"rt_number_data":  "RT_ID",
-                                  "rt_name_data":    "RT_NAME",
-                                  "rt_version_data": "RT_VER",
-                                  "RT_NM":           "RT_NAME_RAW"}, inplace=True)
-
-        del num_stps_df
-
-        # For Logging
-        now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-        print(f"{now}: Downloaded Bus Route Data")
-
-        # Return Data To Variable
-        return data_dict
+        #     # Find Additional Route Information, Make A Large String And Use RE To Search
+        #     raw_rt_info = [str(raw_data) for raw_data in soup.find_all(class_="partner-lines-item no-padding bold")]
+        #     raw_rt_info = "".join(raw_rt_info)
+        #
+        #     # Find Route Number
+        #     re_pat = r'item-line item-line-color-\d{3,5}">(.{1,5})</span>'
+        #     route_num = re.search(re_pat, raw_rt_info).group(1)
+        #
+        #     # Find Route Name
+        #     re_pat = r'item-text no-decoration">(.{1,20})</span></p>'
+        #     route_name = re.search(re_pat, raw_rt_info).group(1)
+        #
+        #     # Find Route Version
+        #     route_ver = link.split("/")[-1]
+        #     route_ver = route_ver.replace("#trips", "")
+        #
+        #     # Create A List Of The Bus Stops Found W/ Name For Join To Main Data
+        #     hrefs = soup.find_all(class_="link-to-stop")
+        #     rw_bs = [name + "###" + str(x).split('">')[1].replace("</a>", "") for x in hrefs]
+        #
+        #     # Add Data To Dictionary
+        #     data_dict["stp_data"].extend(rw_bs)
+        #     data_dict["rt_number_data"].extend([route_num for x in range(len(rw_bs))])
+        #     data_dict["rt_name_data"].extend([route_name for x in range(len(rw_bs))])
+        #     data_dict["rt_version_data"].extend([route_ver for x in range(len(rw_bs))])
+        #
+        #
+        # # Return A Pandas Dataframe With Route Data
+        # data_dict = pd.DataFrame(data_dict)
+        #
+        # data_dict[["RT_NM", "STP_NM"]] = data_dict["stp_data"].str.split("###", n=1, expand=True)
+        # data_dict.drop(["stp_data"], axis=1, inplace=True)
+        #
+        # # Add A Column That Shows Row Number For Each Bus Stop In A Route
+        # data_dict["RT_STP_NUM"] = data_dict.groupby(["RT_NM"]).cumcount() + 1
+        #
+        # # Add A Column That Shows How Many Bus Stops Are In A Given Route
+        # num_stps_df = data_dict.groupby("RT_NM", as_index=False).agg(RT_NUM_STPS = ("RT_NM", "count"))
+        # data_dict = data_dict.merge(num_stps_df, on='RT_NM', how='left')
+        # data_dict["RT_ID_VER"] = data_dict["rt_number_data"].astype(str) + "_" + data_dict["rt_version_data"].astype(str)
+        # data_dict.rename(columns={"rt_number_data":  "RT_ID",
+        #                           "rt_name_data":    "RT_NAME",
+        #                           "rt_version_data": "RT_VER",
+        #                           "RT_NM":           "RT_NAME_RAW"}, inplace=True)
+        #
+        # del num_stps_df
+        #
+        # # For Logging
+        # now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+        # print(f"{now}: Downloaded Bus Route Data")
+        #
+        # # Return Data To Variable
+        # return data_dict
 
 
 
@@ -488,14 +502,14 @@ class DataCollector:
 
         # Pull Route Info, Then Related Bus Stop Info
         rt_df = self.__get_rts()
-        stp_df = self.__get_rt_stops(rt_df["RT_LINK"].to_list(), rt_df["RT_NM"].to_list())
+        stp_df = self.__get_rt_stops(rt_df["RT_LINK"].to_list(), rt_df["RT_NAME_RAW"].to_list())
 
         # # Merge Data
-        # stp_data_df = stp_df.merge(rt_df, on='RT_NM', how='left')
-
+        # stp_data_df = stp_df.merge(rt_df, on='RT_NAME_RAW', how='left')
+        #
         # # Compare Bus Stop Names, Ensure All Names Are Consistent
         # stp_data_df = self.__comp_data(stp_data_df, dwnld_stp_data_df)
-
+        #
         # # Export To Folder
         # dt_string = datetime.now().strftime(self.td_s_dt_dsply_frmt)
         # out_path = self.out_dict["BUS_STP"] + f"/BUS_RTE_DATA_{dt_string}.csv"
