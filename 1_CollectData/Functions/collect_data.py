@@ -5,6 +5,7 @@
 # ----------------------------------------------------------------------------------------------------------------------
 import gc
 import os
+import re
 import sys
 import json
 import time
@@ -140,24 +141,24 @@ class DataCollector:
         self.__db_check()
 
 
-        # If Optionset Equals False, Grab Recent Bus Stop Info & Grab Route Data
-        if skp_dwnld == False:
+        # # If Optionset Equals False, Grab Recent Bus Stop Info & Grab Route Data
+        # if skp_dwnld == False:
 
-            try:
-                self.__get_routes_nd_stops()
+            # try:
+        self.__get_routes_nd_stops()
 
-            except KeyboardInterrupt as e:
-                now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-                print(f"{now}: Keyboard Interupt")
-                sys.exit(1)
-
-            except Exception as e:
-                now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-                print(f"{now}: Bus Stop/Bus Route Download Error")
-                sys.exit(1)
-
-        # Collect Garbage So Everything Any Unused Memory Is Released
-        gc.collect()
+        #     except KeyboardInterrupt as e:
+        #         now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+        #         print(f"{now}: Keyboard Interupt")
+        #         sys.exit(1)
+        #
+        #     except Exception as e:
+        #         now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+        #         print(f"{now}: Bus Stop/Bus Route Download Error")
+        #         sys.exit(1)
+        #
+        # # Collect Garbage So Everything Any Unused Memory Is Released
+        # gc.collect()
 
 
 
@@ -382,51 +383,71 @@ class DataCollector:
         visited. This function returns a pandas dataframe with all the parsed information.
         """
 
-        stp_data = []
-        num_rts = len(rt_names)
-        counter = 1
+        # Create A Dictionary That Will Store All The Data Gathered
+        data_dict = {"stp_data": [], "rt_number_data": [],
+                     "rt_name_data": [], "rt_version_data": []}
+
+
+        # Ierate Through Each Link And Grab Bus Stop Information
         for link, name in zip(rt_links, rt_names):
 
             # Navigate To WebPage, Pull All HTML, Convert To String, Use Regex To Pull All Stop Names
             page = requests.get(link)
             soup = BeautifulSoup(page.content, "html.parser")
+
+            # Find Additional Route Information, Make A Large String And Use RE To Search
+            raw_rt_info = [str(raw_data) for raw_data in soup.find_all(class_="partner-lines-item no-padding bold")]
+            raw_rt_info = "".join(raw_rt_info)
+
+            # Find Route Number
+            re_pat = r'item-line item-line-color-\d{3,5}">(.{1,5})</span>'
+            route_num = re.search(re_pat, raw_rt_info).group(1)
+
+            # Find Route Name
+            re_pat = r'item-text no-decoration">(.{1,20})</span></p>'
+            route_name = re.search(re_pat, raw_rt_info).group(1)
+
+            # Find Route Version
+            route_ver = link.split("/")[-1]
+            route_ver = route_ver.replace("#trips", "")
+
+            # Create A List Of The Bus Stops Found W/ Name For Join To Main Data
             hrefs = soup.find_all(class_="link-to-stop")
+            rw_bs = [name + "###" + str(x).split('">')[1].replace("</a>", "") for x in hrefs]
 
-            # Find Additional Information
-            rt_info = soup.find_all(class_="partner-lines-item no-padding bold")
-
-            # print(f"{link}, {name}")
-            # print(f"{rt_num}, {rt_name}")
-            print(rt_info)
-
-
-
-            # # Create A List Of The Bus Stops Found W/ Name For Join To Main Data
-            # rw_bs = [name + "###" + str(x).split('">')[1].replace("</a>", "") for x in hrefs]
-            # stp_data.extend(rw_bs)
-            # counter += 1
+            # Add Data To Dictionary
+            data_dict["stp_data"].extend(rw_bs)
+            data_dict["rt_number_data"].extend([route_num for x in range(len(rw_bs))])
+            data_dict["rt_name_data"].extend([route_name for x in range(len(rw_bs))])
+            data_dict["rt_version_data"].extend([route_ver for x in range(len(rw_bs))])
 
 
-        # # Return A Pandas Dataframe With Route Data
-        # stp_df = pd.DataFrame(stp_data, columns=["RAW_DATA"])
-        # stp_df[["RT_NM", "STP_NM"]] = stp_df["RAW_DATA"].str.split("###", n=1, expand=True)
-        # stp_df.drop(["RAW_DATA"], axis=1, inplace=True)
-        #
-        # # Add A Column That Shows Row Number For Each Bus Stop In A Route
-        # stp_df["RT_STP_NUM"] = stp_df.groupby(["RT_NM"]).cumcount() + 1
-        #
-        # # Add A Column That Shows How Many Bus Stops Are In A Given Route
-        # num_stps_df = stp_df.groupby("RT_NM", as_index=False).agg(RT_NUM_STPS = ("RT_NM", "count"))
-        # stp_df = stp_df.merge(num_stps_df, on='RT_NM', how='left')
-        #
-        # now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-        # print(f"{now}: Downloaded Bus Route Data")
-        #
-        #
-        #
-        # print(stp_df)
+        # Return A Pandas Dataframe With Route Data
+        data_dict = pd.DataFrame(data_dict)
 
-        # return stp_df
+        data_dict[["RT_NM", "STP_NM"]] = data_dict["stp_data"].str.split("###", n=1, expand=True)
+        data_dict.drop(["stp_data"], axis=1, inplace=True)
+
+        # Add A Column That Shows Row Number For Each Bus Stop In A Route
+        data_dict["RT_STP_NUM"] = data_dict.groupby(["RT_NM"]).cumcount() + 1
+
+        # Add A Column That Shows How Many Bus Stops Are In A Given Route
+        num_stps_df = data_dict.groupby("RT_NM", as_index=False).agg(RT_NUM_STPS = ("RT_NM", "count"))
+        data_dict = data_dict.merge(num_stps_df, on='RT_NM', how='left')
+        data_dict["RT_ID_VER"] = data_dict["rt_number_data"].astype(str) + "_" + data_dict["rt_version_data"].astype(str)
+        data_dict.rename(columns={"rt_number_data":  "RT_ID",
+                                  "rt_name_data":    "RT_NAME",
+                                  "rt_version_data": "RT_VER",
+                                  "RT_NM":           "RT_NAME_RAW"}, inplace=True)
+
+        del num_stps_df
+
+        # For Logging
+        now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+        print(f"{now}: Downloaded Bus Route Data")
+
+        # Return Data To Variable
+        return data_dict
 
 
 
