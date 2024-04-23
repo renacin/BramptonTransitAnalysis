@@ -1035,11 +1035,46 @@ class DataCollector:
         gb = trips_obs.groupby("U_ID")
         data = [x[1].loc[x[1]["DATA_TYPE"].where(x[1]["DATA_TYPE"]=="IE").first_valid_index():x[1]["DATA_TYPE"].where(x[1]["DATA_TYPE"]=="IE").last_valid_index()] for x in gb]
         trips_obs = pd.concat(data)
-        del gb, data
+        del gb, data, trips_obs["U_ID"]
+
+
+        # Create An Encoding, For A New Column. If There Is Data In The Timestampt Then 1, Else 0
+        trips_obs["DATA_FLG"] = "1"
+        trips_obs.loc[trips_obs["STP_ARV_TM"].isna(), "DATA_FLG"] = "0"
 
 
         # Count The Number Of Occurances Of Data In The trips_obs Column
-        trips_obs.to_csv("Base.csv")
+        gb = trips_obs.groupby("TRIP_ID")
+        print(len(gb))
+        for x in gb:
+
+            # Find All The Clusters Of NaN Values
+            focus_df = x[1]
+
+            # Get Data Flag & Index As List
+            df_index = focus_df.index.values.tolist()
+            df_flag_str = "".join(focus_df["DATA_FLG"].tolist())
+
+            # Use Regex To Find All Matches
+            re_pat = r"(?:1)0{1,10}"
+            print(df_index)
+            print(df_flag_str)
+
+            # Iterate Through Matches & Find Corresponding Patter In String & Index List
+            for x in re.finditer(re_pat, df_flag_str):
+
+                # Convert To List, & Fix
+                grp_mtch_idx = list(x.span())
+                grp_mtch_idx[1] = grp_mtch_idx[1]
+
+                # Get IDX From Dataframe Index
+                print(df_index[grp_mtch_idx[0]], df_index[grp_mtch_idx[1]])
+
+                # Get IDX From Dataframe Index
+                print(df_flag_str[grp_mtch_idx[0]: grp_mtch_idx[1]])
+
+
+            break
 
 
 
