@@ -1046,10 +1046,15 @@ class DataCollector:
         # Count The Number Of Occurances Of Data In The trips_obs Column
         gb = trips_obs.groupby("TRIP_ID")
         print(len(gb))
+
+        now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+        print(f"{now}: 1")
+
         for x in gb:
 
             # Find All The Clusters Of NaN Values
             focus_df = x[1]
+            print(focus_df)
 
             # Get Data Flag & Index As List
             df_index = focus_df.index.values.tolist()
@@ -1065,16 +1070,22 @@ class DataCollector:
 
                 # Convert To List, & Fix
                 grp_mtch_idx = list(x.span())
-                grp_mtch_idx[1] = grp_mtch_idx[1]
 
-                # Get IDX From Dataframe Index
-                print(df_index[grp_mtch_idx[0]], df_index[grp_mtch_idx[1]])
+                print(grp_mtch_idx[0])
+                print(grp_mtch_idx[1])
 
-                # Get IDX From Dataframe Index
-                print(df_flag_str[grp_mtch_idx[0]: grp_mtch_idx[1]])
+                # # Print Row From Dataframe Given Index
+                # print(focus_df.iloc[[grp_mtch_idx[0]]])
+                #
+                # print(focus_df.iloc[[grp_mtch_idx[1]]])
 
 
+                now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+                print(f"{now}:")
+
+                break
             break
+
 
 
 
