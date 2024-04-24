@@ -1044,6 +1044,7 @@ class DataCollector:
 
 
         # Count The Number Of Occurances Of Data In The trips_obs Column
+        trips_obs["TRIP_ID_CLUSTER_ID"] = ""
         gb = trips_obs.groupby("TRIP_ID")
         print(len(gb))
 
@@ -1053,33 +1054,31 @@ class DataCollector:
         for x in gb:
 
             # Find All The Clusters Of NaN Values
-            focus_df = x[1]
+            focus_df = x[1].copy()
+            focus_df.reset_index(drop=True, inplace=True)
             print(focus_df)
 
             # Get Data Flag & Index As List
-            df_index = focus_df.index.values.tolist()
             df_flag_str = "".join(focus_df["DATA_FLG"].tolist())
+            print(df_flag_str)
 
             # Use Regex To Find All Matches
             re_pat = r"(?:1)0{1,10}"
-            print(df_index)
-            print(df_flag_str)
 
             # Iterate Through Matches & Find Corresponding Patter In String & Index List
-            for x in re.finditer(re_pat, df_flag_str):
+            for cntr, x in enumerate(re.finditer(re_pat, df_flag_str)):
 
                 # Convert To List, & Fix
                 grp_mtch_idx = list(x.span())
 
-                print(grp_mtch_idx[0])
-                print(grp_mtch_idx[1])
+                s1 = grp_mtch_idx[0]
+                s2 = grp_mtch_idx[1]
 
-                # # Print Row From Dataframe Given Index
-                # print(focus_df.iloc[[grp_mtch_idx[0]]])
-                #
-                # print(focus_df.iloc[[grp_mtch_idx[1]]])
+                # Set Value Between Index As Cluster # ID
+                focus_df.ix[s1:s2, "TRIP_ID_CLUSTER_ID"] = cntr
 
 
+                print(focus_df)
                 now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
                 print(f"{now}:")
 
