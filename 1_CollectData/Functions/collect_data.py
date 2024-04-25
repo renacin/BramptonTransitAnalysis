@@ -1042,48 +1042,50 @@ class DataCollector:
         trips_obs["DATA_FLG"] = "1"
         trips_obs.loc[trips_obs["STP_ARV_TM"].isna(), "DATA_FLG"] = "0"
 
+        # Read In Bus Loc Data & Merge To Trips Obs DF
+        needed_cols = ['stop_name', 'CLEANED_STOP_LAT_', 'CLEANED_STOP_LON_']
+        bus_locs = pd.read_csv(file_path, usecols = needed_cols)
+        bus_locs.rename(columns = {"stop_name": "STP_NM", "CLEANED_STOP_LAT_": "STP_LAT", "CLEANED_STOP_LON_": "STP_LON"}, inplace = True)
+        del needed_cols
+        trips_obs = trips_obs.merge(bus_locs, how="left", on=["STP_NM"])
 
-        # Count The Number Of Occurances Of Data In The trips_obs Column
+        # Determine Distance To Next Bus Stop
+        trips_obs['NXT_STP_LAT'] = trips_obs['STP_LAT'].shift(1)
+        trips_obs['NXT_STP_LON'] = trips_obs['STP_LON'].shift(1)
+        trips_obs["DTS_2_NXT_STP"] = vec_haversine((trips_obs["STP_LAT"].values, trips_obs["STP_LON"].values), (trips_obs["NXT_STP_LAT"].values, trips_obs["NXT_STP_LON"].values))
         trips_obs["TRIP_ID_CLUSTER_ID"] = ""
-        gb = trips_obs.groupby("TRIP_ID")
-        print(len(gb))
+        trips_obs.drop(columns=["STP_LAT", "STP_LON", "NXT_STP_LAT", "NXT_STP_LON"], inplace = True)
 
+        # Iterate Through The Data Looking Patterns, Find Clusters Of Missing Data, Use Regex To Find All Matches
+        re_pat = r"(?:1)0{1,10}"
+
+        # Iterate Through Matches & Find Corresponding Patter In String & Index List
+        df_flag_str = "".join(trips_obs["DATA_FLG"].tolist())
+        for cntr, x in enumerate(re.finditer(re_pat, df_flag_str)):
+
+            # Convert To List, & Fix
+            grp_mtch_idx = list(x.span())
+
+            # Determine The Start & End Of The Identified Cluster
+            s1 = grp_mtch_idx[0]
+            s2 = grp_mtch_idx[1]
+
+            # Find The Time Before & After The Cluster
+            # print(trips_obs.iloc[s1]["STP_ARV_TM"])
+            # print(trips_obs.iloc[s2]["STP_ARV_TM"])
+
+            # Time Between Last Observation Before Outage, And First Observation After Outage
+            time_btw_stops = trips_obs.iloc[s2]["STP_ARV_TM"] - trips_obs.iloc[s1]["STP_ARV_TM"]
+
+            # Set Value Between Index As Cluster # ID
+            trips_obs.at[s1 + 1:s2 -1, "TRIP_ID_CLUSTER_ID"] = f"C{cntr}"
+
+
+        print(trips_obs)
+        trips_obs.to_csv("Cluster_Test.csv")
         now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-        print(f"{now}: 1")
+        print(f"{now}: Finished")
 
-        for x in gb:
-
-            # Find All The Clusters Of NaN Values
-            focus_df = x[1].copy()
-            focus_df.reset_index(drop=True, inplace=True)
-            print(focus_df)
-
-            # Get Data Flag & Index As List
-            df_flag_str = "".join(focus_df["DATA_FLG"].tolist())
-            print(df_flag_str)
-
-            # Use Regex To Find All Matches
-            re_pat = r"(?:1)0{1,10}"
-
-            # Iterate Through Matches & Find Corresponding Patter In String & Index List
-            for cntr, x in enumerate(re.finditer(re_pat, df_flag_str)):
-
-                # Convert To List, & Fix
-                grp_mtch_idx = list(x.span())
-
-                s1 = grp_mtch_idx[0]
-                s2 = grp_mtch_idx[1]
-
-                # Set Value Between Index As Cluster # ID
-                focus_df.ix[s1:s2, "TRIP_ID_CLUSTER_ID"] = cntr
-
-
-                print(focus_df)
-                now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-                print(f"{now}:")
-
-                break
-            break
 
 
 
