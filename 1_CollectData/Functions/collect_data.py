@@ -1059,7 +1059,7 @@ class DataCollector:
         # Iterate Through The Data Looking Patterns, Find Clusters Of Missing Data, Use Regex To Find All Matches
         re_pat = r"(?:1)0{1,10}"
 
-        # Iterate Through Matches & Find Corresponding Patter In String & Index List
+        # Iterate Through Matches & Find Corresponding Pattern In String & Index List
         df_flag_str = "".join(trips_obs["DATA_FLG"].tolist())
         for cntr, x in enumerate(re.finditer(re_pat, df_flag_str)):
 
@@ -1070,21 +1070,25 @@ class DataCollector:
             s1 = grp_mtch_idx[0]
             s2 = grp_mtch_idx[1]
 
-            # Find The Time Before & After The Cluster
-            # print(trips_obs.iloc[s1]["STP_ARV_TM"])
-            # print(trips_obs.iloc[s2]["STP_ARV_TM"])
+            # Find The Total Duration Of The Trip (Find Time At Begining -1 Of Cluster & Time At Ending +1 Of Cluster)
+            total_distance = sum(trips_obs.iloc[s1+1:s2]["DTS_2_NXT_STP"].to_numpy())
+            total_time = trips_obs.iloc[s2]["STP_ARV_TM"] - trips_obs.iloc[s1]["STP_ARV_TM"]
+            total_time = total_time / 3600
+
+            # Determine Average Speed
+            c_svg_spd = total_distance / total_time
 
             # Time Between Last Observation Before Outage, And First Observation After Outage
             time_btw_stops = trips_obs.iloc[s2]["STP_ARV_TM"] - trips_obs.iloc[s1]["STP_ARV_TM"]
 
             # Set Value Between Index As Cluster # ID
-            trips_obs.at[s1 + 1:s2 -1, "TRIP_ID_CLUSTER_ID"] = f"C{cntr}"
+            trips_obs.at[s1 + 1:s2 -1, "TRIP_CLUSTER_ID"] = f"C{cntr}"
+            trips_obs.at[s1 + 1:s2 -1, "CLUSTER_AVG_SPD"] = c_svg_spd
 
-
-        print(trips_obs)
-        trips_obs.to_csv("Cluster_Test.csv")
-        now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-        print(f"{now}: Finished")
+        # print(trips_obs)
+        # trips_obs.to_csv("Cluster_Test.csv")
+        # now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+        # print(f"{now}: Finished")
 
 
 
