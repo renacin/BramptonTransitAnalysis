@@ -1112,6 +1112,7 @@ class DataCollector:
         # Replace Time Stamp Data If Empty
         trips_obs.loc[trips_obs["STP_ARV_TM"].isna(), "STP_ARV_TM"] = trips_obs["TRL_ARV_TM_EST"]
         trips_obs.loc[trips_obs["STP_ARV_TM"].isna(), "DATA_TYPE"] = "CE"
+        trips_obs.drop(columns=["STP_ARV_DTTM"], inplace = True)
 
         del cm_sum_df
 
