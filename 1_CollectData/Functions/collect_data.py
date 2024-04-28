@@ -1059,7 +1059,8 @@ class DataCollector:
         # Iterate Through The Data Looking Patterns, Find Clusters Of Missing Data, Use Regex To Find All Matches
         re_pat = r"(?:1)0{1,10}"
 
-        # Iterate Through Matches & Find Corresponding Pattern In String & Index List
+        # Iterate Through Matches & Find Corresponding Pattern In String & Index List, Create An Index That Will Help Identify Order
+        trips_obs["IDX_R"] = np.arange(len(trips_obs))
         df_flag_str = "".join(trips_obs["DATA_FLG"].tolist())
         for cntr, x in enumerate(re.finditer(re_pat, df_flag_str)):
 
@@ -1085,10 +1086,30 @@ class DataCollector:
             trips_obs.at[s1 + 1:s2 -1, "TRIP_CLUSTER_ID"] = f"C{cntr}"
             trips_obs.at[s1 + 1:s2 -1, "CLUSTER_AVG_SPD"] = c_svg_spd
 
-        # print(trips_obs)
-        # trips_obs.to_csv("Cluster_Test.csv")
-        # now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-        # print(f"{now}: Finished")
+            # We Need To Know The Timestamp Before The Error Cluster Began
+            trips_obs.at[s1 + 1:s2 -1, "ERROR_START_TIME"] = trips_obs.iloc[s1]["STP_ARV_TM"]
+
+
+        # Determine The Time It Took Given The Speed And Distance
+        trips_obs["SECS_TRVL_DSTNC"] = (trips_obs["DTS_2_NXT_STP"] / trips_obs["CLUSTER_AVG_SPD"]) * 3600
+
+        # Make A Copy Of Certain Columns, And Determine The Running Sum Of Time Traveled For Distance, Add Back To Original Time And Merge To Main DF
+        cm_sum_df = trips_obs[["IDX_R", "TRIP_CLUSTER_ID", "CLUSTER_AVG_SPD", "ERROR_START_TIME", "SECS_TRVL_DSTNC"]].copy()
+        cm_sum_df = cm_sum_df.dropna(subset=["TRIP_CLUSTER_ID"])
+        cm_sum_df["TRV_TM_CUMSUM"] = cm_sum_df.groupby(["TRIP_CLUSTER_ID"])["SECS_TRVL_DSTNC"].cumsum()
+        cm_sum_df["TRL_ARV_TM_EST"] = cm_sum_df["ERROR_START_TIME"] + cm_sum_df["TRV_TM_CUMSUM"]
+        cm_sum_df.drop(columns=["CLUSTER_AVG_SPD", "ERROR_START_TIME", "SECS_TRVL_DSTNC", "TRV_TM_CUMSUM"], inplace = True)
+        trips_obs.drop(columns=['CLUSTER_AVG_SPD', 'ERROR_START_TIME', 'DATA_FLG', 'DTS_2_NXT_STP', 'SECS_TRVL_DSTNC', 'TRIP_ID_CLUSTER_ID'], inplace = True)
+
+
+        # Merge Data Together
+        trips_obs = trips_obs.merge(cm_sum_df, how="left", on=["IDX_R", "TRIP_CLUSTER_ID"])
+        del cm_sum_df
+
+        # For Testing
+        trips_obs.to_csv("TripObs.csv")
+        now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+        print(f"{now}: Finished")
 
 
 
