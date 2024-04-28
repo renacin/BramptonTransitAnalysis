@@ -808,37 +808,11 @@ class DataCollector:
 
 
 
-    # ------------------------- Public Function 5 ------------------------------
-    def frmt_rwbslc_data(self, td_dt_mx):
-        """
-        When called, this function will read the bus data collected, and exported
-        from the day before, format the data - determining speed, and time when it arrived
-        at a given bus stop, and keep only needed entries. The formatted data will then
-        be exported as a CSV to an output folder.
-        """
+    # ---------------- Private Function #1 For Public Function 5 ---------------
+    def __frmt_data_s1(self, data_f, td_dt_mx):
 
-
-        td_dt_mx = "08-04-2024"
-
-
-        # ----------------------------------------------------------------------
-        # Step #1: Gather Yesterday's Bus Location Data
-        # ----------------------------------------------------------------------
-        dt_copy = td_dt_mx
-        dir_list = [x for x in os.listdir(self.out_dict["BUS_LOC"]) if ".csv" in x]
-        df = pd.DataFrame(dir_list, columns=['FILE_NAME'])
-
-        # Create A Dataframe With The Time The File Was Created & Output
-        df["DATE"] = df["FILE_NAME"].str.split('_').str[-1]
-        df["DATE"] = df["DATE"].str.replace(".csv", "", regex=False)
-        df["DATE"] = pd.to_datetime(df["DATE"], format = self.td_s_dt_dsply_frmt)
-
-        # We Only Need Certain Columns On Data Ingest
-        td_dt_mx = datetime.strptime(td_dt_mx, self.td_s_dt_dsply_frmt)
-        df = df[df["DATE"] >= td_dt_mx]
-        needed_cols = ['u_id', 'timestamp', 'route_id', 'trip_id', 'vehicle_id', 'bearing', 'latitude', 'longitude', 'stop_id', 'dt_colc']
-        df = pd.concat([pd.read_csv(path_, usecols = needed_cols) for path_ in [f'{self.out_dict["BUS_LOC"]}/{x}' for x in df["FILE_NAME"].tolist()]])
-        del needed_cols
+        # Sanitize Input
+        df = data_f.copy()
 
         # Format Data To Ints, DT Accessor Took Too Long
         df = df.drop_duplicates(subset=['u_id'])
@@ -879,11 +853,7 @@ class DataCollector:
                 file_path = f'{self.out_dict["BUS_STP"]}/{file}'
         bus_stops = pd.read_csv(file_path)
 
-
-
-        # ----------------------------------------------------------------------
-        # Step #2: Combine Bus Location Data With Bus Stop Data
-        # ----------------------------------------------------------------------
+        # Combine Bus Location Data With Bus Stop Data
         con = sqlite3.connect(":memory:")
         bus_stops.to_sql("BusStops", con, if_exists="replace", index=False)
         del bus_stops
@@ -917,11 +887,16 @@ class DataCollector:
         data_pull.sort_values(["ROUTE_ID", "TRIP_ID", "EP_TIME"], inplace=True)
         data_pull.drop_duplicates(inplace=True)
 
+        return data_pull
 
 
-        # ----------------------------------------------------------------------
-        # Step #3: Perfom Additional Data Formatting
-        # ----------------------------------------------------------------------
+
+    # ---------------- Private Function #2 For Public Function 5 ---------------
+    def __frmt_data_s2(self, data_f):
+
+        # Sanitize Input
+        data_pull = data_f.copy()
+
         # Remove Entries Where Bus Is Idling, Or Has Kept Transponder Running After The First Occurence At The Last Stop | Append All Dta To New Dataframe
         gb = data_pull.groupby("U_NAME")
         transit_df = pd.concat([x[1].loc[x[1]["NXT_STP_NAME"].where(x[1]["NXT_STP_NAME"]==x[1]["NXT_STP_NAME"].iloc[0]).last_valid_index():x[1]["PRV_STP_NAME"].where(x[1]["PRV_STP_NAME"]==x[1]["PRV_STP_NAME"].iloc[-1]).first_valid_index()] for x in gb])
@@ -931,7 +906,6 @@ class DataCollector:
         transit_df["DST_BTW_LOCS"] = vec_haversine((transit_df["P_LAT"].values, transit_df["P_LONG"].values), (transit_df["C_LAT"].values, transit_df["C_LONG"].values))
         transit_df["DST_BTW_LOCS"] = round(transit_df["DST_BTW_LOCS"], 2)
 
-
         # Determine The Average Speed For The Trip
         speed_df = transit_df.copy()
 
@@ -939,8 +913,7 @@ class DataCollector:
         speed_df = speed_df.dropna(subset=["P_EP_TIME"])
         speed_df["TRIP_DUR"] = (speed_df["EP_TIME"] - speed_df["P_EP_TIME"]) / 3600
         speed_df["TRIP_SPD"] = speed_df["DST_BTW_LOCS"] / speed_df["TRIP_DUR"]
-        speed_df = speed_df.groupby(["ROUTE_ID", "TRIP_ID", "AVG_DIR"], as_index=False).agg(TRIP_SPD = ("TRIP_SPD", "mean"),
-                                                                                                HOUR = ("HOUR", "first"))
+        speed_df = speed_df.groupby(["ROUTE_ID", "TRIP_ID", "AVG_DIR"], as_index=False).agg(TRIP_SPD = ("TRIP_SPD", "mean"), HOUR = ("HOUR", "first"))
         speed_df["TRIP_SPD"] = round(speed_df["TRIP_SPD"], 2)
 
 
@@ -965,15 +938,17 @@ class DataCollector:
         transit_df["NXT_STP_ARV_TM"] = transit_df["NXT_STP_ARV_TM"].astype(dtype = int, errors = 'ignore')
         transit_df["NXT_STP_ARV_DTTM"] = pd.to_datetime(transit_df["NXT_STP_ARV_TM"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
 
-        # Delete Old Data & Reorganize
-        del speed_df
-        gc.collect()
+        return transit_df #speed_df
 
 
 
-        # ----------------------------------------------------------------------
-        # Step #4: Reorganize Data & Determine The Stops In Between Trips
-        # ----------------------------------------------------------------------
+    # ---------------- Private Function #3 For Public Function 5 ---------------
+    def __frmt_data_s3(self, data_f):
+
+        # Sanitize Input
+        transit_df = data_f.copy()
+
+        # Reorganize Data & Determine The Stops In Between Trips
         transit_df = transit_df[['TRIP_ID', 'ROUTE_ID', 'V_ID',
                                  'NXT_STP_NAME', 'NXT_STP_ARV_TM',
                                  'NXT_STP_ARV_DTTM']]
@@ -1041,6 +1016,11 @@ class DataCollector:
         # Create An Encoding, For A New Column. If There Is Data In The Timestampt Then 1, Else 0
         trips_obs["DATA_FLG"] = "1"
         trips_obs.loc[trips_obs["STP_ARV_TM"].isna(), "DATA_FLG"] = "0"
+
+        # Find Bus Loc Data
+        for file in os.listdir(self.out_dict["BUS_STP"]):
+            if "BUS_STP_DATA" in file:
+                file_path = f'{self.out_dict["BUS_STP"]}/{file}'
 
         # Read In Bus Loc Data & Merge To Trips Obs DF
         needed_cols = ['stop_name', 'CLEANED_STOP_LAT_', 'CLEANED_STOP_LON_']
@@ -1115,7 +1095,43 @@ class DataCollector:
         trips_obs.drop(columns=["STP_ARV_DTTM", "TRL_ARV_TM_EST"], inplace = True)
         trips_obs["STP_ARV_TM"] = round(trips_obs["STP_ARV_TM"], 0)
 
-        del cm_sum_df
+        return trips_obs
+
+
+
+    # ------------------------- Public Function 5 ------------------------------
+    def frmt_rwbslc_data(self, td_dt_mx):
+        """
+        When called, this function will read the bus data collected, and exported
+        from the day before, format the data - determining speed, and time when it arrived
+        at a given bus stop, and keep only needed entries. The formatted data will then
+        be exported as a CSV to an output folder.
+        """
+
+        # For Testing Remove!
+        td_dt_mx = "08-04-2024"
+
+        # Step #0: Gather Yesterday's Bus Location Data
+        dt_copy = td_dt_mx
+        dir_list = [x for x in os.listdir(self.out_dict["BUS_LOC"]) if ".csv" in x]
+        df = pd.DataFrame(dir_list, columns=['FILE_NAME'])
+
+        # Create A Dataframe With The Time The File Was Created & Output
+        df["DATE"] = df["FILE_NAME"].str.split('_').str[-1]
+        df["DATE"] = df["DATE"].str.replace(".csv", "", regex=False)
+        df["DATE"] = pd.to_datetime(df["DATE"], format = self.td_s_dt_dsply_frmt)
+
+        # We Only Need Certain Columns On Data Ingest
+        td_dt_mx = datetime.strptime(td_dt_mx, self.td_s_dt_dsply_frmt)
+        df = df[df["DATE"] >= td_dt_mx]
+        needed_cols = ['u_id', 'timestamp', 'route_id', 'trip_id', 'vehicle_id', 'bearing', 'latitude', 'longitude', 'stop_id', 'dt_colc']
+        df = pd.concat([pd.read_csv(path_, usecols = needed_cols) for path_ in [f'{self.out_dict["BUS_LOC"]}/{x}' for x in df["FILE_NAME"].tolist()]])
+        del needed_cols
+
+        # Format Data
+        df1 = self.__frmt_data_s1(df, td_dt_mx)
+        df2 = self.__frmt_data_s2(df1)
+        trips_obs = self.__frmt_data_s3(df2)
 
         # For Testing
         trips_obs.to_csv("TripObs.csv")
