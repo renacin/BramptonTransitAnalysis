@@ -1050,16 +1050,16 @@ class DataCollector:
         trips_obs = trips_obs.merge(bus_locs, how="left", on=["STP_NM"])
 
         # Determine Distance To Next Bus Stop
-        trips_obs['NXT_STP_LAT'] = trips_obs['STP_LAT'].shift(1)
-        trips_obs['NXT_STP_LON'] = trips_obs['STP_LON'].shift(1)
+        trips_obs['NXT_STP_LAT'] = trips_obs['STP_LAT'].shift(-1)
+        trips_obs['NXT_STP_LON'] = trips_obs['STP_LON'].shift(-1)
         trips_obs["DTS_2_NXT_STP"] = vec_haversine((trips_obs["STP_LAT"].values, trips_obs["STP_LON"].values), (trips_obs["NXT_STP_LAT"].values, trips_obs["NXT_STP_LON"].values))
-        trips_obs["TRIP_ID_CLUSTER_ID"] = ""
         trips_obs.drop(columns=["STP_LAT", "STP_LON", "NXT_STP_LAT", "NXT_STP_LON"], inplace = True)
 
         # Iterate Through The Data Looking Patterns, Find Clusters Of Missing Data, Use Regex To Find All Matches
         re_pat = r"(?:1)0{1,10}"
 
         # Iterate Through Matches & Find Corresponding Pattern In String & Index List, Create An Index That Will Help Identify Order
+        trips_obs["TRIP_ID_CLUSTER_ID"] = ""
         trips_obs["IDX_R"] = np.arange(len(trips_obs))
         df_flag_str = "".join(trips_obs["DATA_FLG"].tolist())
         for cntr, x in enumerate(re.finditer(re_pat, df_flag_str)):
@@ -1071,9 +1071,11 @@ class DataCollector:
             s1 = grp_mtch_idx[0]
             s2 = grp_mtch_idx[1]
 
+            time_data = list(trips_obs.iloc[s1:s2+1]["STP_ARV_TM"].to_numpy())
+
             # Find The Total Duration Of The Trip (Find Time At Begining -1 Of Cluster & Time At Ending +1 Of Cluster)
-            total_distance = sum(trips_obs.iloc[s1+1:s2]["DTS_2_NXT_STP"].to_numpy())
-            total_time = trips_obs.iloc[s2]["STP_ARV_TM"] - trips_obs.iloc[s1]["STP_ARV_TM"]
+            total_distance = sum(trips_obs.iloc[s1:s2]["DTS_2_NXT_STP"].to_numpy())
+            total_time = time_data[-1] - time_data[0]
             total_time = total_time / 3600
 
             # Determine Average Speed

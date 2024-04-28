@@ -1,37 +1,37 @@
 ,TRIP_ID,RT_ID,RT_NAME,RT_VER,STP_NM,RT_STP_NUM,RT_NUM_STPS,RT_ID_VER,RT_DIR,RT_GRP,RT_GRP_NUM,ROUTE_ID,V_ID,STP_ARV_TM,STP_ARV_DTTM,DATA_TYPE,IDX_R,TRIP_CLUSTER_ID,TRL_ARV_TM_EST
 0,23861158-240304-MULTI-Sunday-01,1,Queen,2,Queen St W at Mercer Dr,58,86,1_2,West,queen,463,1-344,619.0,1712548835.0,2024-04-08 00:00:35-04:00,IE,0,,
-1,23861158-240304-MULTI-Sunday-01,1,Queen,2,McLaughlin Rd S at FCCC Entrance,59,86,1_2,West,queen,463,,,,,,1,C0,1712548862.7974682
-2,23861158-240304-MULTI-Sunday-01,1,Queen,2,Flower City Community Campus Route 1/1A/3A/57 Stop,60,86,1_2,West,queen,463,,,,,,2,C0,1712548886.4650393
-3,23861158-240304-MULTI-Sunday-01,1,Queen,2,McLaughlin Rd S n/of Bufford Dr,61,86,1_2,West,queen,463,,,,,,3,C0,1712548912.8835623
-4,23861158-240304-MULTI-Sunday-01,1,Queen,2,McLaughlin - Zum Queen West Station Stop WB,62,86,1_2,West,queen,463,,,,,,4,C0,1712548930.0
+1,23861158-240304-MULTI-Sunday-01,1,Queen,2,McLaughlin Rd S at FCCC Entrance,59,86,1_2,West,queen,463,,,,,,1,C0,1712548853.3748596
+2,23861158-240304-MULTI-Sunday-01,1,Queen,2,Flower City Community Campus Route 1/1A/3A/57 Stop,60,86,1_2,West,queen,463,,,,,,2,C0,1712548873.8854835
+3,23861158-240304-MULTI-Sunday-01,1,Queen,2,McLaughlin Rd S n/of Bufford Dr,61,86,1_2,West,queen,463,,,,,,3,C0,1712548887.174221
+4,23861158-240304-MULTI-Sunday-01,1,Queen,2,McLaughlin - Zum Queen West Station Stop WB,62,86,1_2,West,queen,463,,,,,,4,C0,1712548908.4188004
 5,23861158-240304-MULTI-Sunday-01,1,Queen,2,Queen St W e/of Kimbark Dr,63,86,1_2,West,queen,463,1-344,619.0,1712548930.0,2024-04-08 00:02:10-04:00,IE,5,,
 6,23861158-240304-MULTI-Sunday-01,1,Queen,2,Queen St W e/of Major William Sharpe,64,86,1_2,West,queen,463,1-344,619.0,1712548985.0,2024-04-08 00:03:05-04:00,IE,6,,
-7,23861158-240304-MULTI-Sunday-01,1,Queen,2,Major William Sharpe Dr n/of Queen St,65,86,1_2,West,queen,463,,,,,,7,C1,1712548987.0104334
-8,23861158-240304-MULTI-Sunday-01,1,Queen,2,Major William Sharpe Dr n/of Burgby Ave,66,86,1_2,West,queen,463,,,,,,8,C1,1712549001.534282
-9,23861158-240304-MULTI-Sunday-01,1,Queen,2,Major William Sharpe Dr opp Candy Cres (S),67,86,1_2,West,queen,463,,,,,,9,C1,1712549009.387072
-10,23861158-240304-MULTI-Sunday-01,1,Queen,2,Flowertown Ave w/of Major William Sharpe Dr,68,86,1_2,West,queen,463,,,,,,10,C1,1712549022.685249
-11,23861158-240304-MULTI-Sunday-01,1,Queen,2,Flowertown Ave at Chinguacousy Rd,69,86,1_2,West,queen,463,,,,,,11,C1,1712549032.5260198
-12,23861158-240304-MULTI-Sunday-01,1,Queen,2,Major William Sharpe Dr e/of Chinguacousy Rd,70,86,1_2,West,queen,463,,,,,,12,C1,1712549047.0
+7,23861158-240304-MULTI-Sunday-01,1,Queen,2,Major William Sharpe Dr n/of Queen St,65,86,1_2,West,queen,463,,,,,,7,C1,1712548992.9325972
+8,23861158-240304-MULTI-Sunday-01,1,Queen,2,Major William Sharpe Dr n/of Burgby Ave,66,86,1_2,West,queen,463,,,,,,8,C1,1712548997.2216134
+9,23861158-240304-MULTI-Sunday-01,1,Queen,2,Major William Sharpe Dr opp Candy Cres (S),67,86,1_2,West,queen,463,,,,,,9,C1,1712549004.4847765
+10,23861158-240304-MULTI-Sunday-01,1,Queen,2,Flowertown Ave w/of Major William Sharpe Dr,68,86,1_2,West,queen,463,,,,,,10,C1,1712549009.8595827
+11,23861158-240304-MULTI-Sunday-01,1,Queen,2,Flowertown Ave at Chinguacousy Rd,69,86,1_2,West,queen,463,,,,,,11,C1,1712549017.7649431
+12,23861158-240304-MULTI-Sunday-01,1,Queen,2,Major William Sharpe Dr e/of Chinguacousy Rd,70,86,1_2,West,queen,463,,,,,,12,C1,1712549045.9019468
 13,23861158-240304-MULTI-Sunday-01,1,Queen,2,Queen St W at Sobey's Entrance (WB),71,86,1_2,West,queen,463,1-344,619.0,1712549047.0,2024-04-08 00:04:07-04:00,IE,13,,
 14,23861158-240304-MULTI-Sunday-01,1,Queen,2,Chinguacousy - Zum Queen West Station Stop WB,72,86,1_2,West,queen,463,1-344,619.0,1712549079.0,2024-04-08 00:04:39-04:00,IE,14,,
-15,23861158-240304-MULTI-Sunday-01,1,Queen,2,James Potter - Zum Queen West Station Stop WB,73,86,1_2,West,queen,463,,,,,,15,C2,1712549165.0
+15,23861158-240304-MULTI-Sunday-01,1,Queen,2,James Potter - Zum Queen West Station Stop WB,73,86,1_2,West,queen,463,,,,,,15,C2,1712549110.57619
 16,23861158-240304-MULTI-Sunday-01,1,Queen,2,Queen St W opp Angelgate Rd,74,86,1_2,West,queen,463,1-344,619.0,1712549165.0,2024-04-08 00:06:05-04:00,IE,16,,
-17,23861158-240304-MULTI-Sunday-01,1,Queen,2,Creditview - Zum Queen West Station Stop WB,75,86,1_2,West,queen,463,,,,,,17,C3,1712549258.8882778
-18,23861158-240304-MULTI-Sunday-01,1,Queen,2,Queen St opp Links Lane,76,86,1_2,West,queen,463,,,,,,18,C3,1712549305.0
+17,23861158-240304-MULTI-Sunday-01,1,Queen,2,Creditview - Zum Queen West Station Stop WB,75,86,1_2,West,queen,463,,,,,,17,C3,1712549198.701555
+18,23861158-240304-MULTI-Sunday-01,1,Queen,2,Queen St opp Links Lane,76,86,1_2,West,queen,463,,,,,,18,C3,1712549236.3801172
 19,23861158-240304-MULTI-Sunday-01,1,Queen,2,Queen St w/of Elbern Markell Dr,77,86,1_2,West,queen,463,1-344,619.0,1712549305.0,2024-04-08 00:08:25-04:00,IE,19,,
 20,23861158-240304-MULTI-Sunday-01,1,Queen,2,Mississauga Rd - Zum Queen West Station Stop WB,78,86,1_2,West,queen,463,1-344,619.0,1712549353.0,2024-04-08 00:09:13-04:00,IE,20,,
 21,23861158-240304-MULTI-Sunday-01,1,Queen,2,Mississauga Rd n/of Adamsville Rd,79,86,1_2,West,queen,463,1-344,619.0,1712549391.0,2024-04-08 00:09:51-04:00,IE,21,,
-22,23861158-240304-MULTI-Sunday-01,1,Queen,2,Mississauga Rd n/of Beacon Hill Dr,80,86,1_2,West,queen,463,,,,,,22,C4,1712549463.0
+22,23861158-240304-MULTI-Sunday-01,1,Queen,2,Mississauga Rd n/of Beacon Hill Dr,80,86,1_2,West,queen,463,,,,,,22,C4,1712549414.6273134
 23,23861158-240304-MULTI-Sunday-01,1,Queen,2,Mississauga Rd at Credit Ridge Commons,81,86,1_2,West,queen,463,1-344,619.0,1712549463.0,2024-04-08 00:11:03-04:00,IE,23,,
-24,23861158-240304-MULTI-Sunday-01,1,Queen,2,Williams - Zum Queen West Station Stop NB,82,86,1_2,West,queen,463,,,,,,24,C5,1712549537.2875857
-25,23861158-240304-MULTI-Sunday-01,1,Queen,2,Mississauga Rd s/of Royal West Dr,83,86,1_2,West,queen,463,,,,,,25,C5,1712549631.0
+24,23861158-240304-MULTI-Sunday-01,1,Queen,2,Williams - Zum Queen West Station Stop NB,82,86,1_2,West,queen,463,,,,,,24,C5,1712549515.11375
+25,23861158-240304-MULTI-Sunday-01,1,Queen,2,Mississauga Rd s/of Royal West Dr,83,86,1_2,West,queen,463,,,,,,25,C5,1712549589.6884544
 26,23861158-240304-MULTI-Sunday-01,1,Queen,2,Bovaird - Zum Queen West Station Stop EB,84,86,1_2,West,queen,463,1-344,619.0,1712549631.0,2024-04-08 00:13:51-04:00,IE,26,,
 27,23861159-240304-MULTI-Sunday-01,1,Queen,2,Bramalea Rd at Kensington Rd,25,86,1_2,West,queen,463,1-344,823.0,1712548998.0,2024-04-08 00:03:18-04:00,IE,27,,
 28,23861159-240304-MULTI-Sunday-01,1,Queen,2,Knightsbridge Rd w/of Bramalea Rd,26,86,1_2,West,queen,463,1-344,823.0,1712549003.0,2024-04-08 00:03:23-04:00,IE,28,,
-29,23861159-240304-MULTI-Sunday-01,1,Queen,2,Knightsbridge Rd btwn Kings Cross & Central Pk Dr,27,86,1_2,West,queen,463,,,,,,29,C6,1712549058.0
+29,23861159-240304-MULTI-Sunday-01,1,Queen,2,Knightsbridge Rd btwn Kings Cross & Central Pk Dr,27,86,1_2,West,queen,463,,,,,,29,C6,1712549023.5266182
 30,23861159-240304-MULTI-Sunday-01,1,Queen,2,Knightsbridge Rd w/of Central Park Drive,28,86,1_2,West,queen,463,1-344,823.0,1712549058.0,2024-04-08 00:04:18-04:00,IE,30,,
-31,23861159-240304-MULTI-Sunday-01,1,Queen,2,Team Canada Dr btwn Knightsbridge & Peel Cente Dr,29,86,1_2,West,queen,463,,,,,,31,C7,1712550037.2506363
-32,23861159-240304-MULTI-Sunday-01,1,Queen,2,Bramalea Terminal Route 1/1A WB - Departure,30,86,1_2,West,queen,463,,,,,,32,C7,1712551288.0
+31,23861159-240304-MULTI-Sunday-01,1,Queen,2,Team Canada Dr btwn Knightsbridge & Peel Cente Dr,29,86,1_2,West,queen,463,,,,,,31,C7,1712549749.3346
+32,23861159-240304-MULTI-Sunday-01,1,Queen,2,Bramalea Terminal Route 1/1A WB - Departure,30,86,1_2,West,queen,463,,,,,,32,C7,1712550746.7326074
 33,23861159-240304-MULTI-Sunday-01,1,Queen,2,Central Park Dr at Knightsbridge Rd,31,86,1_2,West,queen,463,1-344,823.0,1712551288.0,2024-04-08 00:41:28-04:00,IE,33,,
-34,23861159-240304-MULTI-Sunday-01,1,Queen,2,Central Park Dr s/of Knightsbridge Rd,32,86,1_2,West,queen,463,,,,,,34,C8,1712549404.0
+34,23861159-240304-MULTI-Sunday-01,1,Queen,2,Central Park Dr s/of Knightsbridge Rd,32,86,1_2,West,queen,463,,,,,,34,C8,1712549830.0214024
 35,23861159-240304-MULTI-Sunday-01,1,Queen,2,Clark Blvd w/of Peel Centre Dr,33,86,1_2,West,queen,463,1-344,823.0,1712549404.0,2024-04-08 00:10:04-04:00,IE,35,,
