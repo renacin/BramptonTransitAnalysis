@@ -1059,7 +1059,6 @@ class DataCollector:
         re_pat = r"(?:1)0{1,10}"
 
         # Iterate Through Matches & Find Corresponding Pattern In String & Index List, Create An Index That Will Help Identify Order
-        trips_obs["TRIP_ID_CLUSTER_ID"] = ""
         trips_obs["IDX_R"] = np.arange(len(trips_obs))
         df_flag_str = "".join(trips_obs["DATA_FLG"].tolist())
         for cntr, x in enumerate(re.finditer(re_pat, df_flag_str)):
@@ -1101,11 +1100,19 @@ class DataCollector:
         cm_sum_df["TRV_TM_CUMSUM"] = cm_sum_df.groupby(["TRIP_CLUSTER_ID"])["SECS_TRVL_DSTNC"].cumsum()
         cm_sum_df["TRL_ARV_TM_EST"] = cm_sum_df["ERROR_START_TIME"] + cm_sum_df["TRV_TM_CUMSUM"]
         cm_sum_df.drop(columns=["CLUSTER_AVG_SPD", "ERROR_START_TIME", "SECS_TRVL_DSTNC", "TRV_TM_CUMSUM"], inplace = True)
-        trips_obs.drop(columns=['CLUSTER_AVG_SPD', 'ERROR_START_TIME', 'DATA_FLG', 'DTS_2_NXT_STP', 'SECS_TRVL_DSTNC', 'TRIP_ID_CLUSTER_ID'], inplace = True)
+        trips_obs.drop(columns=['CLUSTER_AVG_SPD', 'ERROR_START_TIME', 'DATA_FLG', 'DTS_2_NXT_STP', 'SECS_TRVL_DSTNC'], inplace = True)
 
 
         # Merge Data Together
         trips_obs = trips_obs.merge(cm_sum_df, how="left", on=["IDX_R", "TRIP_CLUSTER_ID"])
+        trips_obs.drop(columns=["IDX_R", "TRIP_CLUSTER_ID"], inplace = True)
+        for col in ["ROUTE_ID", "V_ID"]:
+            trips_obs[col] = trips_obs[col].ffill()
+
+        # Replace Time Stamp Data If Empty
+        trips_obs.loc[trips_obs["STP_ARV_TM"].isna(), "STP_ARV_TM"] = trips_obs["TRL_ARV_TM_EST"]
+        trips_obs.loc[trips_obs["STP_ARV_TM"].isna(), "DATA_TYPE"] = "CE"
+
         del cm_sum_df
 
         # For Testing
