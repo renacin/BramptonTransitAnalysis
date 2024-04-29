@@ -813,6 +813,8 @@ class DataCollector:
 
         # Sanitize Input
         df = data_f.copy()
+        del data_f
+        gc.collect()
 
         # Format Data To Ints, DT Accessor Took Too Long
         df = df.drop_duplicates(subset=['u_id'])
@@ -841,6 +843,7 @@ class DataCollector:
         df = df.merge(avg_dir, how="left", on=["TRIP_ID"])
         df.sort_values(["TRIP_ID", "EP_TIME"], inplace=True)
         del avg_dir
+        gc.collect()
 
         # For Each Stop Entry, We Need To Know The Previous Lat, Long, And STP_ID,
         for col in [("P_LAT", "C_LAT"), ("P_LONG", "C_LONG"), ("PRV_STP_ID", "NXT_STP_ID")]:
@@ -851,14 +854,14 @@ class DataCollector:
         for file in os.listdir(self.out_dict["BUS_STP"]):
             if "BUS_STP_DATA" in file:
                 file_path = f'{self.out_dict["BUS_STP"]}/{file}'
-        bus_stops = pd.read_csv(file_path)
 
         # Combine Bus Location Data With Bus Stop Data
         con = sqlite3.connect(":memory:")
-        bus_stops.to_sql("BusStops", con, if_exists="replace", index=False)
-        del bus_stops
+        pd.read_csv(file_path).to_sql("BusStops", con, if_exists="replace", index=False)
         df.to_sql("RD", con, if_exists="replace", index=False)
+
         del df
+        gc.collect()
 
         sql_query = '''
             -- Merge Bus Stop Information Onto Main Table
@@ -884,6 +887,8 @@ class DataCollector:
         # Read SQL Query & Perform Basic Sorting & Duplicate Removal
         data_pull = pd.read_sql_query(sql_query, con)
         con.close()
+        del con
+
         data_pull.sort_values(["ROUTE_ID", "TRIP_ID", "EP_TIME"], inplace=True)
         data_pull.drop_duplicates(inplace=True)
 
@@ -939,6 +944,10 @@ class DataCollector:
         transit_df["NXT_STP_ARV_DTTM"] = pd.to_datetime(transit_df["NXT_STP_ARV_TM"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
 
         return transit_df #speed_df
+
+
+
+
 
 
 
@@ -1129,14 +1138,13 @@ class DataCollector:
         del needed_cols
 
         # Format Data
-        df1 = self.__frmt_data_s1(df, td_dt_mx)
-        df2 = self.__frmt_data_s2(df1)
-        trips_obs = self.__frmt_data_s3(df2)
-
-        # For Testing
-        trips_obs.to_csv("TripObs.csv")
-        now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-        print(f"{now}: Finished")
+        df2 = self.__frmt_data_s2(self.__frmt_data_s1(df, td_dt_mx))
+        # trips_obs = self.__frmt_data_s3(df2)
+        #
+        # # For Testing
+        # trips_obs.to_csv("TripObs.csv")
+        # now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+        # print(f"{now}: Finished")
 
 
 
