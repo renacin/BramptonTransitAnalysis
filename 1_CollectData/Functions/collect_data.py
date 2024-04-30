@@ -813,6 +813,7 @@ class DataCollector:
 
         # Sanitize Input
         df = data_f.copy()
+
         del data_f
         gc.collect()
 
@@ -849,6 +850,7 @@ class DataCollector:
         avg_dir["AVG_DIR"] = avg_dir["AVG_DIR"].astype(int)
         df = df.merge(avg_dir, how="left", on=["TRIP_ID"])
         df.sort_values(["TRIP_ID", "EP_TIME"], inplace=True)
+
         del avg_dir
         gc.collect()
 
@@ -862,44 +864,34 @@ class DataCollector:
             if "BUS_STP_DATA" in file:
                 file_path = f'{self.out_dict["BUS_STP"]}/{file}'
 
-        # Combine Bus Location Data With Bus Stop Data
-        con = sqlite3.connect(":memory:")
-        pd.read_csv(file_path).to_sql("BusStops", con, if_exists="replace", index=False)
-        df.to_sql("RD", con, if_exists="replace", index=False)
+        # Read In Bus Stop Data, Try To Reduce Size
+        needed_cols = ["CLEANED_STOP_NAME_", "CLEANED_STOP_LAT_", "CLEANED_STOP_LON_", "stop_id"]
+        bus_stops = pd.read_csv(file_path, usecols=needed_cols)
+        bus_stops["CLEANED_STOP_LAT_"] = bus_stops["CLEANED_STOP_LAT_"].astype(np.float32)
+        bus_stops["CLEANED_STOP_LON_"] = bus_stops["CLEANED_STOP_LON_"].astype(np.float32)
+        bus_stops["stop_id"] = bus_stops["stop_id"].astype("Int32")
 
-        del df
+        # Create Unique Identifier, And Merge Bus Stop Information Onto Main Table
+        df["U_NAME"] = df["ROUTE_ID"] + "_" + df["TRIP_ID"].astype(str) + "_" + df["AVG_DIR"].astype(str)
+        df = df.merge(bus_stops, how="left", left_on=["NXT_STP_ID"], right_on=["stop_id"]).rename(columns = {"CLEANED_STOP_NAME_": "NXT_STP_NAME",
+                                                                                                             "CLEANED_STOP_LAT_": "NXT_STP_LAT",
+                                                                                                             "CLEANED_STOP_LON_": "NXT_STP_LONG"
+                                                                                                             }).drop(["stop_id"], axis=1)
+
+        df = df.merge(bus_stops, how="left", left_on=["PRV_STP_ID"], right_on=["stop_id"]).rename(columns = {"CLEANED_STOP_NAME_": "PRV_STP_NAME",
+                                                                                                             "CLEANED_STOP_LAT_": "PRV_STP_LAT",
+                                                                                                             "CLEANED_STOP_LON_": "PRV_STP_LONG"
+                                                                                                             }).drop(["stop_id"], axis=1)
+
+        # Drop Unneded Data
+        del bus_stops
         gc.collect()
 
-        sql_query = '''
-            -- Merge Bus Stop Information Onto Main Table
-            SELECT
-            	A.ROUTE_ID || '_' || A.TRIP_ID || '_' || A.AVG_DIR                               AS U_NAME,
-            	A.*,
+        # Final Bits Of Formatting
+        df.sort_values(["ROUTE_ID", "TRIP_ID", "EP_TIME"], inplace=True)
+        df.drop_duplicates(inplace=True)
 
-            	B2.CLEANED_STOP_NAME_                                                            AS PRV_STP_NAME,
-            	B2.CLEANED_STOP_LAT_                                                             AS PRV_STP_LAT,
-            	B2.CLEANED_STOP_LON_                                                             AS PRV_STP_LONG,
-
-            	B1.CLEANED_STOP_NAME_                                                            AS NXT_STP_NAME,
-            	B1.CLEANED_STOP_LAT_                                                             AS NXT_STP_LAT,
-            	B1.CLEANED_STOP_LON_                                                             AS NXT_STP_LONG
-
-
-            FROM RD AS A
-            LEFT JOIN BusStops AS B1 ON (A.NXT_STP_ID = B1.stop_id)
-            LEFT JOIN BusStops AS B2 ON (A.PRV_STP_ID = B2.stop_id)
-
-            '''
-
-        # Read SQL Query & Perform Basic Sorting & Duplicate Removal
-        data_pull = pd.read_sql_query(sql_query, con)
-        con.close()
-        del con
-
-        data_pull.sort_values(["ROUTE_ID", "TRIP_ID", "EP_TIME"], inplace=True)
-        data_pull.drop_duplicates(inplace=True)
-
-        return data_pull
+        return df
 
 
 
@@ -908,6 +900,8 @@ class DataCollector:
 
         # Sanitize Input
         data_pull = data_f.copy()
+        del data_f
+        gc.collect()
 
         # Remove Entries Where Bus Is Idling, Or Has Kept Transponder Running After The First Occurence At The Last Stop | Append All Dta To New Dataframe
         gb = data_pull.groupby("U_NAME")
