@@ -814,6 +814,7 @@ class DataCollector:
         # Sanitize Input
         df = data_f.copy()
 
+        # Collect Garbage
         del data_f
         gc.collect()
 
@@ -851,6 +852,7 @@ class DataCollector:
         df = df.merge(avg_dir, how="left", on=["TRIP_ID"])
         df.sort_values(["TRIP_ID", "EP_TIME"], inplace=True)
 
+        # Collect Garbage
         del avg_dir
         gc.collect()
 
@@ -883,7 +885,7 @@ class DataCollector:
                                                                                                              "CLEANED_STOP_LON_": "PRV_STP_LONG"
                                                                                                              }).drop(["stop_id"], axis=1)
 
-        # Drop Unneded Data
+        # Collect Garbage
         del bus_stops
         gc.collect()
 
