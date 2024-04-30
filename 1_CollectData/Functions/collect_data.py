@@ -835,10 +835,17 @@ class DataCollector:
                              "stop_id": "NXT_STP_ID",
                              "dt_colc": "DATE_TM"}, inplace=True)
 
+        # Try To Reduce Memory Usage
+        df["C_LAT"] = df["C_LAT"].astype(np.float32)
+        df["C_LONG"] = df["C_LONG"].astype(np.float32)
+        df["NXT_STP_ID"] = df["NXT_STP_ID"].astype("Int32")
+        df["EP_TIME"] = df["EP_TIME"].astype("Int32")
+        df["V_ID"] = df["V_ID"].astype("Int16")
+        df["DIR"] = df["DIR"].astype("Int16")
+
         # We Need To Determine Average DIR For Each Trip
         avg_dir = df[["TRIP_ID", "DIR"]].copy()
         avg_dir = avg_dir.groupby(["TRIP_ID"], as_index=False).agg(AVG_DIR = ("DIR", "mean"))
-        avg_dir["AVG_DIR"] = round(avg_dir["AVG_DIR"], 0)
         avg_dir["AVG_DIR"] = avg_dir["AVG_DIR"].astype(int)
         df = df.merge(avg_dir, how="left", on=["TRIP_ID"])
         df.sort_values(["TRIP_ID", "EP_TIME"], inplace=True)
@@ -944,10 +951,6 @@ class DataCollector:
         transit_df["NXT_STP_ARV_DTTM"] = pd.to_datetime(transit_df["NXT_STP_ARV_TM"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
 
         return transit_df #speed_df
-
-
-
-
 
 
 
@@ -1138,7 +1141,8 @@ class DataCollector:
         del needed_cols
 
         # Format Data
-        df2 = self.__frmt_data_s2(self.__frmt_data_s1(df, td_dt_mx))
+        df1 = self.__frmt_data_s1(df, td_dt_mx)
+        # df2 = self.__frmt_data_s2(df1)
         # trips_obs = self.__frmt_data_s3(df2)
         #
         # # For Testing
