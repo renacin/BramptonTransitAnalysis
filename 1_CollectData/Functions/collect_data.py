@@ -893,6 +893,10 @@ class DataCollector:
         df.sort_values(["ROUTE_ID", "TRIP_ID", "EP_TIME"], inplace=True)
         df.drop_duplicates(inplace=True)
 
+        # For Logging
+        now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+        print(f"{now}: Data Formatting Step #1 - Complete")
+
         return df
 
 
@@ -912,41 +916,44 @@ class DataCollector:
 
         # Calculate Distance Between Current Location & Previous Location | Create A Dataframe Elaborating Distance Traveled & Speed
         transit_df["DST_BTW_LOCS"] = vec_haversine((transit_df["P_LAT"].values, transit_df["P_LONG"].values), (transit_df["C_LAT"].values, transit_df["C_LONG"].values))
-        transit_df["DST_BTW_LOCS"] = round(transit_df["DST_BTW_LOCS"], 2)
 
-        # Determine The Average Speed For The Trip
+        # First Create A Copy Of Main Data Table | We Only Need Certain Columns, Not All!
         speed_df = transit_df.copy()
 
+        # Find The Previous Travel Time, Determine The Trip Speed & Trip Duration
         speed_df["P_EP_TIME"] = speed_df.groupby(["U_NAME"])["EP_TIME"].shift(+1)
-        speed_df = speed_df.dropna(subset=["P_EP_TIME"])
+        speed_df.dropna(subset=["P_EP_TIME"], inplace=True)
+
         speed_df["TRIP_DUR"] = (speed_df["EP_TIME"] - speed_df["P_EP_TIME"]) / 3600
         speed_df["TRIP_SPD"] = speed_df["DST_BTW_LOCS"] / speed_df["TRIP_DUR"]
-        speed_df = speed_df.groupby(["ROUTE_ID", "TRIP_ID", "AVG_DIR"], as_index=False).agg(TRIP_SPD = ("TRIP_SPD", "mean"), HOUR = ("HOUR", "first"))
-        speed_df["TRIP_SPD"] = round(speed_df["TRIP_SPD"], 2)
 
+        # Create A Data Frame Elaborating The Average Speed For A Trip, This May Be Useful In The Future Keep It!
+        speed_df = speed_df.groupby(["ROUTE_ID", "TRIP_ID", "AVG_DIR"], as_index=False).agg(TRIP_SPD = ("TRIP_SPD", "mean"),
+                                                                                            HOUR     = ("HOUR", "first")
+                                                                                            )
 
-        # If Next Stop Is Equal To Previous Stop, Replace With Blank, Foward Fill Next Stop Values & Replace First
-        for n_col, p_col in zip(["NXT_STP_ID", "NXT_STP_NAME", "NXT_STP_LAT", "NXT_STP_LONG"], ["PRV_STP_ID", "PRV_STP_NAME", "PRV_STP_LAT", "PRV_STP_LONG"]):
-            transit_df.loc[transit_df[n_col] == transit_df[p_col], p_col] = np.nan
-            transit_df[p_col] = transit_df.groupby(["ROUTE_ID", "TRIP_ID", "AVG_DIR"])[p_col].ffill()
-            transit_df[p_col] = transit_df[p_col].fillna(transit_df[n_col])
-        transit_df = transit_df.drop_duplicates(subset=["ROUTE_ID", "TRIP_ID", "AVG_DIR", "NXT_STP_ID", "PRV_STP_ID"], keep="last")
-
-
-        # Just Want To Know Te Time The Bus Arrived At It's Next Stop Given Average Speed
-        transit_df = transit_df.drop(["HOUR", "P_LAT", "P_LONG", "PRV_STP_ID", "PRV_STP_NAME", "PRV_STP_LAT", "PRV_STP_LONG", "DST_BTW_LOCS"], axis=1)
-        transit_df["DTS_2_NXT_STP"] = vec_haversine((transit_df["C_LAT"].values, transit_df["C_LONG"].values), (transit_df["NXT_STP_LAT"].values, transit_df["NXT_STP_LONG"].values))
-        transit_df["DTS_2_NXT_STP"] = round(transit_df["DTS_2_NXT_STP"], 2)
-
-        transit_df = transit_df.merge(speed_df, how="left", on=["ROUTE_ID", "TRIP_ID", "AVG_DIR"])
-
-        transit_df["SEC_2_NXT_STP"]  = (transit_df["DTS_2_NXT_STP"] / transit_df["TRIP_SPD"]) * 3600
-        transit_df["NXT_STP_ARV_TM"] = transit_df["EP_TIME"] + transit_df["SEC_2_NXT_STP"]
-        transit_df["NXT_STP_ARV_TM"] = round(transit_df["NXT_STP_ARV_TM"], 0)
-        transit_df["NXT_STP_ARV_TM"] = transit_df["NXT_STP_ARV_TM"].astype(dtype = int, errors = 'ignore')
-        transit_df["NXT_STP_ARV_DTTM"] = pd.to_datetime(transit_df["NXT_STP_ARV_TM"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
-
-        return transit_df #speed_df
+        print(speed_df)
+        # # If Next Stop Is Equal To Previous Stop, Replace With Blank, Foward Fill Next Stop Values & Replace First
+        # for n_col, p_col in zip(["NXT_STP_ID", "NXT_STP_NAME", "NXT_STP_LAT", "NXT_STP_LONG"], ["PRV_STP_ID", "PRV_STP_NAME", "PRV_STP_LAT", "PRV_STP_LONG"]):
+        #     transit_df.loc[transit_df[n_col] == transit_df[p_col], p_col] = np.nan
+        #     transit_df[p_col] = transit_df.groupby(["ROUTE_ID", "TRIP_ID", "AVG_DIR"])[p_col].ffill()
+        #     transit_df[p_col] = transit_df[p_col].fillna(transit_df[n_col])
+        # transit_df = transit_df.drop_duplicates(subset=["ROUTE_ID", "TRIP_ID", "AVG_DIR", "NXT_STP_ID", "PRV_STP_ID"], keep="last")
+        #
+        #
+        # # Just Want To Know Te Time The Bus Arrived At It's Next Stop Given Average Speed
+        # transit_df = transit_df.drop(["HOUR", "P_LAT", "P_LONG", "PRV_STP_ID", "PRV_STP_NAME", "PRV_STP_LAT", "PRV_STP_LONG", "DST_BTW_LOCS"], axis=1)
+        # transit_df["DTS_2_NXT_STP"] = vec_haversine((transit_df["C_LAT"].values, transit_df["C_LONG"].values), (transit_df["NXT_STP_LAT"].values, transit_df["NXT_STP_LONG"].values))
+        # transit_df["DTS_2_NXT_STP"] = round(transit_df["DTS_2_NXT_STP"], 2)
+        #
+        # transit_df = transit_df.merge(speed_df, how="left", on=["ROUTE_ID", "TRIP_ID", "AVG_DIR"])
+        #
+        # transit_df["SEC_2_NXT_STP"]  = (transit_df["DTS_2_NXT_STP"] / transit_df["TRIP_SPD"]) * 3600
+        # transit_df["NXT_STP_ARV_TM"] = transit_df["EP_TIME"] + transit_df["SEC_2_NXT_STP"]
+        # transit_df["NXT_STP_ARV_TM"] = transit_df["NXT_STP_ARV_TM"].astype(dtype = int, errors = 'ignore')
+        # transit_df["NXT_STP_ARV_DTTM"] = pd.to_datetime(transit_df["NXT_STP_ARV_TM"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
+        #
+        # return transit_df #speed_df
 
 
 
@@ -1137,8 +1144,8 @@ class DataCollector:
         del needed_cols
 
         # Format Data
-        df1 = self.__frmt_data_s1(df, td_dt_mx)
-        # df2 = self.__frmt_data_s2(df1)
+        # df2 =
+        self.__frmt_data_s2(self.__frmt_data_s1(df, td_dt_mx))
         # trips_obs = self.__frmt_data_s3(df2)
         #
         # # For Testing
