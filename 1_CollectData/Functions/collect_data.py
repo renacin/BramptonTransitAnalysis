@@ -827,15 +827,15 @@ class DataCollector:
         f_day = str(td_dt_mx.day).zfill(2)
         df = df[df["DAY"] == f_day]
         df = df.drop(["YEAR", "MONTH", "DAY", "MINUTE", "SECOND", "u_id"], axis=1)
-        df.rename(columns = {"timestamp": "EP_TIME",
-                             "route_id": "ROUTE_ID",
-                             "trip_id": "TRIP_ID",
-                             "vehicle_id": "V_ID",
-                             "bearing": "DIR",
-                             "latitude": "C_LAT",
-                             "longitude": "C_LONG",
-                             "stop_id": "NXT_STP_ID",
-                             "dt_colc": "DATE_TM"}, inplace=True)
+        df.rename(columns = {"timestamp" :  "EP_TIME",
+                             "route_id"  :  "ROUTE_ID",
+                             "trip_id"   :  "TRIP_ID",
+                             "vehicle_id":  "V_ID",
+                             "bearing"   :  "DIR",
+                             "latitude"  :  "C_LAT",
+                             "longitude" :  "C_LONG",
+                             "stop_id"   :  "NXT_STP_ID",
+                             "dt_colc"   :  "DATE_TM"}, inplace=True)
 
         # Try To Reduce Memory Usage
         df["C_LAT"] = df["C_LAT"].astype(np.float32)
@@ -844,6 +844,9 @@ class DataCollector:
         df["EP_TIME"] = df["EP_TIME"].astype("Int32")
         df["V_ID"] = df["V_ID"].astype("Int16")
         df["DIR"] = df["DIR"].astype("Int16")
+        df["TRIP_ID"] = df["TRIP_ID"].astype("category")
+        df["ROUTE_ID"] = df["ROUTE_ID"].astype("category")
+        df["HOUR"] = df["HOUR"].astype("category")
 
         # We Need To Determine Average DIR For Each Trip
         avg_dir = df[["TRIP_ID", "DIR"]].copy()
@@ -851,6 +854,9 @@ class DataCollector:
         avg_dir["AVG_DIR"] = avg_dir["AVG_DIR"].astype(int)
         df = df.merge(avg_dir, how="left", on=["TRIP_ID"])
         df.sort_values(["TRIP_ID", "EP_TIME"], inplace=True)
+
+        # Reduce Memory Usage Of New Fields Created
+        df["AVG_DIR"] = df["AVG_DIR"].astype("Int16")
 
         # Collect Garbage
         del avg_dir
@@ -866,15 +872,17 @@ class DataCollector:
             if "BUS_STP_DATA" in file:
                 file_path = f'{self.out_dict["BUS_STP"]}/{file}'
 
-        # Read In Bus Stop Data, Try To Reduce Size
+        # Read In Bus Stop Data
         needed_cols = ["CLEANED_STOP_NAME_", "CLEANED_STOP_LAT_", "CLEANED_STOP_LON_", "stop_id"]
         bus_stops = pd.read_csv(file_path, usecols=needed_cols)
+
+        # Reduce Size Of Columns
         bus_stops["CLEANED_STOP_LAT_"] = bus_stops["CLEANED_STOP_LAT_"].astype(np.float32)
         bus_stops["CLEANED_STOP_LON_"] = bus_stops["CLEANED_STOP_LON_"].astype(np.float32)
         bus_stops["stop_id"] = bus_stops["stop_id"].astype("Int32")
 
         # Create Unique Identifier, And Merge Bus Stop Information Onto Main Table
-        df["U_NAME"] = df["ROUTE_ID"] + "_" + df["TRIP_ID"].astype(str) + "_" + df["AVG_DIR"].astype(str)
+        df["U_NAME"] = df["ROUTE_ID"].astype(str) + "_" + df["TRIP_ID"].astype(str) + "_" + df["AVG_DIR"].astype(str)
         df = df.merge(bus_stops, how="left", left_on=["NXT_STP_ID"], right_on=["stop_id"]).rename(columns = {"CLEANED_STOP_NAME_": "NXT_STP_NAME",
                                                                                                              "CLEANED_STOP_LAT_": "NXT_STP_LAT",
                                                                                                              "CLEANED_STOP_LON_": "NXT_STP_LONG"
@@ -913,47 +921,61 @@ class DataCollector:
         gb = data_pull.groupby("U_NAME")
         transit_df = pd.concat([x[1].loc[x[1]["NXT_STP_NAME"].where(x[1]["NXT_STP_NAME"]==x[1]["NXT_STP_NAME"].iloc[0]).last_valid_index():x[1]["PRV_STP_NAME"].where(x[1]["PRV_STP_NAME"]==x[1]["PRV_STP_NAME"].iloc[-1]).first_valid_index()] for x in gb])
         del data_pull, gb
+        gc.collect()
 
         # Calculate Distance Between Current Location & Previous Location | Create A Dataframe Elaborating Distance Traveled & Speed
         transit_df["DST_BTW_LOCS"] = vec_haversine((transit_df["P_LAT"].values, transit_df["P_LONG"].values), (transit_df["C_LAT"].values, transit_df["C_LONG"].values))
 
         # First Create A Copy Of Main Data Table | We Only Need Certain Columns, Not All!
-        speed_df = transit_df.copy()
+        speed_df = transit_df[['U_NAME', 'TRIP_ID', 'ROUTE_ID', 'V_ID', 'AVG_DIR', 'EP_TIME', 'HOUR', 'DST_BTW_LOCS']].copy()
 
         # Find The Previous Travel Time, Determine The Trip Speed & Trip Duration
         speed_df["P_EP_TIME"] = speed_df.groupby(["U_NAME"])["EP_TIME"].shift(+1)
         speed_df.dropna(subset=["P_EP_TIME"], inplace=True)
-
         speed_df["TRIP_DUR"] = (speed_df["EP_TIME"] - speed_df["P_EP_TIME"]) / 3600
         speed_df["TRIP_SPD"] = speed_df["DST_BTW_LOCS"] / speed_df["TRIP_DUR"]
 
-        # Create A Data Frame Elaborating The Average Speed For A Trip, This May Be Useful In The Future Keep It!
-        speed_df = speed_df.groupby(["ROUTE_ID", "TRIP_ID", "AVG_DIR"], as_index=False).agg(TRIP_SPD = ("TRIP_SPD", "mean"),
-                                                                                            HOUR     = ("HOUR", "first")
-                                                                                            )
+        # Round & Convert Data Types To Save Memory?
+        speed_df["TRIP_DUR"] = speed_df["TRIP_DUR"].astype(np.float16)
+        speed_df["TRIP_SPD"] = speed_df["TRIP_SPD"].astype(np.float16)
+        gc.collect()
 
-        print(speed_df)
-        # # If Next Stop Is Equal To Previous Stop, Replace With Blank, Foward Fill Next Stop Values & Replace First
-        # for n_col, p_col in zip(["NXT_STP_ID", "NXT_STP_NAME", "NXT_STP_LAT", "NXT_STP_LONG"], ["PRV_STP_ID", "PRV_STP_NAME", "PRV_STP_LAT", "PRV_STP_LONG"]):
-        #     transit_df.loc[transit_df[n_col] == transit_df[p_col], p_col] = np.nan
-        #     transit_df[p_col] = transit_df.groupby(["ROUTE_ID", "TRIP_ID", "AVG_DIR"])[p_col].ffill()
-        #     transit_df[p_col] = transit_df[p_col].fillna(transit_df[n_col])
-        # transit_df = transit_df.drop_duplicates(subset=["ROUTE_ID", "TRIP_ID", "AVG_DIR", "NXT_STP_ID", "PRV_STP_ID"], keep="last")
-        #
-        #
-        # # Just Want To Know Te Time The Bus Arrived At It's Next Stop Given Average Speed
-        # transit_df = transit_df.drop(["HOUR", "P_LAT", "P_LONG", "PRV_STP_ID", "PRV_STP_NAME", "PRV_STP_LAT", "PRV_STP_LONG", "DST_BTW_LOCS"], axis=1)
-        # transit_df["DTS_2_NXT_STP"] = vec_haversine((transit_df["C_LAT"].values, transit_df["C_LONG"].values), (transit_df["NXT_STP_LAT"].values, transit_df["NXT_STP_LONG"].values))
-        # transit_df["DTS_2_NXT_STP"] = round(transit_df["DTS_2_NXT_STP"], 2)
-        #
-        # transit_df = transit_df.merge(speed_df, how="left", on=["ROUTE_ID", "TRIP_ID", "AVG_DIR"])
-        #
-        # transit_df["SEC_2_NXT_STP"]  = (transit_df["DTS_2_NXT_STP"] / transit_df["TRIP_SPD"]) * 3600
-        # transit_df["NXT_STP_ARV_TM"] = transit_df["EP_TIME"] + transit_df["SEC_2_NXT_STP"]
-        # transit_df["NXT_STP_ARV_TM"] = transit_df["NXT_STP_ARV_TM"].astype(dtype = int, errors = 'ignore')
-        # transit_df["NXT_STP_ARV_DTTM"] = pd.to_datetime(transit_df["NXT_STP_ARV_TM"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
-        #
-        # return transit_df #speed_df
+        # Create A Data Frame Elaborating The Average Speed For A Trip, This May Be Useful In The Future Keep It!
+        for col in ["ROUTE_ID", "TRIP_ID", "HOUR"]:
+            speed_df[col] = speed_df[col].astype("object")
+        speed_df = speed_df.groupby(["ROUTE_ID", "TRIP_ID", "AVG_DIR", "V_ID"], as_index=False).agg(TRIP_SPD = ("TRIP_SPD", "mean" ),
+                                                                                                    HOUR     = ("HOUR"    , "first")
+                                                                                                    )
+
+        # The GroupBy Drops Data Types For Some Reason, Convert Back To Appropriate Datatype
+        speed_df["TRIP_ID"] = speed_df["TRIP_ID"].astype("category")
+        speed_df["ROUTE_ID"] = speed_df["ROUTE_ID"].astype("category")
+        speed_df["AVG_DIR"] = speed_df["AVG_DIR"].astype("Int16")
+        speed_df["V_ID"] = speed_df["V_ID"].astype("Int16")
+
+
+        # If Next Stop Is Equal To Previous Stop, Replace With Blank, Foward Fill Next Stop Values & Replace First
+        for n_col, p_col in zip(["NXT_STP_ID", "NXT_STP_NAME", "NXT_STP_LAT", "NXT_STP_LONG"], ["PRV_STP_ID", "PRV_STP_NAME", "PRV_STP_LAT", "PRV_STP_LONG"]):
+            transit_df.loc[transit_df[n_col] == transit_df[p_col], p_col] = np.nan
+            transit_df[p_col] = transit_df.groupby(["ROUTE_ID", "TRIP_ID", "AVG_DIR"])[p_col].ffill()
+            transit_df[p_col] = transit_df[p_col].fillna(transit_df[n_col])
+
+        # Only Keep The Last Occurence If Duplicates Are Found
+        transit_df = transit_df.drop_duplicates(subset=["ROUTE_ID", "TRIP_ID", "AVG_DIR", "NXT_STP_ID", "PRV_STP_ID"], keep="last")
+
+        # Just Want To Know Te Time The Bus Arrived At It's Next Stop Given Average Speed
+        transit_df = transit_df.drop(["HOUR", "P_LAT", "P_LONG", "PRV_STP_ID", "PRV_STP_NAME", "PRV_STP_LAT", "PRV_STP_LONG", "DST_BTW_LOCS"], axis=1)
+        transit_df["DTS_2_NXT_STP"] = vec_haversine((transit_df["C_LAT"].values, transit_df["C_LONG"].values), (transit_df["NXT_STP_LAT"].values, transit_df["NXT_STP_LONG"].values))
+        transit_df["DTS_2_NXT_STP"] = round(transit_df["DTS_2_NXT_STP"], 2)
+
+        transit_df = transit_df.merge(speed_df, how="left", on=["ROUTE_ID", "TRIP_ID", "AVG_DIR"])
+
+        transit_df["SEC_2_NXT_STP"]  = (transit_df["DTS_2_NXT_STP"] / transit_df["TRIP_SPD"]) * 3600
+        transit_df["NXT_STP_ARV_TM"] = transit_df["EP_TIME"] + transit_df["SEC_2_NXT_STP"]
+        transit_df["NXT_STP_ARV_TM"] = transit_df["NXT_STP_ARV_TM"].astype(dtype = int, errors = 'ignore')
+        transit_df["NXT_STP_ARV_DTTM"] = pd.to_datetime(transit_df["NXT_STP_ARV_TM"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
+
+        return transit_df #speed_df
 
 
 
@@ -1144,7 +1166,6 @@ class DataCollector:
         del needed_cols
 
         # Format Data
-        # df2 =
         self.__frmt_data_s2(self.__frmt_data_s1(df, td_dt_mx))
         # trips_obs = self.__frmt_data_s3(df2)
         #
