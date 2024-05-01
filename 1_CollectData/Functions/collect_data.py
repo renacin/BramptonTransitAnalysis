@@ -982,7 +982,7 @@ class DataCollector:
         transit_df["DTS_2_NXT_STP"] = round(transit_df["DTS_2_NXT_STP"], 2)
 
         # Merge both Tables Together
-        transit_df = transit_df.merge(speed_df, how="left", on=["ROUTE_ID", "TRIP_ID", "AVG_DIR"])
+        transit_df = transit_df.merge(speed_df, how="left", on=["ROUTE_ID", "TRIP_ID", "AVG_DIR", "V_ID"])
         del speed_df
         gc.collect()
 
@@ -1002,158 +1002,170 @@ class DataCollector:
 
     # ---------------- Private Function #3 For Public Function 5 ---------------
     def __frmt_data_s3(self, data_f):
+        """ In step 3 of cleaning the main bus data, we infer the bus stops in between observed
+        bus stops. A bus doesn't always stop at every bus stop, but we still need to have that data.
+        Mark data that we have as informed data (closest we have to actual observation). Merge onto
+        a list of routes in order, and use ReGex to find the clusters of bus stops that were not
+        visited. From there use the information we have to determine when the bus might have passed
+        that bus stop. """
 
         # Sanitize Input
         transit_df = data_f.copy()
-
-        # Reorganize Data & Determine The Stops In Between Trips
-        transit_df = transit_df[['TRIP_ID', 'ROUTE_ID', 'V_ID',
-                                 'NXT_STP_NAME', 'NXT_STP_ARV_TM',
-                                 'NXT_STP_ARV_DTTM']]
-
-        transit_df.rename(columns={'NXT_STP_NAME': "STP_NM", 'NXT_STP_ARV_TM': "STP_ARV_TM",
-                                   'NXT_STP_ARV_DTTM': "STP_ARV_DTTM"}, inplace=True)
-
-        # Create A Column That Tracks How The Data Was Determined, Do Far It Was A Small Estimation
-        transit_df["DATA_TYPE"] = "IE" # Informed Estimation
-
-
-
-
-        # We Need To Determine The Stops In Between
-        transit_df = transit_df[transit_df["TRIP_ID"].isin(["23861158-240304-MULTI-Sunday-01", "23861159-240304-MULTI-Sunday-01"])]   # REMOVE THIS!! IN PRODUCTION!!
-
-
-
-
-
-        trips_obs = transit_df.groupby(["TRIP_ID"], as_index=False).agg(TRIP_ID = ("TRIP_ID", "first"), RT_ID = ("ROUTE_ID", "first"))
-        trips_obs["RT_ID"] = trips_obs["RT_ID"].str.replace("-344", "")
-        trips_obs["RT_ID"] = trips_obs["RT_ID"].astype(dtype = int, errors = 'ignore')
-
-        # Read In Routes Data, Only Look At Needed Data
-        for file in os.listdir(self.out_dict["BUS_STP"]):
-            if "BUS_RTE_DATA" in file:
-                stp_file_path = f'{self.out_dict["BUS_STP"]}/{file}'
-
-        needed_cols = ['RT_ID', 'RT_NAME', 'RT_VER', 'STP_NM', 'RT_STP_NUM', 'RT_NUM_STPS', 'RT_ID_VER', 'RT_DIR', 'RT_GRP', 'RT_GRP_NUM']
-        bus_routes = pd.read_csv(stp_file_path, usecols = needed_cols)
-        bus_routes = bus_routes[bus_routes["RT_ID"].isin(trips_obs["RT_ID"])]
-
-        # Left Join Bus Route Data Onto Unique Trip Data Using RT_ID As A Key
-        trips_obs = trips_obs.merge(bus_routes, how="left", on=["RT_ID"])
-        trips_obs = trips_obs.merge(transit_df, how="left", on=["TRIP_ID", "STP_NM"])
-        del transit_df
+        del data_f
         gc.collect()
 
-        # Create A Column That Identifies The Trip ID, RT_ID, And RT_VER, Remove U_IDs That Have No Data In Them
-        trips_obs["U_ID"] = trips_obs["TRIP_ID"].astype(str) + "_" + trips_obs["RT_ID"].astype(str) + "_" + trips_obs["RT_VER"].astype(str)
-        count_df = trips_obs.groupby(["U_ID"], as_index=False).agg(U_ID = ("U_ID", "first"),
-                                                                  COUNT = ("DATA_TYPE", "count"))
-
-        count_df[["TRIP_ID", "RT_ID", "RT_VER"]] = count_df["U_ID"].str.split('_', expand=True)
-        count_df["COUNT_NAME"] = count_df["TRIP_ID"].astype(str) + "_" + count_df["COUNT"].astype(str)
-
-        # Only Keep Trips That Actually Happened, Remove Eroneous Data
-        max_obs = count_df.groupby(["TRIP_ID", "RT_ID"], as_index=False).agg(COUNT = ("COUNT", "max"))
-        max_obs["COUNT_NAME"] = max_obs["TRIP_ID"].astype(str) + "_" + max_obs["COUNT"].astype(str)
-        max_obs.drop(["TRIP_ID", "RT_ID", "COUNT"], axis=1)
-        count_df = max_obs.merge(count_df, how="left", on=["COUNT_NAME"])
-        trips_obs = trips_obs[trips_obs["U_ID"].isin(count_df["U_ID"])]
-        del max_obs, count_df
-        gc.collect()
+        # We Only Need Certain Bits Of Data, Also For The Data That We Have Mark It As IE (Informed Estimation)
+        transit_df["DATA_TYPE"] = "IE"
+        transit_df = transit_df[['TRIP_ID', 'ROUTE_ID',
+                                 'V_ID', 'NXT_STP_NAME',
+                                 'NXT_STP_ARV_TM', 'NXT_STP_ARV_DTTM', "DATA_TYPE"]].rename(columns={'NXT_STP_NAME': "STP_NM",
+                                                                                                     'NXT_STP_ARV_TM': "STP_ARV_TM",
+                                                                                                     'NXT_STP_ARV_DTTM': "STP_ARV_DTTM"}, inplace=True)
+        print(transit_df.info())
 
 
-        # We Only Want Data Between The First Occurence, And The Last Of A Given Trip
-        gb = trips_obs.groupby("U_ID")
-        data = [x[1].loc[x[1]["DATA_TYPE"].where(x[1]["DATA_TYPE"]=="IE").first_valid_index():x[1]["DATA_TYPE"].where(x[1]["DATA_TYPE"]=="IE").last_valid_index()] for x in gb]
-        trips_obs = pd.concat(data)
-        del gb, data, trips_obs["U_ID"]
 
 
-        # Create An Encoding, For A New Column. If There Is Data In The Timestampt Then 1, Else 0
-        trips_obs["DATA_FLG"] = "1"
-        trips_obs.loc[trips_obs["STP_ARV_TM"].isna(), "DATA_FLG"] = "0"
-
-        # Find Bus Loc Data
-        for file in os.listdir(self.out_dict["BUS_STP"]):
-            if "BUS_STP_DATA" in file:
-                file_path = f'{self.out_dict["BUS_STP"]}/{file}'
-
-        # Read In Bus Loc Data & Merge To Trips Obs DF
-        needed_cols = ['stop_name', 'CLEANED_STOP_LAT_', 'CLEANED_STOP_LON_']
-        bus_locs = pd.read_csv(file_path, usecols = needed_cols)
-        bus_locs.rename(columns = {"stop_name": "STP_NM", "CLEANED_STOP_LAT_": "STP_LAT", "CLEANED_STOP_LON_": "STP_LON"}, inplace = True)
-        del needed_cols
-        trips_obs = trips_obs.merge(bus_locs, how="left", on=["STP_NM"])
-
-        # Determine Distance To Next Bus Stop
-        trips_obs['NXT_STP_LAT'] = trips_obs['STP_LAT'].shift(-1)
-        trips_obs['NXT_STP_LON'] = trips_obs['STP_LON'].shift(-1)
-        trips_obs["DTS_2_NXT_STP"] = vec_haversine((trips_obs["STP_LAT"].values, trips_obs["STP_LON"].values), (trips_obs["NXT_STP_LAT"].values, trips_obs["NXT_STP_LON"].values))
-        trips_obs.drop(columns=["STP_LAT", "STP_LON", "NXT_STP_LAT", "NXT_STP_LON"], inplace = True)
-
-        # Iterate Through The Data Looking Patterns, Find Clusters Of Missing Data, Use Regex To Find All Matches
-        re_pat = r"(?:1)0{1,10}"
-
-        # Iterate Through Matches & Find Corresponding Pattern In String & Index List, Create An Index That Will Help Identify Order
-        trips_obs["IDX_R"] = np.arange(len(trips_obs))
-        df_flag_str = "".join(trips_obs["DATA_FLG"].tolist())
-        for cntr, x in enumerate(re.finditer(re_pat, df_flag_str)):
-
-            # Convert To List, & Fix
-            grp_mtch_idx = list(x.span())
-
-            # Determine The Start & End Of The Identified Cluster
-            s1 = grp_mtch_idx[0]
-            s2 = grp_mtch_idx[1]
-
-            time_data = list(trips_obs.iloc[s1:s2+1]["STP_ARV_TM"].to_numpy())
-
-            # Find The Total Duration Of The Trip (Find Time At Begining -1 Of Cluster & Time At Ending +1 Of Cluster)
-            total_distance = sum(trips_obs.iloc[s1:s2]["DTS_2_NXT_STP"].to_numpy())
-            total_time = time_data[-1] - time_data[0]
-            total_time = total_time / 3600
-
-            # Determine Average Speed
-            c_svg_spd = total_distance / total_time
-
-            # Time Between Last Observation Before Outage, And First Observation After Outage
-            time_btw_stops = trips_obs.iloc[s2]["STP_ARV_TM"] - trips_obs.iloc[s1]["STP_ARV_TM"]
-
-            # Set Value Between Index As Cluster # ID
-            trips_obs.at[s1 + 1:s2 -1, "TRIP_CLUSTER_ID"] = f"C{cntr}"
-            trips_obs.at[s1 + 1:s2 -1, "CLUSTER_AVG_SPD"] = c_svg_spd
-
-            # We Need To Know The Timestamp Before The Error Cluster Began
-            trips_obs.at[s1 + 1:s2 -1, "ERROR_START_TIME"] = trips_obs.iloc[s1]["STP_ARV_TM"]
 
 
-        # Determine The Time It Took Given The Speed And Distance
-        trips_obs["SECS_TRVL_DSTNC"] = (trips_obs["DTS_2_NXT_STP"] / trips_obs["CLUSTER_AVG_SPD"]) * 3600
-
-        # Make A Copy Of Certain Columns, And Determine The Running Sum Of Time Traveled For Distance, Add Back To Original Time And Merge To Main DF
-        cm_sum_df = trips_obs[["IDX_R", "TRIP_CLUSTER_ID", "CLUSTER_AVG_SPD", "ERROR_START_TIME", "SECS_TRVL_DSTNC"]].copy()
-        cm_sum_df = cm_sum_df.dropna(subset=["TRIP_CLUSTER_ID"])
-        cm_sum_df["TRV_TM_CUMSUM"] = cm_sum_df.groupby(["TRIP_CLUSTER_ID"])["SECS_TRVL_DSTNC"].cumsum()
-        cm_sum_df["TRL_ARV_TM_EST"] = cm_sum_df["ERROR_START_TIME"] + cm_sum_df["TRV_TM_CUMSUM"]
-        cm_sum_df.drop(columns=["CLUSTER_AVG_SPD", "ERROR_START_TIME", "SECS_TRVL_DSTNC", "TRV_TM_CUMSUM"], inplace = True)
-        trips_obs.drop(columns=['CLUSTER_AVG_SPD', 'ERROR_START_TIME', 'DATA_FLG', 'DTS_2_NXT_STP', 'SECS_TRVL_DSTNC'], inplace = True)
 
 
-        # Merge Data Together
-        trips_obs = trips_obs.merge(cm_sum_df, how="left", on=["IDX_R", "TRIP_CLUSTER_ID"])
-        trips_obs.drop(columns=["IDX_R", "TRIP_CLUSTER_ID"], inplace = True)
-        for col in ["ROUTE_ID", "V_ID"]:
-            trips_obs[col] = trips_obs[col].ffill()
 
-        # Replace Time Stamp Data If Empty
-        trips_obs.loc[trips_obs["STP_ARV_TM"].isna(), "STP_ARV_TM"] = trips_obs["TRL_ARV_TM_EST"]
-        trips_obs.loc[trips_obs["DATA_TYPE"].isna(), "DATA_TYPE"] = "CE"
-        trips_obs.drop(columns=["STP_ARV_DTTM", "TRL_ARV_TM_EST"], inplace = True)
-        trips_obs["STP_ARV_TM"] = round(trips_obs["STP_ARV_TM"], 0)
-
-        return trips_obs
+        #
+        # # We Need To Determine The Stops In Between
+        # transit_df = transit_df[transit_df["TRIP_ID"].isin(["23861158-240304-MULTI-Sunday-01", "23861159-240304-MULTI-Sunday-01"])]   # REMOVE THIS!! IN PRODUCTION!!
+        #
+        #
+        #
+        #
+        #
+        # trips_obs = transit_df.groupby(["TRIP_ID"], as_index=False).agg(TRIP_ID = ("TRIP_ID", "first"), RT_ID = ("ROUTE_ID", "first"))
+        # trips_obs["RT_ID"] = trips_obs["RT_ID"].str.replace("-344", "")
+        # trips_obs["RT_ID"] = trips_obs["RT_ID"].astype(dtype = int, errors = 'ignore')
+        #
+        # # Read In Routes Data, Only Look At Needed Data
+        # for file in os.listdir(self.out_dict["BUS_STP"]):
+        #     if "BUS_RTE_DATA" in file:
+        #         stp_file_path = f'{self.out_dict["BUS_STP"]}/{file}'
+        #
+        # needed_cols = ['RT_ID', 'RT_NAME', 'RT_VER', 'STP_NM', 'RT_STP_NUM', 'RT_NUM_STPS', 'RT_ID_VER', 'RT_DIR', 'RT_GRP', 'RT_GRP_NUM']
+        # bus_routes = pd.read_csv(stp_file_path, usecols = needed_cols)
+        # bus_routes = bus_routes[bus_routes["RT_ID"].isin(trips_obs["RT_ID"])]
+        #
+        # # Left Join Bus Route Data Onto Unique Trip Data Using RT_ID As A Key
+        # trips_obs = trips_obs.merge(bus_routes, how="left", on=["RT_ID"])
+        # trips_obs = trips_obs.merge(transit_df, how="left", on=["TRIP_ID", "STP_NM"])
+        # del transit_df
+        # gc.collect()
+        #
+        # # Create A Column That Identifies The Trip ID, RT_ID, And RT_VER, Remove U_IDs That Have No Data In Them
+        # trips_obs["U_ID"] = trips_obs["TRIP_ID"].astype(str) + "_" + trips_obs["RT_ID"].astype(str) + "_" + trips_obs["RT_VER"].astype(str)
+        # count_df = trips_obs.groupby(["U_ID"], as_index=False).agg(U_ID = ("U_ID", "first"),
+        #                                                           COUNT = ("DATA_TYPE", "count"))
+        #
+        # count_df[["TRIP_ID", "RT_ID", "RT_VER"]] = count_df["U_ID"].str.split('_', expand=True)
+        # count_df["COUNT_NAME"] = count_df["TRIP_ID"].astype(str) + "_" + count_df["COUNT"].astype(str)
+        #
+        # # Only Keep Trips That Actually Happened, Remove Eroneous Data
+        # max_obs = count_df.groupby(["TRIP_ID", "RT_ID"], as_index=False).agg(COUNT = ("COUNT", "max"))
+        # max_obs["COUNT_NAME"] = max_obs["TRIP_ID"].astype(str) + "_" + max_obs["COUNT"].astype(str)
+        # max_obs.drop(["TRIP_ID", "RT_ID", "COUNT"], axis=1)
+        # count_df = max_obs.merge(count_df, how="left", on=["COUNT_NAME"])
+        # trips_obs = trips_obs[trips_obs["U_ID"].isin(count_df["U_ID"])]
+        # del max_obs, count_df
+        # gc.collect()
+        #
+        #
+        # # We Only Want Data Between The First Occurence, And The Last Of A Given Trip
+        # gb = trips_obs.groupby("U_ID")
+        # data = [x[1].loc[x[1]["DATA_TYPE"].where(x[1]["DATA_TYPE"]=="IE").first_valid_index():x[1]["DATA_TYPE"].where(x[1]["DATA_TYPE"]=="IE").last_valid_index()] for x in gb]
+        # trips_obs = pd.concat(data)
+        # del gb, data, trips_obs["U_ID"]
+        #
+        #
+        # # Create An Encoding, For A New Column. If There Is Data In The Timestampt Then 1, Else 0
+        # trips_obs["DATA_FLG"] = "1"
+        # trips_obs.loc[trips_obs["STP_ARV_TM"].isna(), "DATA_FLG"] = "0"
+        #
+        # # Find Bus Loc Data
+        # for file in os.listdir(self.out_dict["BUS_STP"]):
+        #     if "BUS_STP_DATA" in file:
+        #         file_path = f'{self.out_dict["BUS_STP"]}/{file}'
+        #
+        # # Read In Bus Loc Data & Merge To Trips Obs DF
+        # needed_cols = ['stop_name', 'CLEANED_STOP_LAT_', 'CLEANED_STOP_LON_']
+        # bus_locs = pd.read_csv(file_path, usecols = needed_cols)
+        # bus_locs.rename(columns = {"stop_name": "STP_NM", "CLEANED_STOP_LAT_": "STP_LAT", "CLEANED_STOP_LON_": "STP_LON"}, inplace = True)
+        # del needed_cols
+        # trips_obs = trips_obs.merge(bus_locs, how="left", on=["STP_NM"])
+        #
+        # # Determine Distance To Next Bus Stop
+        # trips_obs['NXT_STP_LAT'] = trips_obs['STP_LAT'].shift(-1)
+        # trips_obs['NXT_STP_LON'] = trips_obs['STP_LON'].shift(-1)
+        # trips_obs["DTS_2_NXT_STP"] = vec_haversine((trips_obs["STP_LAT"].values, trips_obs["STP_LON"].values), (trips_obs["NXT_STP_LAT"].values, trips_obs["NXT_STP_LON"].values))
+        # trips_obs.drop(columns=["STP_LAT", "STP_LON", "NXT_STP_LAT", "NXT_STP_LON"], inplace = True)
+        #
+        # # Iterate Through The Data Looking Patterns, Find Clusters Of Missing Data, Use Regex To Find All Matches
+        # re_pat = r"(?:1)0{1,10}"
+        #
+        # # Iterate Through Matches & Find Corresponding Pattern In String & Index List, Create An Index That Will Help Identify Order
+        # trips_obs["IDX_R"] = np.arange(len(trips_obs))
+        # df_flag_str = "".join(trips_obs["DATA_FLG"].tolist())
+        # for cntr, x in enumerate(re.finditer(re_pat, df_flag_str)):
+        #
+        #     # Convert To List, & Fix
+        #     grp_mtch_idx = list(x.span())
+        #
+        #     # Determine The Start & End Of The Identified Cluster
+        #     s1 = grp_mtch_idx[0]
+        #     s2 = grp_mtch_idx[1]
+        #
+        #     time_data = list(trips_obs.iloc[s1:s2+1]["STP_ARV_TM"].to_numpy())
+        #
+        #     # Find The Total Duration Of The Trip (Find Time At Begining -1 Of Cluster & Time At Ending +1 Of Cluster)
+        #     total_distance = sum(trips_obs.iloc[s1:s2]["DTS_2_NXT_STP"].to_numpy())
+        #     total_time = time_data[-1] - time_data[0]
+        #     total_time = total_time / 3600
+        #
+        #     # Determine Average Speed
+        #     c_svg_spd = total_distance / total_time
+        #
+        #     # Time Between Last Observation Before Outage, And First Observation After Outage
+        #     time_btw_stops = trips_obs.iloc[s2]["STP_ARV_TM"] - trips_obs.iloc[s1]["STP_ARV_TM"]
+        #
+        #     # Set Value Between Index As Cluster # ID
+        #     trips_obs.at[s1 + 1:s2 -1, "TRIP_CLUSTER_ID"] = f"C{cntr}"
+        #     trips_obs.at[s1 + 1:s2 -1, "CLUSTER_AVG_SPD"] = c_svg_spd
+        #
+        #     # We Need To Know The Timestamp Before The Error Cluster Began
+        #     trips_obs.at[s1 + 1:s2 -1, "ERROR_START_TIME"] = trips_obs.iloc[s1]["STP_ARV_TM"]
+        #
+        #
+        # # Determine The Time It Took Given The Speed And Distance
+        # trips_obs["SECS_TRVL_DSTNC"] = (trips_obs["DTS_2_NXT_STP"] / trips_obs["CLUSTER_AVG_SPD"]) * 3600
+        #
+        # # Make A Copy Of Certain Columns, And Determine The Running Sum Of Time Traveled For Distance, Add Back To Original Time And Merge To Main DF
+        # cm_sum_df = trips_obs[["IDX_R", "TRIP_CLUSTER_ID", "CLUSTER_AVG_SPD", "ERROR_START_TIME", "SECS_TRVL_DSTNC"]].copy()
+        # cm_sum_df = cm_sum_df.dropna(subset=["TRIP_CLUSTER_ID"])
+        # cm_sum_df["TRV_TM_CUMSUM"] = cm_sum_df.groupby(["TRIP_CLUSTER_ID"])["SECS_TRVL_DSTNC"].cumsum()
+        # cm_sum_df["TRL_ARV_TM_EST"] = cm_sum_df["ERROR_START_TIME"] + cm_sum_df["TRV_TM_CUMSUM"]
+        # cm_sum_df.drop(columns=["CLUSTER_AVG_SPD", "ERROR_START_TIME", "SECS_TRVL_DSTNC", "TRV_TM_CUMSUM"], inplace = True)
+        # trips_obs.drop(columns=['CLUSTER_AVG_SPD', 'ERROR_START_TIME', 'DATA_FLG', 'DTS_2_NXT_STP', 'SECS_TRVL_DSTNC'], inplace = True)
+        #
+        #
+        # # Merge Data Together
+        # trips_obs = trips_obs.merge(cm_sum_df, how="left", on=["IDX_R", "TRIP_CLUSTER_ID"])
+        # trips_obs.drop(columns=["IDX_R", "TRIP_CLUSTER_ID"], inplace = True)
+        # for col in ["ROUTE_ID", "V_ID"]:
+        #     trips_obs[col] = trips_obs[col].ffill()
+        #
+        # # Replace Time Stamp Data If Empty
+        # trips_obs.loc[trips_obs["STP_ARV_TM"].isna(), "STP_ARV_TM"] = trips_obs["TRL_ARV_TM_EST"]
+        # trips_obs.loc[trips_obs["DATA_TYPE"].isna(), "DATA_TYPE"] = "CE"
+        # trips_obs.drop(columns=["STP_ARV_DTTM", "TRL_ARV_TM_EST"], inplace = True)
+        # trips_obs["STP_ARV_TM"] = round(trips_obs["STP_ARV_TM"], 0)
+        #
+        # return trips_obs
 
 
 
@@ -1187,8 +1199,8 @@ class DataCollector:
         del needed_cols
 
         # Format Data
-        test = self.__frmt_data_s2(self.__frmt_data_s1(df, td_dt_mx), td_dt_mx)
-        # trips_obs = self.__frmt_data_s3()
+        # trips_obs =
+        self.__frmt_data_s3(self.__frmt_data_s2(self.__frmt_data_s1(df, td_dt_mx), td_dt_mx))
         #
         # # For Testing
         # trips_obs.to_csv("TripObs.csv")
