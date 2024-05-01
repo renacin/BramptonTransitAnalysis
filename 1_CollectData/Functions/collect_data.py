@@ -810,6 +810,9 @@ class DataCollector:
 
     # ---------------- Private Function #1 For Public Function 5 ---------------
     def __frmt_data_s1(self, data_f, td_dt_mx):
+        """ In step 1 of cleaning the main bus data, we must first convert variables
+        to an appropriate datatype (to save memory usage) and then determine the
+        previous and next bus stop that a bus might have visited. """
 
         # Sanitize Input
         df = data_f.copy()
@@ -911,6 +914,11 @@ class DataCollector:
 
     # ---------------- Private Function #2 For Public Function 5 ---------------
     def __frmt_data_s2(self, data_f):
+        """ In step 2 of cleaning the main bus data, remove unneccesary rows within a
+        trip, we only need the row closest to a given bus stop in a trip - this reduces
+        the amount of data recording idling time. Once complete we then calculate the
+        speed of the bus, given only the observations from that trip (no inferences). Once
+        we have the speed of the bus, we determine the arrival time to the next bus stop. """
 
         # Sanitize Input
         data_pull = data_f.copy()
@@ -952,7 +960,6 @@ class DataCollector:
         speed_df["ROUTE_ID"] = speed_df["ROUTE_ID"].astype("category")
         speed_df["AVG_DIR"] = speed_df["AVG_DIR"].astype("Int16")
         speed_df["V_ID"] = speed_df["V_ID"].astype("Int16")
-
 
         # If Next Stop Is Equal To Previous Stop, Replace With Blank, Foward Fill Next Stop Values & Replace First
         for n_col, p_col in zip(["NXT_STP_ID", "NXT_STP_NAME", "NXT_STP_LAT", "NXT_STP_LONG"], ["PRV_STP_ID", "PRV_STP_NAME", "PRV_STP_LAT", "PRV_STP_LONG"]):
