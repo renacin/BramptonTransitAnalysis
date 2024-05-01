@@ -913,7 +913,7 @@ class DataCollector:
 
 
     # ---------------- Private Function #2 For Public Function 5 ---------------
-    def __frmt_data_s2(self, data_f):
+    def __frmt_data_s2(self, data_f, td_dt_mx):
         """ In step 2 of cleaning the main bus data, remove unneccesary rows within a
         trip, we only need the row closest to a given bus stop in a trip - this reduces
         the amount of data recording idling time. Once complete we then calculate the
@@ -961,6 +961,11 @@ class DataCollector:
         speed_df["AVG_DIR"] = speed_df["AVG_DIR"].astype("Int16")
         speed_df["V_ID"] = speed_df["V_ID"].astype("Int16")
 
+        # Export Speed DF To Folder
+        dt_string = datetime.now().strftime(self.td_s_dt_dsply_frmt)
+        out_path = self.out_dict["BUS_SPEED"] + f"/BUS_SPEED_DATA_{td_dt_mx}.csv"
+        speed_df.to_csv(out_path, index=False)
+
         # If Next Stop Is Equal To Previous Stop, Replace With Blank, Foward Fill Next Stop Values & Replace First
         for n_col, p_col in zip(["NXT_STP_ID", "NXT_STP_NAME", "NXT_STP_LAT", "NXT_STP_LONG"], ["PRV_STP_ID", "PRV_STP_NAME", "PRV_STP_LAT", "PRV_STP_LONG"]):
             transit_df.loc[transit_df[n_col] == transit_df[p_col], p_col] = np.nan
@@ -975,14 +980,22 @@ class DataCollector:
         transit_df["DTS_2_NXT_STP"] = vec_haversine((transit_df["C_LAT"].values, transit_df["C_LONG"].values), (transit_df["NXT_STP_LAT"].values, transit_df["NXT_STP_LONG"].values))
         transit_df["DTS_2_NXT_STP"] = round(transit_df["DTS_2_NXT_STP"], 2)
 
+        # Merge both Tables Together
         transit_df = transit_df.merge(speed_df, how="left", on=["ROUTE_ID", "TRIP_ID", "AVG_DIR"])
+        del speed_df
+        gc.collect()
 
+        # Calculate Speed
         transit_df["SEC_2_NXT_STP"]  = (transit_df["DTS_2_NXT_STP"] / transit_df["TRIP_SPD"]) * 3600
         transit_df["NXT_STP_ARV_TM"] = transit_df["EP_TIME"] + transit_df["SEC_2_NXT_STP"]
         transit_df["NXT_STP_ARV_TM"] = transit_df["NXT_STP_ARV_TM"].astype(dtype = int, errors = 'ignore')
         transit_df["NXT_STP_ARV_DTTM"] = pd.to_datetime(transit_df["NXT_STP_ARV_TM"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
 
-        return transit_df #speed_df
+        # For Logging
+        now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+        print(f"{now}: Data Formatting Step #2 - Complete")
+
+        return transit_df
 
 
 
@@ -1173,8 +1186,8 @@ class DataCollector:
         del needed_cols
 
         # Format Data
-        self.__frmt_data_s2(self.__frmt_data_s1(df, td_dt_mx))
-        # trips_obs = self.__frmt_data_s3(df2)
+        test = self.__frmt_data_s2(self.__frmt_data_s1(df, td_dt_mx), td_dt_mx)
+        # trips_obs = self.__frmt_data_s3()
         #
         # # For Testing
         # trips_obs.to_csv("TripObs.csv")
