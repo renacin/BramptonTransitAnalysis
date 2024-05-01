@@ -962,8 +962,9 @@ class DataCollector:
         speed_df["V_ID"] = speed_df["V_ID"].astype("Int16")
 
         # Export Speed DF To Folder
+        cleaned_dt = f"{td_dt_mx.day:0>2}-{td_dt_mx.month:0>2}-{td_dt_mx.year}"
         dt_string = datetime.now().strftime(self.td_s_dt_dsply_frmt)
-        out_path = self.out_dict["BUS_SPEED"] + f"/BUS_SPEED_DATA_{td_dt_mx}.csv"
+        out_path = self.out_dict["BUS_SPEED"] + f"/BUS_SPEED_DATA_{cleaned_dt}.csv"
         speed_df.to_csv(out_path, index=False)
 
         # If Next Stop Is Equal To Previous Stop, Replace With Blank, Foward Fill Next Stop Values & Replace First
