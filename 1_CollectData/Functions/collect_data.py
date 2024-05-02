@@ -1020,62 +1020,69 @@ class DataCollector:
                                  'V_ID', 'NXT_STP_NAME',
                                  'NXT_STP_ARV_TM', 'NXT_STP_ARV_DTTM', "DATA_TYPE"]].rename(columns={'NXT_STP_NAME': "STP_NM",
                                                                                                      'NXT_STP_ARV_TM': "STP_ARV_TM",
-                                                                                                     'NXT_STP_ARV_DTTM': "STP_ARV_DTTM"}, inplace=True)
-        print(transit_df.info())
+                                                                                                     'NXT_STP_ARV_DTTM': "STP_ARV_DTTM"})
 
 
+        # THIS IS FOR TESTING PLEASE REMOVE BEFORE PUSH TO PRODUCTION!
+        transit_df = transit_df[transit_df["TRIP_ID"].isin(["23861158-240304-MULTI-Sunday-01", "23861159-240304-MULTI-Sunday-01"])]   # REMOVE THIS!! IN PRODUCTION!!
 
 
+        # We Need To Join The Trip Data To The Bus Stops (In Order) For A Given Route
+        trips_obs = transit_df.groupby(["TRIP_ID"], as_index=False).agg(TRIP_ID = ("TRIP_ID", "first"),
+                                                                        RT_ID   = ("ROUTE_ID", "first")
+                                                                        )
+        trips_obs["RT_ID"] = trips_obs["RT_ID"].str.replace("-344", "")
+        trips_obs["RT_ID"] = trips_obs["RT_ID"].astype(dtype = int, errors = 'ignore')
+        trips_obs["RT_ID"] = trips_obs["RT_ID"].astype("Int16")
 
+        # Read In Routes Data, Only Look At Needed Data, Convert To Smaller Data Type
+        for file in os.listdir(self.out_dict["BUS_STP"]):
+            if "BUS_RTE_DATA" in file:
+                stp_file_path = f'{self.out_dict["BUS_STP"]}/{file}'
 
+        needed_cols = ['RT_ID', 'RT_NAME', 'RT_VER', 'STP_NM', 'RT_STP_NUM', 'RT_NUM_STPS', 'RT_ID_VER', 'RT_DIR', 'RT_GRP', 'RT_GRP_NUM']
+        bus_routes = pd.read_csv(stp_file_path, usecols = needed_cols)
+        bus_routes = bus_routes[bus_routes["RT_ID"].isin(trips_obs["RT_ID"])]
 
+        # Try To Reduce Memory Usage
+        bus_routes["RT_ID"]       = bus_routes["RT_ID"].astype("Int16")
+        bus_routes["RT_VER"]      = bus_routes["RT_VER"].astype("Int16")
+        bus_routes["RT_STP_NUM"]  = bus_routes["RT_STP_NUM"].astype("Int16")
+        bus_routes["RT_NUM_STPS"] = bus_routes["RT_NUM_STPS"].astype("Int16")
+        bus_routes["RT_GRP_NUM"]  = bus_routes["RT_GRP_NUM"].astype("Int16")
 
+        # Left Join Bus Route Data Onto Unique Trip Data Using RT_ID As A Key
+        trips_obs = trips_obs.merge(bus_routes, how="left", on=["RT_ID"])
+        trips_obs = trips_obs.merge(transit_df, how="left", on=["TRIP_ID", "STP_NM"])
+        del transit_df, bus_routes
+        gc.collect()
 
-        #
-        # # We Need To Determine The Stops In Between
-        # transit_df = transit_df[transit_df["TRIP_ID"].isin(["23861158-240304-MULTI-Sunday-01", "23861159-240304-MULTI-Sunday-01"])]   # REMOVE THIS!! IN PRODUCTION!!
-        #
-        #
-        #
-        #
-        #
-        # trips_obs = transit_df.groupby(["TRIP_ID"], as_index=False).agg(TRIP_ID = ("TRIP_ID", "first"), RT_ID = ("ROUTE_ID", "first"))
-        # trips_obs["RT_ID"] = trips_obs["RT_ID"].str.replace("-344", "")
-        # trips_obs["RT_ID"] = trips_obs["RT_ID"].astype(dtype = int, errors = 'ignore')
-        #
-        # # Read In Routes Data, Only Look At Needed Data
-        # for file in os.listdir(self.out_dict["BUS_STP"]):
-        #     if "BUS_RTE_DATA" in file:
-        #         stp_file_path = f'{self.out_dict["BUS_STP"]}/{file}'
-        #
-        # needed_cols = ['RT_ID', 'RT_NAME', 'RT_VER', 'STP_NM', 'RT_STP_NUM', 'RT_NUM_STPS', 'RT_ID_VER', 'RT_DIR', 'RT_GRP', 'RT_GRP_NUM']
-        # bus_routes = pd.read_csv(stp_file_path, usecols = needed_cols)
-        # bus_routes = bus_routes[bus_routes["RT_ID"].isin(trips_obs["RT_ID"])]
-        #
-        # # Left Join Bus Route Data Onto Unique Trip Data Using RT_ID As A Key
-        # trips_obs = trips_obs.merge(bus_routes, how="left", on=["RT_ID"])
-        # trips_obs = trips_obs.merge(transit_df, how="left", on=["TRIP_ID", "STP_NM"])
-        # del transit_df
-        # gc.collect()
-        #
-        # # Create A Column That Identifies The Trip ID, RT_ID, And RT_VER, Remove U_IDs That Have No Data In Them
-        # trips_obs["U_ID"] = trips_obs["TRIP_ID"].astype(str) + "_" + trips_obs["RT_ID"].astype(str) + "_" + trips_obs["RT_VER"].astype(str)
-        # count_df = trips_obs.groupby(["U_ID"], as_index=False).agg(U_ID = ("U_ID", "first"),
-        #                                                           COUNT = ("DATA_TYPE", "count"))
-        #
-        # count_df[["TRIP_ID", "RT_ID", "RT_VER"]] = count_df["U_ID"].str.split('_', expand=True)
-        # count_df["COUNT_NAME"] = count_df["TRIP_ID"].astype(str) + "_" + count_df["COUNT"].astype(str)
-        #
-        # # Only Keep Trips That Actually Happened, Remove Eroneous Data
-        # max_obs = count_df.groupby(["TRIP_ID", "RT_ID"], as_index=False).agg(COUNT = ("COUNT", "max"))
-        # max_obs["COUNT_NAME"] = max_obs["TRIP_ID"].astype(str) + "_" + max_obs["COUNT"].astype(str)
-        # max_obs.drop(["TRIP_ID", "RT_ID", "COUNT"], axis=1)
-        # count_df = max_obs.merge(count_df, how="left", on=["COUNT_NAME"])
-        # trips_obs = trips_obs[trips_obs["U_ID"].isin(count_df["U_ID"])]
-        # del max_obs, count_df
-        # gc.collect()
-        #
-        #
+        # Create A Column That Identifies The Trip ID, RT_ID, And RT_VER, Remove U_IDs That Have No Data In Them
+        trips_obs["U_ID"] = trips_obs["TRIP_ID"].astype(str) + "_" + trips_obs["RT_ID"].astype(str) + "_" + trips_obs["RT_VER"].astype(str)
+        count_df = trips_obs.groupby(["U_ID"], as_index=False).agg(U_ID  = ("U_ID", "first"),
+                                                                   COUNT = ("DATA_TYPE", "count")
+                                                                   )
+
+        count_df[["TRIP_ID", "RT_ID", "RT_VER"]] = count_df["U_ID"].str.split('_', expand=True)
+        count_df["COUNT_NAME"] = count_df["TRIP_ID"].astype(str) + "_" + count_df["COUNT"].astype(str)
+
+        # Only Keep Trips That Actually Happened, Remove Eroneous Data
+        max_obs = count_df.groupby(["TRIP_ID", "RT_ID"], as_index=False).agg(COUNT = ("COUNT", "max"))
+        max_obs["COUNT_NAME"] = max_obs["TRIP_ID"].astype(str) + "_" + max_obs["COUNT"].astype(str)
+        max_obs.drop(["TRIP_ID", "RT_ID", "COUNT"], axis=1)
+
+        # Merge Back To Count DF, Make Sure We Are Looking At Correct U_IDs
+        count_df = max_obs.merge(count_df, how="left", on=["COUNT_NAME"])
+        trips_obs = trips_obs[trips_obs["U_ID"].isin(count_df["U_ID"])]
+        del max_obs, count_df
+        gc.collect()
+
+        # How Do I Solve Earlier Time, Later Stop Issue?
+        
+        # For Testing
+        trips_obs.to_csv("TripsObs.csv", index=False)
+        print(trips_obs.info())
+
         # # We Only Want Data Between The First Occurence, And The Last Of A Given Trip
         # gb = trips_obs.groupby("U_ID")
         # data = [x[1].loc[x[1]["DATA_TYPE"].where(x[1]["DATA_TYPE"]=="IE").first_valid_index():x[1]["DATA_TYPE"].where(x[1]["DATA_TYPE"]=="IE").last_valid_index()] for x in gb]

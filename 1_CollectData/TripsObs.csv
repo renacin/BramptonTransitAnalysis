@@ -1,0 +1,173 @@
+TRIP_ID,RT_ID,RT_NAME,RT_VER,STP_NM,RT_STP_NUM,RT_NUM_STPS,RT_ID_VER,RT_DIR,RT_GRP,RT_GRP_NUM,ROUTE_ID,V_ID,STP_ARV_TM,STP_ARV_DTTM,DATA_TYPE,U_ID
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Hwy 50 s/of Ebenezer Rd,1,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Highway 50 at 8950 Highway 50,2,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Highway 50 s/of Fogal Rd,3,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Highway 50 - Zum Queen Station Stop WB,4,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,The Gore Rd n/of Queen St,5,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,The Gore Rd s/of Fogal Rd,6,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Ebenezer Rd e/of Royal Country Dr,7,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Ebenezer Rd e/of Alfonso Cres,8,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Ebenezer Rd e/of Don Minaker Dr,9,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,McVean - Zum Queen Station Stop WB,10,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Goreway - Zum Queen Station Stop WB,11,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Queen St e/of Sun Pac Blvd,12,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Queen St E at Maritime Ontario,13,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Airport Road - Zum Queen Station Stop WB,14,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Queen St E at Canadian Tire,15,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Coventry Rd w/of Airport Rd - 1A,16,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Conventry Rd at Walker Dr,17,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Walker Dr at 299 Walker Dr ( Bell Building ) - 1A,18,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Walker Rd at Gateway Blvd - 1A,19,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Gateway Blvd at Queen St E - 1A,20,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Chrysler - Zum Queen Station Stop WB,21,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Queen St E w/of Tim Hortons (2433 Queen St E),22,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Torbram - Zum Queen Station Stop WB,23,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Glenvale - Zum Queen Station Stop WB,24,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Bramalea Rd at Kensington Rd,25,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Knightsbridge Rd w/of Bramalea Rd,26,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Knightsbridge Rd btwn Kings Cross & Central Pk Dr,27,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Knightsbridge Rd w/of Central Park Drive,28,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Team Canada Dr btwn Knightsbridge & Peel Cente Dr,29,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Bramalea Terminal Route 1/1A WB - Departure,30,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Central Park Dr at Knightsbridge Rd,31,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Central Park Dr s/of Knightsbridge Rd,32,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Clark Blvd w/of Peel Centre Dr,33,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Clark Blvd e/of Dixie Rd,34,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Clark Blvd at Lisa St,35,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Clark Blvd opp 185 Clark Blvd,36,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Clark Blvd at West Dr,37,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,West Dr at 83 West Dr,38,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,West Dr at 115 West Dr,39,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Laurelcrest - Zum Queen Station Stop WB,40,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Queen St E w/of Hwy 410 (Petro Canada),41,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Rutherford - Zum Queen Station Stop WB,42,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Queen St E at 300 Queen St E,43,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Queen St E w/of Hansen Rd,44,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Queen St E btwn Hansen Rd & Kennedy Rd N,45,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Kennedy - Zum Queen Station Stop WB,46,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Queen St E at Beech St,47,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Queen St E at 164 Queen St,48,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Centre - Zum Queen Station Stop WB,49,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Queen St E w/of Scott St,50,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Queen St E e/of Theatre Lane,51,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Downtown Terminal Route 1/1A WB /561 Stop,52,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,George St opp Diplock Lane,53,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Queen St W at Mill St N,54,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Queen St W at Park St,55,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,McMurchy - Zum Queen West Station Stop WB,56,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Queen St W at Haggert Ave N,57,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Queen St W at Mercer Dr,58,86,1_2,West,queen,463,1-344,619,1712548835.0,2024-04-08 00:00:35-04:00,IE,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,McLaughlin Rd S at FCCC Entrance,59,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Flower City Community Campus Route 1/1A/3A/57 Stop,60,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,McLaughlin Rd S n/of Bufford Dr,61,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,McLaughlin - Zum Queen West Station Stop WB,62,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Queen St W e/of Kimbark Dr,63,86,1_2,West,queen,463,1-344,619,1712548930.0,2024-04-08 00:02:10-04:00,IE,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Queen St W e/of Major William Sharpe,64,86,1_2,West,queen,463,1-344,619,1712548984.0,2024-04-08 00:03:04-04:00,IE,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Major William Sharpe Dr n/of Queen St,65,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Major William Sharpe Dr n/of Burgby Ave,66,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Major William Sharpe Dr opp Candy Cres (S),67,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Flowertown Ave w/of Major William Sharpe Dr,68,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Flowertown Ave at Chinguacousy Rd,69,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Major William Sharpe Dr e/of Chinguacousy Rd,70,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Queen St W at Sobey's Entrance (WB),71,86,1_2,West,queen,463,1-344,619,1712549047.0,2024-04-08 00:04:07-04:00,IE,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Chinguacousy - Zum Queen West Station Stop WB,72,86,1_2,West,queen,463,1-344,619,1712549079.0,2024-04-08 00:04:39-04:00,IE,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,James Potter - Zum Queen West Station Stop WB,73,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Queen St W opp Angelgate Rd,74,86,1_2,West,queen,463,1-344,619,1712549164.0,2024-04-08 00:06:04-04:00,IE,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Creditview - Zum Queen West Station Stop WB,75,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Queen St opp Links Lane,76,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Queen St w/of Elbern Markell Dr,77,86,1_2,West,queen,463,1-344,619,1712549305.0,2024-04-08 00:08:25-04:00,IE,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Mississauga Rd - Zum Queen West Station Stop WB,78,86,1_2,West,queen,463,1-344,619,1712549353.0,2024-04-08 00:09:13-04:00,IE,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Mississauga Rd n/of Adamsville Rd,79,86,1_2,West,queen,463,1-344,619,1712549391.0,2024-04-08 00:09:51-04:00,IE,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Mississauga Rd n/of Beacon Hill Dr,80,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Mississauga Rd at Credit Ridge Commons,81,86,1_2,West,queen,463,1-344,619,1712549462.0,2024-04-08 00:11:02-04:00,IE,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Williams - Zum Queen West Station Stop NB,82,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Mississauga Rd s/of Royal West Dr,83,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Bovaird - Zum Queen West Station Stop EB,84,86,1_2,West,queen,463,1-344,619,1712549630.0,2024-04-08 00:13:50-04:00,IE,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Bovaird Dr w/of Elbern Markell Dr,85,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861158-240304-MULTI-Sunday-01,1,Queen,2,Mount Pleasant GO Station - Route 1 / 561 Stop,86,86,1_2,West,queen,463,,,,,,23861158-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Hwy 50 s/of Ebenezer Rd,1,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Highway 50 at 8950 Highway 50,2,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Highway 50 s/of Fogal Rd,3,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Highway 50 - Zum Queen Station Stop WB,4,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,The Gore Rd n/of Queen St,5,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,The Gore Rd s/of Fogal Rd,6,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Ebenezer Rd e/of Royal Country Dr,7,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Ebenezer Rd e/of Alfonso Cres,8,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Ebenezer Rd e/of Don Minaker Dr,9,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,McVean - Zum Queen Station Stop WB,10,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Goreway - Zum Queen Station Stop WB,11,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Queen St e/of Sun Pac Blvd,12,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Queen St E at Maritime Ontario,13,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Airport Road - Zum Queen Station Stop WB,14,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Queen St E at Canadian Tire,15,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Coventry Rd w/of Airport Rd - 1A,16,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Conventry Rd at Walker Dr,17,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Walker Dr at 299 Walker Dr ( Bell Building ) - 1A,18,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Walker Rd at Gateway Blvd - 1A,19,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Gateway Blvd at Queen St E - 1A,20,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Chrysler - Zum Queen Station Stop WB,21,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Queen St E w/of Tim Hortons (2433 Queen St E),22,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Torbram - Zum Queen Station Stop WB,23,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Glenvale - Zum Queen Station Stop WB,24,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Bramalea Rd at Kensington Rd,25,86,1_2,West,queen,463,1-344,823,1712548996.0,2024-04-08 00:03:16-04:00,IE,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Knightsbridge Rd w/of Bramalea Rd,26,86,1_2,West,queen,463,1-344,823,1712549002.0,2024-04-08 00:03:22-04:00,IE,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Knightsbridge Rd btwn Kings Cross & Central Pk Dr,27,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Knightsbridge Rd w/of Central Park Drive,28,86,1_2,West,queen,463,1-344,823,1712549058.0,2024-04-08 00:04:18-04:00,IE,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Team Canada Dr btwn Knightsbridge & Peel Cente Dr,29,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Bramalea Terminal Route 1/1A WB - Departure,30,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Central Park Dr at Knightsbridge Rd,31,86,1_2,West,queen,463,1-344,823,1712551289.0,2024-04-08 00:41:29-04:00,IE,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Central Park Dr s/of Knightsbridge Rd,32,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Clark Blvd w/of Peel Centre Dr,33,86,1_2,West,queen,463,1-344,823,1712549404.0,2024-04-08 00:10:04-04:00,IE,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Clark Blvd e/of Dixie Rd,34,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Clark Blvd at Lisa St,35,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Clark Blvd opp 185 Clark Blvd,36,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Clark Blvd at West Dr,37,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,West Dr at 83 West Dr,38,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,West Dr at 115 West Dr,39,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Laurelcrest - Zum Queen Station Stop WB,40,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Queen St E w/of Hwy 410 (Petro Canada),41,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Rutherford - Zum Queen Station Stop WB,42,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Queen St E at 300 Queen St E,43,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Queen St E w/of Hansen Rd,44,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Queen St E btwn Hansen Rd & Kennedy Rd N,45,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Kennedy - Zum Queen Station Stop WB,46,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Queen St E at Beech St,47,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Queen St E at 164 Queen St,48,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Centre - Zum Queen Station Stop WB,49,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Queen St E w/of Scott St,50,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Queen St E e/of Theatre Lane,51,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Downtown Terminal Route 1/1A WB /561 Stop,52,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,George St opp Diplock Lane,53,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Queen St W at Mill St N,54,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Queen St W at Park St,55,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,McMurchy - Zum Queen West Station Stop WB,56,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Queen St W at Haggert Ave N,57,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Queen St W at Mercer Dr,58,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,McLaughlin Rd S at FCCC Entrance,59,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Flower City Community Campus Route 1/1A/3A/57 Stop,60,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,McLaughlin Rd S n/of Bufford Dr,61,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,McLaughlin - Zum Queen West Station Stop WB,62,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Queen St W e/of Kimbark Dr,63,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Queen St W e/of Major William Sharpe,64,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Major William Sharpe Dr n/of Queen St,65,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Major William Sharpe Dr n/of Burgby Ave,66,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Major William Sharpe Dr opp Candy Cres (S),67,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Flowertown Ave w/of Major William Sharpe Dr,68,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Flowertown Ave at Chinguacousy Rd,69,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Major William Sharpe Dr e/of Chinguacousy Rd,70,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Queen St W at Sobey's Entrance (WB),71,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Chinguacousy - Zum Queen West Station Stop WB,72,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,James Potter - Zum Queen West Station Stop WB,73,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Queen St W opp Angelgate Rd,74,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Creditview - Zum Queen West Station Stop WB,75,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Queen St opp Links Lane,76,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Queen St w/of Elbern Markell Dr,77,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Mississauga Rd - Zum Queen West Station Stop WB,78,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Mississauga Rd n/of Adamsville Rd,79,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Mississauga Rd n/of Beacon Hill Dr,80,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Mississauga Rd at Credit Ridge Commons,81,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Williams - Zum Queen West Station Stop NB,82,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Mississauga Rd s/of Royal West Dr,83,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Bovaird - Zum Queen West Station Stop EB,84,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Bovaird Dr w/of Elbern Markell Dr,85,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
+23861159-240304-MULTI-Sunday-01,1,Queen,2,Mount Pleasant GO Station - Route 1 / 561 Stop,86,86,1_2,West,queen,463,,,,,,23861159-240304-MULTI-Sunday-01_1_2
