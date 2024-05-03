@@ -1023,8 +1023,10 @@ class DataCollector:
                                                                                                      'NXT_STP_ARV_DTTM': "STP_ARV_DTTM"})
 
 
+
         # THIS IS FOR TESTING PLEASE REMOVE BEFORE PUSH TO PRODUCTION!
         transit_df = transit_df[transit_df["TRIP_ID"].isin(["23861158-240304-MULTI-Sunday-01", "23861159-240304-MULTI-Sunday-01"])]   # REMOVE THIS!! IN PRODUCTION!!
+
 
 
         # We Need To Join The Trip Data To The Bus Stops (In Order) For A Given Route
@@ -1138,22 +1140,6 @@ class DataCollector:
         del gb, data, trips_obs["U_ID"]
 
 
-
-
-
-
-
-
-
-
-
-
-        # For Testing
-        trips_obs.to_csv("TripsObs.csv", index=False)
-
-
-
-
         # Create An Encoding, For A New Column. If There Is Data In The Timestampt Then 1, Else 0
         trips_obs["DATA_FLG"] = "1"
         trips_obs.loc[trips_obs["STP_ARV_TM"].isna(), "DATA_FLG"] = "0"
@@ -1167,76 +1153,93 @@ class DataCollector:
         needed_cols = ['stop_name', 'CLEANED_STOP_LAT_', 'CLEANED_STOP_LON_']
         bus_locs = pd.read_csv(file_path, usecols = needed_cols)
         bus_locs.rename(columns = {"stop_name": "STP_NM", "CLEANED_STOP_LAT_": "STP_LAT", "CLEANED_STOP_LON_": "STP_LON"}, inplace = True)
-        del needed_cols
         trips_obs = trips_obs.merge(bus_locs, how="left", on=["STP_NM"])
-        
-        # # Determine Distance To Next Bus Stop
-        # trips_obs['NXT_STP_LAT'] = trips_obs['STP_LAT'].shift(-1)
-        # trips_obs['NXT_STP_LON'] = trips_obs['STP_LON'].shift(-1)
-        # trips_obs["DTS_2_NXT_STP"] = vec_haversine((trips_obs["STP_LAT"].values, trips_obs["STP_LON"].values), (trips_obs["NXT_STP_LAT"].values, trips_obs["NXT_STP_LON"].values))
-        # trips_obs.drop(columns=["STP_LAT", "STP_LON", "NXT_STP_LAT", "NXT_STP_LON"], inplace = True)
-        #
-        # # Iterate Through The Data Looking Patterns, Find Clusters Of Missing Data, Use Regex To Find All Matches
-        # re_pat = r"(?:1)0{1,10}"
-        #
-        # # Iterate Through Matches & Find Corresponding Pattern In String & Index List, Create An Index That Will Help Identify Order
-        # trips_obs["IDX_R"] = np.arange(len(trips_obs))
-        # df_flag_str = "".join(trips_obs["DATA_FLG"].tolist())
-        # for cntr, x in enumerate(re.finditer(re_pat, df_flag_str)):
-        #
-        #     # Convert To List, & Fix
-        #     grp_mtch_idx = list(x.span())
-        #
-        #     # Determine The Start & End Of The Identified Cluster
-        #     s1 = grp_mtch_idx[0]
-        #     s2 = grp_mtch_idx[1]
-        #
-        #     time_data = list(trips_obs.iloc[s1:s2+1]["STP_ARV_TM"].to_numpy())
-        #
-        #     # Find The Total Duration Of The Trip (Find Time At Begining -1 Of Cluster & Time At Ending +1 Of Cluster)
-        #     total_distance = sum(trips_obs.iloc[s1:s2]["DTS_2_NXT_STP"].to_numpy())
-        #     total_time = time_data[-1] - time_data[0]
-        #     total_time = total_time / 3600
-        #
-        #     # Determine Average Speed
-        #     c_svg_spd = total_distance / total_time
-        #
-        #     # Time Between Last Observation Before Outage, And First Observation After Outage
-        #     time_btw_stops = trips_obs.iloc[s2]["STP_ARV_TM"] - trips_obs.iloc[s1]["STP_ARV_TM"]
-        #
-        #     # Set Value Between Index As Cluster # ID
-        #     trips_obs.at[s1 + 1:s2 -1, "TRIP_CLUSTER_ID"] = f"C{cntr}"
-        #     trips_obs.at[s1 + 1:s2 -1, "CLUSTER_AVG_SPD"] = c_svg_spd
-        #
-        #     # We Need To Know The Timestamp Before The Error Cluster Began
-        #     trips_obs.at[s1 + 1:s2 -1, "ERROR_START_TIME"] = trips_obs.iloc[s1]["STP_ARV_TM"]
-        #
-        #
-        # # Determine The Time It Took Given The Speed And Distance
-        # trips_obs["SECS_TRVL_DSTNC"] = (trips_obs["DTS_2_NXT_STP"] / trips_obs["CLUSTER_AVG_SPD"]) * 3600
-        #
-        # # Make A Copy Of Certain Columns, And Determine The Running Sum Of Time Traveled For Distance, Add Back To Original Time And Merge To Main DF
-        # cm_sum_df = trips_obs[["IDX_R", "TRIP_CLUSTER_ID", "CLUSTER_AVG_SPD", "ERROR_START_TIME", "SECS_TRVL_DSTNC"]].copy()
-        # cm_sum_df = cm_sum_df.dropna(subset=["TRIP_CLUSTER_ID"])
-        # cm_sum_df["TRV_TM_CUMSUM"] = cm_sum_df.groupby(["TRIP_CLUSTER_ID"])["SECS_TRVL_DSTNC"].cumsum()
-        # cm_sum_df["TRL_ARV_TM_EST"] = cm_sum_df["ERROR_START_TIME"] + cm_sum_df["TRV_TM_CUMSUM"]
-        # cm_sum_df.drop(columns=["CLUSTER_AVG_SPD", "ERROR_START_TIME", "SECS_TRVL_DSTNC", "TRV_TM_CUMSUM"], inplace = True)
-        # trips_obs.drop(columns=['CLUSTER_AVG_SPD', 'ERROR_START_TIME', 'DATA_FLG', 'DTS_2_NXT_STP', 'SECS_TRVL_DSTNC'], inplace = True)
-        #
-        #
-        # # Merge Data Together
-        # trips_obs = trips_obs.merge(cm_sum_df, how="left", on=["IDX_R", "TRIP_CLUSTER_ID"])
-        # trips_obs.drop(columns=["IDX_R", "TRIP_CLUSTER_ID"], inplace = True)
-        # for col in ["ROUTE_ID", "V_ID"]:
-        #     trips_obs[col] = trips_obs[col].ffill()
-        #
-        # # Replace Time Stamp Data If Empty
-        # trips_obs.loc[trips_obs["STP_ARV_TM"].isna(), "STP_ARV_TM"] = trips_obs["TRL_ARV_TM_EST"]
-        # trips_obs.loc[trips_obs["DATA_TYPE"].isna(), "DATA_TYPE"] = "CE"
-        # trips_obs.drop(columns=["STP_ARV_DTTM", "TRL_ARV_TM_EST"], inplace = True)
-        # trips_obs["STP_ARV_TM"] = round(trips_obs["STP_ARV_TM"], 0)
+        del needed_cols, bus_locs
+        gc.collect()
+
+
+        # Determine Distance To Next Bus Stop
+        trips_obs['NXT_STP_LAT'] = trips_obs['STP_LAT'].shift(-1)
+        trips_obs['NXT_STP_LON'] = trips_obs['STP_LON'].shift(-1)
+        trips_obs["DTS_2_NXT_STP"] = vec_haversine((trips_obs["STP_LAT"].values, trips_obs["STP_LON"].values), (trips_obs["NXT_STP_LAT"].values, trips_obs["NXT_STP_LON"].values))
+        trips_obs.drop(columns=["STP_LAT", "STP_LON", "NXT_STP_LAT", "NXT_STP_LON"], inplace = True)
+
+        # Iterate Through The Data Looking Patterns, Find Clusters Of Missing Data, Use Regex To Find All Matches
+        re_pat = r"(?:1)0{1,10}"
+
+        # Iterate Through Matches & Find Corresponding Pattern In String & Index List, Create An Index That Will Help Identify Order
+        trips_obs["IDX_R"] = np.arange(len(trips_obs))
+        df_flag_str = "".join(trips_obs["DATA_FLG"].tolist())
+        for cntr, x in enumerate(re.finditer(re_pat, df_flag_str)):
+
+            # Convert To List, & Fix
+            grp_mtch_idx = list(x.span())
+
+            # Fin The Needed Time Data
+            time_data = list(trips_obs.iloc[grp_mtch_idx[0]:grp_mtch_idx[1]+1]["STP_ARV_TM"].to_numpy())
+
+            # Find The Total Duration Of The Trip (Find Time At Begining -1 Of Cluster & Time At Ending +1 Of Cluster)
+            total_distance = sum(trips_obs.iloc[grp_mtch_idx[0]:grp_mtch_idx[1]]["DTS_2_NXT_STP"].to_numpy())
+            total_time = time_data[-1] - time_data[0]
+            total_time = total_time / 3600
+
+            # Determine Average Speed
+            c_svg_spd = total_distance / total_time
+
+            # Time Between Last Observation Before Outage, And First Observation After Outage
+            time_btw_stops = trips_obs.iloc[grp_mtch_idx[1]]["STP_ARV_TM"] - trips_obs.iloc[grp_mtch_idx[0]]["STP_ARV_TM"]
+
+            # Set Value Between Index As Cluster # ID
+            trips_obs.at[grp_mtch_idx[0] + 1:grp_mtch_idx[1] -1, "TRIP_CLUSTER_ID"] = f"C{cntr}"
+            trips_obs.at[grp_mtch_idx[0] + 1:grp_mtch_idx[1] -1, "CLUSTER_AVG_SPD"] = c_svg_spd
+
+            # We Need To Know The Timestamp Before The Error Cluster Began
+            trips_obs.at[grp_mtch_idx[0] + 1:grp_mtch_idx[1] -1, "ERROR_START_TIME"] = trips_obs.iloc[grp_mtch_idx[0]]["STP_ARV_TM"]
+
+
+        # Determine The Time It Took Given The Speed And Distance
+        trips_obs["SECS_TRVL_DSTNC"] = (trips_obs["DTS_2_NXT_STP"] / trips_obs["CLUSTER_AVG_SPD"]) * 3600
+
+        # Make A Copy Of Certain Columns, And Determine The Running Sum Of Time Traveled For Distance, Add Back To Original Time And Merge To Main DF
+        cm_sum_df = trips_obs[["IDX_R", "TRIP_CLUSTER_ID", "CLUSTER_AVG_SPD", "ERROR_START_TIME", "SECS_TRVL_DSTNC"]].copy()
+        cm_sum_df = cm_sum_df.dropna(subset=["TRIP_CLUSTER_ID"])
+        cm_sum_df["TRV_TM_CUMSUM"] = cm_sum_df.groupby(["TRIP_CLUSTER_ID"])["SECS_TRVL_DSTNC"].cumsum()
+        cm_sum_df["TRL_ARV_TM_EST"] = cm_sum_df["ERROR_START_TIME"] + cm_sum_df["TRV_TM_CUMSUM"]
+        cm_sum_df.drop(columns=["CLUSTER_AVG_SPD", "ERROR_START_TIME", "SECS_TRVL_DSTNC", "TRV_TM_CUMSUM"], inplace = True)
+        trips_obs.drop(columns=['CLUSTER_AVG_SPD', 'ERROR_START_TIME', 'DATA_FLG', 'DTS_2_NXT_STP', 'SECS_TRVL_DSTNC'], inplace = True)
+
+        # Merge Data Together
+        trips_obs = trips_obs.merge(cm_sum_df, how="left", on=["IDX_R", "TRIP_CLUSTER_ID"])
+        trips_obs.drop(columns=["IDX_R", "TRIP_CLUSTER_ID"], inplace = True)
+        for col in ["ROUTE_ID", "V_ID"]:
+            trips_obs[col] = trips_obs[col].ffill()
+
+        # Make Note Of Type Of Data, CE = Complete Estimation
+        trips_obs.loc[trips_obs["STP_ARV_TM"].isna(), "STP_ARV_TM"] = trips_obs["TRL_ARV_TM_EST"]
+        trips_obs.loc[trips_obs["DATA_TYPE"] == "", "DATA_TYPE"] = "CE"
+
+        # Remove Unneeded Columns
+        trips_obs.drop(columns=["STP_ARV_DTTM", "TRL_ARV_TM_EST"], inplace = True)
+
+        # Forward Fill Data
+        trips_obs["STP_ARV_TM"] = round(trips_obs["STP_ARV_TM"], 0)
+        trips_obs["STP_ARV_DTTM"] = pd.to_datetime(trips_obs["STP_ARV_TM"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
+        trips_obs["ROUTE_ID"] = trips_obs.groupby(["TRIP_ID"])["ROUTE_ID"].ffill()
+
+
+
+        # For Testing
+        trips_obs.to_csv("TripsObs.csv", index=False)
+
+        # For Logging
+        now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+        print(f"{now}: Data Formatting Step #3 - Complete")
         #
         # return trips_obs
+
+
+
+
 
 
 
