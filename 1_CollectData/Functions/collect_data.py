@@ -1074,7 +1074,7 @@ class DataCollector:
         # Only Keep Trips That Actually Happened, Remove Eroneous Data
         max_obs = count_df.groupby(["TRIP_ID", "RT_ID"], as_index=False).agg(COUNT = ("COUNT", "max"))
         max_obs["COUNT_NAME"] = max_obs["TRIP_ID"].astype(str) + "_" + max_obs["COUNT"].astype(str)
-        max_obs.drop(["TRIP_ID", "RT_ID", "COUNT"], axis=1)
+        max_obs.drop(["TRIP_ID", "RT_ID", "COUNT"], axis=1, inplace=True)
 
         # Merge Back To Count DF, Make Sure We Are Looking At Correct U_IDs
         count_df = max_obs.merge(count_df, how="left", on=["COUNT_NAME"])
@@ -1083,11 +1083,7 @@ class DataCollector:
         gc.collect()
 
 
-
-
-
-        # How Do I Solve Earlier Time, Later Stop Issue?
-
+        # Need To Solve The Later Later Stop Earlier Time Issue
         # Make An Indicator For Each Row
         trips_obs["ROW_ID"] = range(len(trips_obs))
 
@@ -1100,37 +1096,80 @@ class DataCollector:
         test_df['NXT_STP_ARV_TM'] = test_df.groupby(['U_ID'])['STP_ARV_TM'].shift(-1)
         test_df['TM_DIFF'] = test_df['NXT_STP_ARV_TM'] - test_df['STP_ARV_TM']
 
+        # We Need To Know Which Rows To Remove Only Keep Data Between First Observation Of Negative Value And Everything Else
+        gb = test_df.groupby("U_ID")
+        data = []
+        for x in gb:
 
-        # # We Only Want Data Between The First Occurence, And The Last Of A Given Trip
-        # gb = trips_obs.groupby("U_ID")
-        # data = [x[1].loc[x[1]["DATA_TYPE"].where(x[1]["DATA_TYPE"]=="IE").first_valid_index():x[1]["DATA_TYPE"].where(x[1]["DATA_TYPE"]=="IE").last_valid_index()] for x in gb]
-        # trips_obs = pd.concat(data)
-        # del gb, data, trips_obs["U_ID"]
+            # Get All Time Diffs As List
+            td_df_lst = x[1]["TM_DIFF"].tolist()
+
+            # If Negative Value In TM_DIFF Column
+            if any(tm_stampt < 0 for tm_stampt in td_df_lst):
+                data.append(x[1].loc[x[1]["TM_DIFF"].where(x[1]["TM_DIFF"] < 0).first_valid_index():])
+
+        # Put Everything Together
+        test_df = pd.concat(data)
+        test_df.drop(["NXT_STP_ARV_TM", "TM_DIFF", "STP_ARV_TM", "U_ID"], axis=1, inplace=True)
+        test_df["ERASE_DATA"] = "YES"
+
+        # Merge Onto Main Table, Clean Up
+        trips_obs = trips_obs.merge(test_df, how="left", on=["ROW_ID"])
+        trips_obs.loc[trips_obs["STP_ARV_TM"].isna(), "ERASE_DATA"] = "YES"
+        del test_df
+        gc.collect()
+
+        # Convert Column To String, Remove Erroneous Data
+        for col in ["ROUTE_ID", "STP_ARV_DTTM", "DATA_TYPE"]:
+            trips_obs[col] = trips_obs[col].astype(str)
+        for col in ["ROUTE_ID", "STP_ARV_DTTM", "DATA_TYPE"]:
+            trips_obs.loc[trips_obs["ERASE_DATA"] == "YES", col] = ""
+        for col in ["V_ID", "STP_ARV_TM"]:
+            trips_obs.loc[trips_obs["ERASE_DATA"] == "YES", col] = np.nan
+
+        # Remove Unneeded Column
+        trips_obs.drop(["ERASE_DATA", "ROW_ID"], axis=1, inplace=True)
+
+
+        # We Only Want Data Between The First Occurence, And The Last Of A Given Trip
+        gb = trips_obs.groupby("U_ID")
+        data = [x[1].loc[x[1]["DATA_TYPE"].where(x[1]["DATA_TYPE"]=="IE").first_valid_index():x[1]["DATA_TYPE"].where(x[1]["DATA_TYPE"]=="IE").last_valid_index()] for x in gb]
+        trips_obs = pd.concat(data)
+        del gb, data, trips_obs["U_ID"]
+
+
+
+
+
+
+
+
+
+
 
 
         # For Testing
-        test_df.to_csv("TripsObs.csv", index=False)
-        # print(trips_obs.info())
+        trips_obs.to_csv("TripsObs.csv", index=False)
 
 
 
 
-        # # Create An Encoding, For A New Column. If There Is Data In The Timestampt Then 1, Else 0
-        # trips_obs["DATA_FLG"] = "1"
-        # trips_obs.loc[trips_obs["STP_ARV_TM"].isna(), "DATA_FLG"] = "0"
-        #
-        # # Find Bus Loc Data
-        # for file in os.listdir(self.out_dict["BUS_STP"]):
-        #     if "BUS_STP_DATA" in file:
-        #         file_path = f'{self.out_dict["BUS_STP"]}/{file}'
-        #
-        # # Read In Bus Loc Data & Merge To Trips Obs DF
-        # needed_cols = ['stop_name', 'CLEANED_STOP_LAT_', 'CLEANED_STOP_LON_']
-        # bus_locs = pd.read_csv(file_path, usecols = needed_cols)
-        # bus_locs.rename(columns = {"stop_name": "STP_NM", "CLEANED_STOP_LAT_": "STP_LAT", "CLEANED_STOP_LON_": "STP_LON"}, inplace = True)
-        # del needed_cols
-        # trips_obs = trips_obs.merge(bus_locs, how="left", on=["STP_NM"])
-        #
+        # Create An Encoding, For A New Column. If There Is Data In The Timestampt Then 1, Else 0
+        trips_obs["DATA_FLG"] = "1"
+        trips_obs.loc[trips_obs["STP_ARV_TM"].isna(), "DATA_FLG"] = "0"
+
+        # Find Bus Loc Data
+        for file in os.listdir(self.out_dict["BUS_STP"]):
+            if "BUS_STP_DATA" in file:
+                file_path = f'{self.out_dict["BUS_STP"]}/{file}'
+
+        # Read In Bus Loc Data & Merge To Trips Obs DF
+        needed_cols = ['stop_name', 'CLEANED_STOP_LAT_', 'CLEANED_STOP_LON_']
+        bus_locs = pd.read_csv(file_path, usecols = needed_cols)
+        bus_locs.rename(columns = {"stop_name": "STP_NM", "CLEANED_STOP_LAT_": "STP_LAT", "CLEANED_STOP_LON_": "STP_LON"}, inplace = True)
+        del needed_cols
+        trips_obs = trips_obs.merge(bus_locs, how="left", on=["STP_NM"])
+        
         # # Determine Distance To Next Bus Stop
         # trips_obs['NXT_STP_LAT'] = trips_obs['STP_LAT'].shift(-1)
         # trips_obs['NXT_STP_LON'] = trips_obs['STP_LON'].shift(-1)
