@@ -1031,6 +1031,7 @@ class DataCollector:
         trips_obs = transit_df.groupby(["TRIP_ID"], as_index=False).agg(TRIP_ID = ("TRIP_ID", "first"),
                                                                         RT_ID   = ("ROUTE_ID", "first")
                                                                         )
+
         trips_obs["RT_ID"] = trips_obs["RT_ID"].str.replace("-344", "")
         trips_obs["RT_ID"] = trips_obs["RT_ID"].astype(dtype = int, errors = 'ignore')
         trips_obs["RT_ID"] = trips_obs["RT_ID"].astype("Int16")
@@ -1040,7 +1041,11 @@ class DataCollector:
             if "BUS_RTE_DATA" in file:
                 stp_file_path = f'{self.out_dict["BUS_STP"]}/{file}'
 
-        needed_cols = ['RT_ID', 'RT_NAME', 'RT_VER', 'STP_NM', 'RT_STP_NUM', 'RT_NUM_STPS', 'RT_ID_VER', 'RT_DIR', 'RT_GRP', 'RT_GRP_NUM']
+        needed_cols = ['RT_ID', 'RT_NAME', 'RT_VER',
+                       'STP_NM', 'RT_STP_NUM', 'RT_NUM_STPS',
+                       'RT_ID_VER', 'RT_DIR', 'RT_GRP',
+                       'RT_GRP_NUM']
+
         bus_routes = pd.read_csv(stp_file_path, usecols = needed_cols)
         bus_routes = bus_routes[bus_routes["RT_ID"].isin(trips_obs["RT_ID"])]
 
@@ -1077,19 +1082,39 @@ class DataCollector:
         del max_obs, count_df
         gc.collect()
 
+
+
+
+
         # How Do I Solve Earlier Time, Later Stop Issue?
-        
-        # For Testing
-        trips_obs.to_csv("TripsObs.csv", index=False)
-        print(trips_obs.info())
+
+        # Make An Indicator For Each Row
+        trips_obs["ROW_ID"] = range(len(trips_obs))
+
+        # Make A Copy Of The Database, Keep Only Needed Columns
+        test_df = trips_obs[["STP_ARV_TM", "U_ID", "ROW_ID"]].copy()
+        test_df = test_df.dropna(subset=["STP_ARV_TM"])
+
+        # Iterate Through Each U_ID
+        gb = test_df.groupby("U_ID")
+        for x in gb:
+            print(x[1])
+
 
         # # We Only Want Data Between The First Occurence, And The Last Of A Given Trip
         # gb = trips_obs.groupby("U_ID")
         # data = [x[1].loc[x[1]["DATA_TYPE"].where(x[1]["DATA_TYPE"]=="IE").first_valid_index():x[1]["DATA_TYPE"].where(x[1]["DATA_TYPE"]=="IE").last_valid_index()] for x in gb]
         # trips_obs = pd.concat(data)
         # del gb, data, trips_obs["U_ID"]
-        #
-        #
+
+
+        # For Testing
+        test_df.to_csv("TripsObs.csv", index=False)
+        # print(trips_obs.info())
+
+
+
+
         # # Create An Encoding, For A New Column. If There Is Data In The Timestampt Then 1, Else 0
         # trips_obs["DATA_FLG"] = "1"
         # trips_obs.loc[trips_obs["STP_ARV_TM"].isna(), "DATA_FLG"] = "0"
