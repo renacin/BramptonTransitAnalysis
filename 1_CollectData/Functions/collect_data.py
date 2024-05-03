@@ -1095,10 +1095,10 @@ class DataCollector:
         test_df = trips_obs[["STP_ARV_TM", "U_ID", "ROW_ID"]].copy()
         test_df = test_df.dropna(subset=["STP_ARV_TM"])
 
-        # Iterate Through Each U_ID
-        gb = test_df.groupby("U_ID")
-        for x in gb:
-            print(x[1])
+        # We Only Want To Keep Bus Trips With More Than One 1 Observation, Need To Know Next STP Time, It Must Be Bigger
+        test_df = pd.concat([x[1] for x in test_df.groupby("U_ID") if len(x[1]) > 1])
+        test_df['NXT_STP_ARV_TM'] = test_df.groupby(['U_ID'])['STP_ARV_TM'].shift(-1)
+        test_df['TM_DIFF'] = test_df['NXT_STP_ARV_TM'] - test_df['STP_ARV_TM']
 
 
         # # We Only Want Data Between The First Occurence, And The Last Of A Given Trip
