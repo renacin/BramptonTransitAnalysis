@@ -395,8 +395,9 @@ class DataCollector:
         # Ierate Through Each Link And Grab Bus Stop Information
         for link, name in zip(rt_links, rt_names):
 
-            # Keep Trying To Gather Data
+            # Keep Trying To Gather Data, Granted If We Try Like 10 Times Just Say Fuck It And Pass
             pass_flag = True
+            try_again_counter = 0
 
             # Use A While Loop To Keep Trying To Gather Data
             while pass_flag:
@@ -453,9 +454,17 @@ class DataCollector:
 
                 # If There Is An Error, Try Again
                 except Exception:
-                    now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-                    print(f"{now}: ({counter}/{total_rts}) - Error Parsing Bus Route Data: {name}")
-                    time.sleep(10)
+
+                    # If Below The Try Again Limit, Keep Trying
+                    if try_again_counter < 10:
+                        now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+                        print(f"{now}: ({counter}/{total_rts}) - Error Parsing Bus Route Data: {name}")
+                        time.sleep(10)
+                        try_again_counter += 1
+
+                    # If Not Give Up On This Route
+                    else:
+                        pass_flag = False
 
 
         # Return A Pandas Dataframe With Route Data
@@ -1338,6 +1347,6 @@ class DataCollector:
             dt_string = datetime.now().strftime(self.td_s_dt_dsply_frmt)
             out_path = self.out_dict["FRMTD_DATA"] + f"/FRMTD_DATA_{cleaned_dt}.csv"
             trips_obs.to_csv(out_path, index=False)
-            
+
         except Exception:
             pass
