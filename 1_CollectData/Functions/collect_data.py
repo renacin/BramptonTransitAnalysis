@@ -1018,16 +1018,15 @@ class DataCollector:
         transit_df["DATA_TYPE"] = "IE"
         transit_df = transit_df[['TRIP_ID', 'ROUTE_ID',
                                  'V_ID', 'NXT_STP_NAME',
-                                 'NXT_STP_ARV_TM', 'NXT_STP_ARV_DTTM', "DATA_TYPE"]].rename(columns={'NXT_STP_NAME': "STP_NM",
-                                                                                                     'NXT_STP_ARV_TM': "STP_ARV_TM",
-                                                                                                     'NXT_STP_ARV_DTTM': "STP_ARV_DTTM"})
-
+                                 'NXT_STP_ARV_TM', 'NXT_STP_ARV_DTTM',
+                                 'NXT_STP_ID', 'DATA_TYPE']].rename(columns={'NXT_STP_NAME': "STP_NM",
+                                                                             'NXT_STP_ARV_TM': "STP_ARV_TM",
+                                                                             'NXT_STP_ARV_DTTM': "STP_ARV_DTTM",
+                                                                             'NXT_STP_ID': "STP_ID"})
 
 
         # THIS IS FOR TESTING PLEASE REMOVE BEFORE PUSH TO PRODUCTION!
         transit_df = transit_df[transit_df["TRIP_ID"].isin(["23867702-240304-MULTI-Weekday-03", "23867691-240304-MULTI-Weekday-03", "23867704-240304-MULTI-Weekday-03"])]   # REMOVE THIS!! IN PRODUCTION!!
-
-
 
 
         # We Need To Join The Trip Data To The Bus Stops (In Order) For A Given Route
@@ -1125,58 +1124,65 @@ class DataCollector:
         del test_df
         gc.collect()
 
-        # Convert Column To String, Remove Erroneous Data
-        for col in ["ROUTE_ID", "STP_ARV_DTTM", "DATA_TYPE"]:
-            trips_obs[col] = trips_obs[col].astype(str)
-        for col in ["ROUTE_ID", "STP_ARV_DTTM", "DATA_TYPE"]:
-            trips_obs.loc[trips_obs["ERASE_DATA"] == "YES", col] = ""
-        for col in ["V_ID", "STP_ARV_TM"]:
-            trips_obs.loc[trips_obs["ERASE_DATA"] == "YES", col] = np.nan
-
-        # Remove Unneeded Column
-        trips_obs.drop(["ERASE_DATA", "ROW_ID"], axis=1, inplace=True)
 
 
-        # We Only Want Data Between The First Occurence, And The Last Of A Given Trip, Remove Occurences With No Data
-        data = []
-        gb = trips_obs.groupby("TRIP_ID")
-        for x in gb:
-
-            # If There Is Data In The DATA_TYPE Column, Then Append Later, Else Pass
-            if any(d_tp == "IE" for d_tp in x[1]["DATA_TYPE"].to_list()):
-                data.append(x[1].loc[x[1]["DATA_TYPE"].where(x[1]["DATA_TYPE"]=="IE").first_valid_index():x[1]["DATA_TYPE"].where(x[1]["DATA_TYPE"]=="IE").last_valid_index()])
-
-
-        trips_obs = pd.concat(data)
-        del gb, data, trips_obs["U_ID"]
-
-
-        trips_obs.to_csv("TripsObs_1.csv", index=False)
+        trips_obs.to_csv("TripsObs.csv", index=False)
 
 
 
-
-        # Create An Encoding, For A New Column. If There Is Data In The Timestampt Then 1, Else 0
-        trips_obs["DATA_FLG"] = "1"
-        trips_obs.loc[trips_obs["STP_ARV_TM"].isna(), "DATA_FLG"] = "0"
-
-        # Find Bus Loc Data
-        for file in os.listdir(self.out_dict["BUS_STP"]):
-            if "BUS_STP_DATA" in file:
-                file_path = f'{self.out_dict["BUS_STP"]}/{file}'
-
-        # Read In Bus Loc Data & Merge To Trips Obs DF
-        needed_cols = ['stop_name', 'CLEANED_STOP_LAT_', 'CLEANED_STOP_LON_']
-        bus_locs = pd.read_csv(file_path, usecols = needed_cols)
-        bus_locs.rename(columns = {"stop_name": "STP_NM", "CLEANED_STOP_LAT_": "STP_LAT", "CLEANED_STOP_LON_": "STP_LON"}, inplace = True)
-        trips_obs = trips_obs.merge(bus_locs, how="left", on=["STP_NM"])
-        del needed_cols, bus_locs
-        gc.collect()
-
-
-
-
-        trips_obs.to_csv("TripsObs_2.csv", index=False)
+        #
+        # # Convert Column To String, Remove Erroneous Data
+        # for col in ["ROUTE_ID", "STP_ARV_DTTM", "DATA_TYPE"]:
+        #     trips_obs[col] = trips_obs[col].astype(str)
+        # for col in ["ROUTE_ID", "STP_ARV_DTTM", "DATA_TYPE"]:
+        #     trips_obs.loc[trips_obs["ERASE_DATA"] == "YES", col] = ""
+        # for col in ["V_ID", "STP_ARV_TM"]:
+        #     trips_obs.loc[trips_obs["ERASE_DATA"] == "YES", col] = np.nan
+        #
+        # # Remove Unneeded Column
+        # trips_obs.drop(["ERASE_DATA", "ROW_ID"], axis=1, inplace=True)
+        #
+        #
+        # # We Only Want Data Between The First Occurence, And The Last Of A Given Trip, Remove Occurences With No Data
+        # data = []
+        # gb = trips_obs.groupby("TRIP_ID")
+        # for x in gb:
+        #
+        #     # If There Is Data In The DATA_TYPE Column, Then Append Later, Else Pass
+        #     if any(d_tp == "IE" for d_tp in x[1]["DATA_TYPE"].to_list()):
+        #         data.append(x[1].loc[x[1]["DATA_TYPE"].where(x[1]["DATA_TYPE"]=="IE").first_valid_index():x[1]["DATA_TYPE"].where(x[1]["DATA_TYPE"]=="IE").last_valid_index()])
+        #
+        #
+        # trips_obs = pd.concat(data)
+        # del gb, data, trips_obs["U_ID"]
+        #
+        #
+        # trips_obs.to_csv("TripsObs_1.csv", index=False)
+        #
+        #
+        #
+        #
+        # # Create An Encoding, For A New Column. If There Is Data In The Timestampt Then 1, Else 0
+        # trips_obs["DATA_FLG"] = "1"
+        # trips_obs.loc[trips_obs["STP_ARV_TM"].isna(), "DATA_FLG"] = "0"
+        #
+        # # Find Bus Loc Data
+        # for file in os.listdir(self.out_dict["BUS_STP"]):
+        #     if "BUS_STP_DATA" in file:
+        #         file_path = f'{self.out_dict["BUS_STP"]}/{file}'
+        #
+        # # Read In Bus Loc Data & Merge To Trips Obs DF
+        # needed_cols = ['stop_name', 'CLEANED_STOP_LAT_', 'CLEANED_STOP_LON_']
+        # bus_locs = pd.read_csv(file_path, usecols = needed_cols)
+        # bus_locs.rename(columns = {"stop_name": "STP_NM", "CLEANED_STOP_LAT_": "STP_LAT", "CLEANED_STOP_LON_": "STP_LON"}, inplace = True)
+        # trips_obs = trips_obs.merge(bus_locs, how="left", on=["STP_NM"])
+        # del needed_cols, bus_locs
+        # gc.collect()
+        #
+        #
+        #
+        #
+        # trips_obs.to_csv("TripsObs_2.csv", index=False)
 
 
 
