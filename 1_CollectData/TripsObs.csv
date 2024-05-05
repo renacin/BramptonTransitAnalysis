@@ -1,177 +1,99 @@
-TRIP_ID,RT_ID,RT_NAME,RT_VER,STP_NM,RT_STP_NUM,RT_NUM_STPS,RT_ID_VER,RT_DIR,RT_GRP,RT_GRP_NUM,ROUTE_ID,V_ID,STP_ARV_TM,STP_ARV_DTTM,DATA_TYPE
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,The Gore Rd n/of Queen St,2,97,23_2,West,sandalwood,495,23-344,2108,1712565786.0,2024-04-08 04:43:06-04:00,IE
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,The Gore Rd s/of Fogal Rd,3,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,The Gore Rd s/of Ebenezer Rd,4,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Ebenezer Rd e/of The Gore Rd,5,97,23_2,West,sandalwood,495,23-344,2108,1712565915.0,2024-04-08 04:45:15-04:00,IE
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Ebenezer Rd w/of Nexus Ave,6,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Via Romano Way btwn Alfredo and Big Moe Cres,7,97,23_2,West,sandalwood,495,23-344,2108,1712565973.0,2024-04-08 04:46:13-04:00,IE
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Via Romano Way at Zia Dodda Cres,8,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Via Romano Way btwn Zia Dodda & Youngestar,9,97,23_2,West,sandalwood,495,23-344,2108,1712566036.0,2024-04-08 04:47:16-04:00,IE
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Cottrelle Blvd w/of Clarkway Dr,10,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Cottrelle Blvd btwn Thorndale Rd & Via Romano Way,11,97,23_2,West,sandalwood,495,23-344,2108,1712566191.0,2024-04-08 04:49:51-04:00,IE
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Cottrelle Blvd at Thorndale Rd,12,97,23_2,West,sandalwood,495,23-344,2108,1712566229.0,2024-04-08 04:50:29-04:00,IE
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Cottrelle Blvd at The Gore Rd,13,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Cottrelle Blvd w/of Skyvalley Dr,14,97,23_2,West,sandalwood,495,23-344,2108,1712566319.0,2024-04-08 04:51:59-04:00,IE
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Cottrelle Blvd w/of Skyvalley Dr,15,97,23_2,West,sandalwood,495,23-344,2108,1712566319.0,2024-04-08 04:51:59-04:00,IE
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Cottrelle Blvd at Midsummer Dr,16,97,23_2,West,sandalwood,495,23-344,2108,1712566420.0,2024-04-08 04:53:40-04:00,IE
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Cottrelle Blvd e/of McVean Dr,17,97,23_2,West,sandalwood,495,23-344,2108,1712566453.0,2024-04-08 04:54:13-04:00,IE
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Cottrelle Blvd at Maple Valley St (w/of McVean Dr),18,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Cottrelle Blvd at Calderstone Rd,19,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Cottrelle Blvd at Prince Edward Blvd,20,97,23_2,West,sandalwood,495,23-344,2108,1712566575.0,2024-04-08 04:56:15-04:00,IE
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Cottrelle Blvd w/of Redwillow Rd,21,97,23_2,West,sandalwood,495,23-344,2108,1712566639.0,2024-04-08 04:57:19-04:00,IE
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Cottrelle Blvd w/of Valleycreek Dr,22,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Cottrelle Blvd at Goreway Dr,23,97,23_2,West,sandalwood,495,23-344,2108,1712566694.0,2024-04-08 04:58:14-04:00,IE
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Goreway Dr n/of Cottrelle Blvd,24,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Castlemore Rd w/of Goreway Dr,25,97,23_2,West,sandalwood,495,23-344,2108,1712566704.0,2024-04-08 04:58:24-04:00,IE
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Castlemore Rd e/of Crystall Hill Dr,26,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Humberwest Pkwy n/of Castlemore Rd,27,97,23_2,West,sandalwood,495,23-344,2108,1712566838.0,2024-04-08 05:00:38-04:00,IE
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Humberwest Pkwy n/of Crystal Hill Dr,28,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Humberwest Pkwy w/of Fairlawn Blvd,29,97,23_2,West,sandalwood,495,23-344,2108,1712566929.0,2024-04-08 05:02:09-04:00,IE
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Humberwest Pkwy e/of Airport Rd,30,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E at Revelstoke (w/of Airport Rd),31,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E at Hidden Peak Dr,32,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E at Mountainash Rd,33,97,23_2,West,sandalwood,495,23-344,2108,1712567080.0,2024-04-08 05:04:40-04:00,IE
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E at Pine Landing Trail,34,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E at Cedarcliff Trail,35,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E at Torbram Rd,36,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E w/of Torbram Rd,37,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E at Sugarcane Ave,38,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E at Chapparal Dr,39,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E at Blackcherry Lane,40,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E at Sunny Meadow Blvd,41,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pkwy btwn Bramalea Rd and Sunny Meadow,42,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pkwy w/of Bramalea Rd,43,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E at Rattlesnake Rd,44,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E btwn Rattlesnake and Fernforest,45,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E at Fernforest Dr,46,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E btwn Fernforest Dr & Dixie Rd,47,97,23_2,West,sandalwood,495,23-344,2108,1712567604.0,2024-04-08 05:13:24-04:00,IE
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E opp Springtown Trail,48,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E w/of Dixie Rd,49,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Great Lakes Dr at Sandalwood Pky E,50,97,23_2,West,sandalwood,495,23-344,2108,1712567709.0,2024-04-08 05:15:09-04:00,IE
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Great Lakes Dr at Harold M. Braithwaite S.S,51,97,23_2,West,sandalwood,495,23-344,2108,1712567769.0,2024-04-08 05:16:09-04:00,IE
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Great Lakes Dr s/of Masjid Dr (St. Isac E.S.),52,97,23_2,West,sandalwood,495,23-344,2108,1712567817.0,2024-04-08 05:16:57-04:00,IE
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Great Lakes Dr s/of Serenity Ln,53,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Great Lakes Dr s/of Guru Nanak St,54,97,23_2,West,sandalwood,495,23-344,2108,1712567862.0,2024-04-08 05:17:42-04:00,IE
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Trinity Common Terminal Route 32/23 WB/18B Stop,55,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Heart Lake Rd n/of Bovaird Dr,56,97,23_2,West,sandalwood,495,23-344,2108,1712568376.0,2024-04-08 05:26:16-04:00,IE
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Heart Lake Rd at 10111 Heart Lake Rd (Lowe's),57,97,23_2,West,sandalwood,495,,,,,
-23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Heart Lake Rd n/of Brussels Ave,58,97,23_2,West,sandalwood,495,23-344,2108,1712568464.0,2024-04-08 05:27:44-04:00,IE
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd s/of Mayfield Rd,1,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at UPS (Caledon),2,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd s/of Mayfield Rd,3,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at UPS (Caledon),4,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Mayfield Rd w/of Russell Creek Dr,5,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Russell Creek Dr s/of Seymour Rd,6,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Russell Creek Dr n/of Inspire Blvd,7,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Russell Creek Dr s/of Dolbyhill Dr,8,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Russell Creek Dr n/of Countryside Dr,9,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Countryside Dr e/of Blackstone River Dr,10,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Countryside Dr,11,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd n/of Templehill Rd,12,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd n/of Naperton Dr,13,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd n/of Octillo Blvd,14,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd s/of Sandalwood Pky E,15,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Springtown Trail,16,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd btwn Springtown Trail and Peter Robertson,17,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd n/of Guru Nanak St,18,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at 10078 Dixie Rd,19,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd s/of Bovaird Dr E,20,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Northcliffe St,21,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd btwn Northcliffe St and North Park Dr,22,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd s/of North Park Dr,23,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Northampton St,24,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd s/of Williams Pky E,25,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Lascelles Blvd,26,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd opp Crescent Hill Dr (S),27,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Howden Blvd,28,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Hazelwood Dr,29,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Hillside Dr (n/of Queen St E),30,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Lisa St,31,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Clark Blvd at Braemar Dr,32,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Clark Blvd at Briar Path,33,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Clark Blvd w/of Central Park Dr,34,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Central Park Dr n/of Clark Blvd,35,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Knightsbridge Rd w/of Central Park Drive,36,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Team Canada Dr btwn Knightsbridge & Peel Cente Dr,37,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Bramalea Terminal Route 18 SB Stop,38,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Central Park Dr at Knightsbridge Rd,39,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Central Park Dr s/of Knightsbridge Rd,40,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Clark Blvd w/of Peel Centre Dr,41,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd s/of Clark Blvd,42,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Terese Rd,43,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Balmoral Dr (Rogers),44,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd n/of Orenda Rd,45,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd s/of Orenda Rd (N),46,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Orenda Rd (S),47,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd btwn Orenda Rd & Steeles Ave E,48,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd n/of Steeles Ave E,49,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd s/of Steeles Ave E,50,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Advance Blvd,51,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Drew Rd,52,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at 7080 Dixie Rd,53,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Derry Rd,54,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Director Gate,55,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Mid-way Blvd,56,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd n/of Courtneypark Dr,57,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd n/of Meyerside Dr,58,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Meyerside Dr at Ordan Dr,59,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Meyerside Dr at Vipond Dr,60,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Meyerside Dr at Shawson Dr,61,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Meyerside Dr at Tomken Rd,62,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Tomken Rd at Tristar Dr,63,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Tomken Rd at Courtneypark Dr,64,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Courtneypark Dr btwn Tomken Rd and Shawson Dr,65,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Courtneypark Dr e/of Shawson Dr,66,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Courtneypark Dr at Vipond Dr,67,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Courtneypark Dr at Ordan Dr,68,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Courtneypark Dr e/of Dixie Rd,69,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Courtneypark Dr at Van Deemter Crt,70,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Courtneypark Dr at 1750 Courtneypark Dr,71,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Courtneypark Dr at 1820 Courtneypark Dr,72,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Courtneypark Dr w/of Netherhart Rd,73,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Netherhart Rd n/of Bonhill Rd,74,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Meyerside Dr w/of Netherhart Rd,75,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Meyerside Dr at 1795 Meyerside Dr,76,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Meyerside Dr at 1715 Meyerside Dr,77,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Meyerside Dr at 1675 Meyerside Dr,78,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Meyerside Dr at Bonhill Rd,79,80,18_2,South,dixie,473,,,,,
-23867702-240304-MULTI-Weekday-03,18,Dixie,2,Meyerside Dr at Dixie Rd,80,80,18_2,South,dixie,473,,,,,
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Central Park Dr s/of Knightsbridge Rd,40,80,18_2,South,dixie,473,18-344,1707,1712565112.0,2024-04-08 04:31:52-04:00,IE
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Clark Blvd w/of Peel Centre Dr,41,80,18_2,South,dixie,473,18-344,1707,1712565240.0,2024-04-08 04:34:00-04:00,IE
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd s/of Clark Blvd,42,80,18_2,South,dixie,473,,,,,
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Terese Rd,43,80,18_2,South,dixie,473,18-344,1707,1712565317.0,2024-04-08 04:35:17-04:00,IE
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Balmoral Dr (Rogers),44,80,18_2,South,dixie,473,,,,,
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd n/of Orenda Rd,45,80,18_2,South,dixie,473,18-344,1707,1712565433.0,2024-04-08 04:37:13-04:00,IE
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd s/of Orenda Rd (N),46,80,18_2,South,dixie,473,,,,,
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Orenda Rd (S),47,80,18_2,South,dixie,473,,,,,
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd btwn Orenda Rd & Steeles Ave E,48,80,18_2,South,dixie,473,,,,,
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd n/of Steeles Ave E,49,80,18_2,South,dixie,473,18-344,1707,1712565562.0,2024-04-08 04:39:22-04:00,IE
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd s/of Steeles Ave E,50,80,18_2,South,dixie,473,,,,,
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Advance Blvd,51,80,18_2,South,dixie,473,18-344,1707,1712565643.0,2024-04-08 04:40:43-04:00,IE
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Drew Rd,52,80,18_2,South,dixie,473,18-344,1707,1712565778.0,2024-04-08 04:42:58-04:00,IE
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at 7080 Dixie Rd,53,80,18_2,South,dixie,473,18-344,1707,1712565783.0,2024-04-08 04:43:03-04:00,IE
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Derry Rd,54,80,18_2,South,dixie,473,,,,,
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Director Gate,55,80,18_2,South,dixie,473,18-344,1707,1712565856.0,2024-04-08 04:44:16-04:00,IE
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Mid-way Blvd,56,80,18_2,South,dixie,473,,,,,
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd n/of Courtneypark Dr,57,80,18_2,South,dixie,473,18-344,1707,1712566093.0,2024-04-08 04:48:13-04:00,IE
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd n/of Meyerside Dr,58,80,18_2,South,dixie,473,18-344,1707,1712566113.0,2024-04-08 04:48:33-04:00,IE
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Meyerside Dr at Ordan Dr,59,80,18_2,South,dixie,473,,,,,
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Meyerside Dr at Vipond Dr,60,80,18_2,South,dixie,473,,,,,
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Meyerside Dr at Shawson Dr,61,80,18_2,South,dixie,473,18-344,1707,1712566241.0,2024-04-08 04:50:41-04:00,IE
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Meyerside Dr at Tomken Rd,62,80,18_2,South,dixie,473,18-344,1707,1712566270.0,2024-04-08 04:51:10-04:00,IE
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Tomken Rd at Tristar Dr,63,80,18_2,South,dixie,473,18-344,1707,1712566439.0,2024-04-08 04:53:59-04:00,IE
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Tomken Rd at Courtneypark Dr,64,80,18_2,South,dixie,473,18-344,1707,1712566484.0,2024-04-08 04:54:44-04:00,IE
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Courtneypark Dr btwn Tomken Rd and Shawson Dr,65,80,18_2,South,dixie,473,,,,,
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Courtneypark Dr e/of Shawson Dr,66,80,18_2,South,dixie,473,,,,,
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Courtneypark Dr at Vipond Dr,67,80,18_2,South,dixie,473,,,,,
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Courtneypark Dr at Ordan Dr,68,80,18_2,South,dixie,473,18-344,1707,1712566596.0,2024-04-08 04:56:36-04:00,IE
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Courtneypark Dr e/of Dixie Rd,69,80,18_2,South,dixie,473,,,,,
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Courtneypark Dr at Van Deemter Crt,70,80,18_2,South,dixie,473,18-344,1707,1712566687.0,2024-04-08 04:58:07-04:00,IE
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Courtneypark Dr at 1750 Courtneypark Dr,71,80,18_2,South,dixie,473,,,,,
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Courtneypark Dr at 1820 Courtneypark Dr,72,80,18_2,South,dixie,473,18-344,1707,1712566764.0,2024-04-08 04:59:24-04:00,IE
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Courtneypark Dr w/of Netherhart Rd,73,80,18_2,South,dixie,473,,,,,
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Netherhart Rd n/of Bonhill Rd,74,80,18_2,South,dixie,473,,,,,
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Meyerside Dr w/of Netherhart Rd,75,80,18_2,South,dixie,473,18-344,1707,1712566851.0,2024-04-08 05:00:51-04:00,IE
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Meyerside Dr at 1795 Meyerside Dr,76,80,18_2,South,dixie,473,,,,,
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Meyerside Dr at 1715 Meyerside Dr,77,80,18_2,South,dixie,473,,,,,
-23867704-240304-MULTI-Weekday-03,18,Dixie,2,Meyerside Dr at 1675 Meyerside Dr,78,80,18_2,South,dixie,473,18-344,1707,1712566964.0,2024-04-08 05:02:44-04:00,IE
+TRIP_ID,RT_ID,RT_NAME,RT_VER,STP_NM,RT_STP_NUM,RT_NUM_STPS,RT_ID_VER,RT_DIR,RT_GRP,RT_GRP_NUM,ROUTE_ID,V_ID,STP_ARV_TM,DATA_TYPE,STP_ARV_DTTM
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,The Gore Rd n/of Queen St,2,97,23_2,West,sandalwood,495,23-344,2108,1712565786.0,IE,2024-04-08 04:43:06-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,The Gore Rd s/of Fogal Rd,3,97,23_2,West,sandalwood,495,23-344,2108,1712565841.0,CE,2024-04-08 04:44:01-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,The Gore Rd s/of Ebenezer Rd,4,97,23_2,West,sandalwood,495,23-344,2108,1712565857.0,CE,2024-04-08 04:44:17-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Ebenezer Rd e/of The Gore Rd,5,97,23_2,West,sandalwood,495,23-344,2108,1712565915.0,IE,2024-04-08 04:45:15-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Ebenezer Rd w/of Nexus Ave,6,97,23_2,West,sandalwood,495,23-344,2108,1712565959.0,CE,2024-04-08 04:45:59-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Via Romano Way btwn Alfredo and Big Moe Cres,7,97,23_2,West,sandalwood,495,23-344,2108,1712565973.0,IE,2024-04-08 04:46:13-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Via Romano Way at Zia Dodda Cres,8,97,23_2,West,sandalwood,495,23-344,2108,1712566003.0,CE,2024-04-08 04:46:43-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Via Romano Way btwn Zia Dodda & Youngestar,9,97,23_2,West,sandalwood,495,23-344,2108,1712566036.0,IE,2024-04-08 04:47:16-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Cottrelle Blvd w/of Clarkway Dr,10,97,23_2,West,sandalwood,495,23-344,2108,1712566113.0,CE,2024-04-08 04:48:33-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Cottrelle Blvd btwn Thorndale Rd & Via Romano Way,11,97,23_2,West,sandalwood,495,23-344,2108,1712566191.0,IE,2024-04-08 04:49:51-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Cottrelle Blvd at Thorndale Rd,12,97,23_2,West,sandalwood,495,23-344,2108,1712566229.0,IE,2024-04-08 04:50:29-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Cottrelle Blvd at The Gore Rd,13,97,23_2,West,sandalwood,495,23-344,2108,1712566278.0,CE,2024-04-08 04:51:18-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Cottrelle Blvd w/of Skyvalley Dr,14,97,23_2,West,sandalwood,495,23-344,2108,1712566319.0,IE,2024-04-08 04:51:59-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Cottrelle Blvd w/of Skyvalley Dr,15,97,23_2,West,sandalwood,495,23-344,2108,1712566319.0,IE,2024-04-08 04:51:59-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Cottrelle Blvd at Midsummer Dr,16,97,23_2,West,sandalwood,495,23-344,2108,1712566420.0,IE,2024-04-08 04:53:40-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Cottrelle Blvd e/of McVean Dr,17,97,23_2,West,sandalwood,495,23-344,2108,1712566453.0,IE,2024-04-08 04:54:13-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Cottrelle Blvd at Maple Valley St (w/of McVean Dr),18,97,23_2,West,sandalwood,495,23-344,2108,1712566488.0,CE,2024-04-08 04:54:48-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Cottrelle Blvd at Calderstone Rd,19,97,23_2,West,sandalwood,495,23-344,2108,1712566532.0,CE,2024-04-08 04:55:32-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Cottrelle Blvd at Prince Edward Blvd,20,97,23_2,West,sandalwood,495,23-344,2108,1712566575.0,IE,2024-04-08 04:56:15-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Cottrelle Blvd w/of Redwillow Rd,21,97,23_2,West,sandalwood,495,23-344,2108,1712566639.0,IE,2024-04-08 04:57:19-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Cottrelle Blvd w/of Valleycreek Dr,22,97,23_2,West,sandalwood,495,23-344,2108,1712566667.0,CE,2024-04-08 04:57:47-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Cottrelle Blvd at Goreway Dr,23,97,23_2,West,sandalwood,495,23-344,2108,1712566694.0,IE,2024-04-08 04:58:14-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Goreway Dr n/of Cottrelle Blvd,24,97,23_2,West,sandalwood,495,23-344,2108,1712566702.0,CE,2024-04-08 04:58:22-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Castlemore Rd w/of Goreway Dr,25,97,23_2,West,sandalwood,495,23-344,2108,1712566704.0,IE,2024-04-08 04:58:24-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Castlemore Rd e/of Crystall Hill Dr,26,97,23_2,West,sandalwood,495,23-344,2108,1712566779.0,CE,2024-04-08 04:59:39-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Humberwest Pkwy n/of Castlemore Rd,27,97,23_2,West,sandalwood,495,23-344,2108,1712566838.0,IE,2024-04-08 05:00:38-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Humberwest Pkwy n/of Crystal Hill Dr,28,97,23_2,West,sandalwood,495,23-344,2108,1712566890.0,CE,2024-04-08 05:01:30-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Humberwest Pkwy w/of Fairlawn Blvd,29,97,23_2,West,sandalwood,495,23-344,2108,1712566929.0,IE,2024-04-08 05:02:09-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Humberwest Pkwy e/of Airport Rd,30,97,23_2,West,sandalwood,495,23-344,2108,1712566934.0,CE,2024-04-08 05:02:14-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Humberwest Pkwy e/of Airport Rd,30,97,23_2,West,sandalwood,495,23-344,2108,1712566971.0,CE,2024-04-08 05:02:51-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E at Revelstoke (w/of Airport Rd),31,97,23_2,West,sandalwood,495,23-344,2108,1712566996.0,CE,2024-04-08 05:03:16-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E at Hidden Peak Dr,32,97,23_2,West,sandalwood,495,23-344,2108,1712567049.0,CE,2024-04-08 05:04:09-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E at Mountainash Rd,33,97,23_2,West,sandalwood,495,23-344,2108,1712567080.0,IE,2024-04-08 05:04:40-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E at Pine Landing Trail,34,97,23_2,West,sandalwood,495,23-344,2108,,CE,
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E at Cedarcliff Trail,35,97,23_2,West,sandalwood,495,23-344,2108,,CE,
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E at Torbram Rd,36,97,23_2,West,sandalwood,495,23-344,2108,,CE,
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E w/of Torbram Rd,37,97,23_2,West,sandalwood,495,23-344,2108,,CE,
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E at Sugarcane Ave,38,97,23_2,West,sandalwood,495,23-344,2108,,CE,
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E at Chapparal Dr,39,97,23_2,West,sandalwood,495,23-344,2108,,CE,
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E at Blackcherry Lane,40,97,23_2,West,sandalwood,495,23-344,2108,,CE,
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E at Sunny Meadow Blvd,41,97,23_2,West,sandalwood,495,23-344,2108,,CE,
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pkwy btwn Bramalea Rd and Sunny Meadow,42,97,23_2,West,sandalwood,495,23-344,2108,,CE,
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pkwy w/of Bramalea Rd,43,97,23_2,West,sandalwood,495,23-344,2108,,CE,
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E at Rattlesnake Rd,44,97,23_2,West,sandalwood,495,23-344,2108,,CE,
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E btwn Rattlesnake and Fernforest,45,97,23_2,West,sandalwood,495,23-344,2108,,CE,
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E at Fernforest Dr,46,97,23_2,West,sandalwood,495,23-344,2108,,CE,
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E btwn Fernforest Dr & Dixie Rd,47,97,23_2,West,sandalwood,495,23-344,2108,1712567604.0,IE,2024-04-08 05:13:24-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E opp Springtown Trail,48,97,23_2,West,sandalwood,495,23-344,2108,1712567631.0,CE,2024-04-08 05:13:51-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Sandalwood Pky E w/of Dixie Rd,49,97,23_2,West,sandalwood,495,23-344,2108,1712567687.0,CE,2024-04-08 05:14:47-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Great Lakes Dr at Sandalwood Pky E,50,97,23_2,West,sandalwood,495,23-344,2108,1712567709.0,IE,2024-04-08 05:15:09-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Great Lakes Dr at Harold M. Braithwaite S.S,51,97,23_2,West,sandalwood,495,23-344,2108,1712567769.0,IE,2024-04-08 05:16:09-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Great Lakes Dr s/of Masjid Dr (St. Isac E.S.),52,97,23_2,West,sandalwood,495,23-344,2108,1712567817.0,IE,2024-04-08 05:16:57-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Great Lakes Dr s/of Serenity Ln,53,97,23_2,West,sandalwood,495,23-344,2108,1712567843.0,CE,2024-04-08 05:17:23-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Great Lakes Dr s/of Guru Nanak St,54,97,23_2,West,sandalwood,495,23-344,2108,1712567862.0,IE,2024-04-08 05:17:42-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Trinity Common Terminal Route 32/23 WB/18B Stop,55,97,23_2,West,sandalwood,495,23-344,2108,1712568299.0,CE,2024-04-08 05:24:59-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Heart Lake Rd n/of Bovaird Dr,56,97,23_2,West,sandalwood,495,23-344,2108,1712568376.0,IE,2024-04-08 05:26:16-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Heart Lake Rd at 10111 Heart Lake Rd (Lowe's),57,97,23_2,West,sandalwood,495,23-344,2108,1712568440.0,CE,2024-04-08 05:27:20-04:00
+23867691-240304-MULTI-Weekday-03,23,Sandalwood,2,Heart Lake Rd n/of Brussels Ave,58,97,23_2,West,sandalwood,495,23-344,2108,1712568464.0,IE,2024-04-08 05:27:44-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Central Park Dr s/of Knightsbridge Rd,40,80,18_2,South,dixie,473,18-344,1707,1712565112.0,IE,2024-04-08 04:31:52-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Clark Blvd w/of Peel Centre Dr,41,80,18_2,South,dixie,473,18-344,1707,1712565240.0,IE,2024-04-08 04:34:00-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd s/of Clark Blvd,42,80,18_2,South,dixie,473,18-344,1707,1712565245.0,CE,2024-04-08 04:34:05-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd s/of Clark Blvd,42,80,18_2,South,dixie,473,18-344,1707,1712565274.0,CE,2024-04-08 04:34:34-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Terese Rd,43,80,18_2,South,dixie,473,18-344,1707,1712565317.0,IE,2024-04-08 04:35:17-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Balmoral Dr (Rogers),44,80,18_2,South,dixie,473,18-344,1707,1712565401.0,CE,2024-04-08 04:36:41-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd n/of Orenda Rd,45,80,18_2,South,dixie,473,18-344,1707,1712565433.0,IE,2024-04-08 04:37:13-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd s/of Orenda Rd (N),46,80,18_2,South,dixie,473,18-344,1707,1712565454.0,CE,2024-04-08 04:37:34-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Orenda Rd (S),47,80,18_2,South,dixie,473,18-344,1707,1712565487.0,CE,2024-04-08 04:38:07-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd btwn Orenda Rd & Steeles Ave E,48,80,18_2,South,dixie,473,18-344,1707,1712565527.0,CE,2024-04-08 04:38:47-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd n/of Steeles Ave E,49,80,18_2,South,dixie,473,18-344,1707,1712565562.0,IE,2024-04-08 04:39:22-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd s/of Steeles Ave E,50,80,18_2,South,dixie,473,18-344,1707,1712565619.0,CE,2024-04-08 04:40:19-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Advance Blvd,51,80,18_2,South,dixie,473,18-344,1707,1712565643.0,IE,2024-04-08 04:40:43-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Drew Rd,52,80,18_2,South,dixie,473,18-344,1707,1712565778.0,IE,2024-04-08 04:42:58-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at 7080 Dixie Rd,53,80,18_2,South,dixie,473,18-344,1707,1712565783.0,IE,2024-04-08 04:43:03-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Derry Rd,54,80,18_2,South,dixie,473,18-344,1707,1712565830.0,CE,2024-04-08 04:43:50-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Director Gate,55,80,18_2,South,dixie,473,18-344,1707,1712565856.0,IE,2024-04-08 04:44:16-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd at Mid-way Blvd,56,80,18_2,South,dixie,473,18-344,1707,1712565986.0,CE,2024-04-08 04:46:26-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd n/of Courtneypark Dr,57,80,18_2,South,dixie,473,18-344,1707,1712566093.0,IE,2024-04-08 04:48:13-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Dixie Rd n/of Meyerside Dr,58,80,18_2,South,dixie,473,18-344,1707,1712566113.0,IE,2024-04-08 04:48:33-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Meyerside Dr at Ordan Dr,59,80,18_2,South,dixie,473,18-344,1707,1712566160.0,CE,2024-04-08 04:49:20-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Meyerside Dr at Vipond Dr,60,80,18_2,South,dixie,473,18-344,1707,1712566211.0,CE,2024-04-08 04:50:11-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Meyerside Dr at Shawson Dr,61,80,18_2,South,dixie,473,18-344,1707,1712566241.0,IE,2024-04-08 04:50:41-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Meyerside Dr at Tomken Rd,62,80,18_2,South,dixie,473,18-344,1707,1712566270.0,IE,2024-04-08 04:51:10-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Tomken Rd at Tristar Dr,63,80,18_2,South,dixie,473,18-344,1707,1712566439.0,IE,2024-04-08 04:53:59-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Tomken Rd at Courtneypark Dr,64,80,18_2,South,dixie,473,18-344,1707,1712566484.0,IE,2024-04-08 04:54:44-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Courtneypark Dr btwn Tomken Rd and Shawson Dr,65,80,18_2,South,dixie,473,18-344,1707,1712566505.0,CE,2024-04-08 04:55:05-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Courtneypark Dr e/of Shawson Dr,66,80,18_2,South,dixie,473,18-344,1707,1712566526.0,CE,2024-04-08 04:55:26-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Courtneypark Dr at Vipond Dr,67,80,18_2,South,dixie,473,18-344,1707,1712566563.0,CE,2024-04-08 04:56:03-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Courtneypark Dr at Ordan Dr,68,80,18_2,South,dixie,473,18-344,1707,1712566596.0,IE,2024-04-08 04:56:36-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Courtneypark Dr e/of Dixie Rd,69,80,18_2,South,dixie,473,18-344,1707,1712566648.0,CE,2024-04-08 04:57:28-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Courtneypark Dr at Van Deemter Crt,70,80,18_2,South,dixie,473,18-344,1707,1712566687.0,IE,2024-04-08 04:58:07-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Courtneypark Dr at 1750 Courtneypark Dr,71,80,18_2,South,dixie,473,18-344,1707,1712566720.0,CE,2024-04-08 04:58:40-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Courtneypark Dr at 1820 Courtneypark Dr,72,80,18_2,South,dixie,473,18-344,1707,1712566764.0,IE,2024-04-08 04:59:24-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Courtneypark Dr w/of Netherhart Rd,73,80,18_2,South,dixie,473,18-344,1707,1712566783.0,CE,2024-04-08 04:59:43-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Netherhart Rd n/of Bonhill Rd,74,80,18_2,South,dixie,473,18-344,1707,1712566812.0,CE,2024-04-08 05:00:12-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Meyerside Dr w/of Netherhart Rd,75,80,18_2,South,dixie,473,18-344,1707,1712566851.0,IE,2024-04-08 05:00:51-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Meyerside Dr at 1795 Meyerside Dr,76,80,18_2,South,dixie,473,18-344,1707,1712566889.0,CE,2024-04-08 05:01:29-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Meyerside Dr at 1715 Meyerside Dr,77,80,18_2,South,dixie,473,18-344,1707,1712566925.0,CE,2024-04-08 05:02:05-04:00
+23867704-240304-MULTI-Weekday-03,18,Dixie,2,Meyerside Dr at 1675 Meyerside Dr,78,80,18_2,South,dixie,473,18-344,1707,1712566964.0,IE,2024-04-08 05:02:44-04:00
