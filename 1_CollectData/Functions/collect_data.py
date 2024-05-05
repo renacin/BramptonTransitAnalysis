@@ -1025,9 +1025,6 @@ class DataCollector:
                                                                              'NXT_STP_ID': "STP_ID"})
 
 
-        # THIS IS FOR TESTING PLEASE REMOVE BEFORE PUSH TO PRODUCTION!
-        transit_df = transit_df[transit_df["TRIP_ID"].isin(["23867702-240304-MULTI-Weekday-03", "23867691-240304-MULTI-Weekday-03", "23867704-240304-MULTI-Weekday-03"])]   # REMOVE THIS!! IN PRODUCTION!!
-
 
         # We Need To Join The Trip Data To The Bus Stops (In Order) For A Given Route
         trips_obs = transit_df.groupby(["TRIP_ID"], as_index=False).agg(TRIP_ID = ("TRIP_ID", "first"),
@@ -1250,68 +1247,59 @@ class DataCollector:
 
 
 
-        #
-        # # Determine The Time It Took Given The Speed And Distance
-        # trips_obs["SECS_TRVL_DSTNC"] = (trips_obs["DTS_2_NXT_STP"] / trips_obs["CLUSTER_AVG_SPD"]) * 3600
-        #
-        # # Make A Copy Of Certain Columns, And Determine The Running Sum Of Time Traveled For Distance, Add Back To Original Time And Merge To Main DF
-        # cm_sum_df = trips_obs[["IDX_R", "TRIP_CLUSTER_ID", "CLUSTER_AVG_SPD", "ERROR_START_TIME", "SECS_TRVL_DSTNC"]].copy()
-        # cm_sum_df = cm_sum_df.dropna(subset=["TRIP_CLUSTER_ID"])
-        # cm_sum_df["TRV_TM_CUMSUM"] = cm_sum_df.groupby(["TRIP_CLUSTER_ID"])["SECS_TRVL_DSTNC"].cumsum()
-        # cm_sum_df["TRL_ARV_TM_EST"] = cm_sum_df["ERROR_START_TIME"] + cm_sum_df["TRV_TM_CUMSUM"]
-        # cm_sum_df.drop(columns=["CLUSTER_AVG_SPD", "ERROR_START_TIME", "SECS_TRVL_DSTNC", "TRV_TM_CUMSUM"], inplace = True)
-        # trips_obs.drop(columns=['CLUSTER_AVG_SPD', 'ERROR_START_TIME', 'DATA_FLG', 'DTS_2_NXT_STP', 'SECS_TRVL_DSTNC'], inplace = True)
-        #
-        # # Merge Data Together
-        # trips_obs = trips_obs.merge(cm_sum_df, how="left", on=["IDX_R", "TRIP_CLUSTER_ID"])
-        # trips_obs.drop(columns=["IDX_R", "TRIP_CLUSTER_ID"], inplace = True)
-        # for col in ["ROUTE_ID", "V_ID"]:
-        #     trips_obs[col] = trips_obs[col].ffill()
-        #
-        # # Make Note Of Type Of Data, CE = Complete Estimation
-        # trips_obs.loc[trips_obs["STP_ARV_TM"].isna(), "STP_ARV_TM"] = trips_obs["TRL_ARV_TM_EST"]
-        # trips_obs.loc[trips_obs["DATA_TYPE"] == "", "DATA_TYPE"] = "CE"
-        #
-        # # Remove Unneeded Columns
-        # trips_obs.drop(columns=["STP_ARV_DTTM", "TRL_ARV_TM_EST"], inplace = True)
-        #
-        # # Forward Fill Data
-        # trips_obs["STP_ARV_TM"] = round(trips_obs["STP_ARV_TM"], 0)
-        # trips_obs["STP_ARV_DTTM"] = pd.to_datetime(trips_obs["STP_ARV_TM"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
-        # trips_obs.loc[trips_obs["ROUTE_ID"] == "", "ROUTE_ID"] = np.nan
-        # trips_obs["ROUTE_ID"] = trips_obs.groupby(["TRIP_ID"])["ROUTE_ID"].ffill()
-        #
-        #
-        # # Final Bits Of Formatting, Drop Duplicates, And If No Data For Trip ID Don't Keep
-        # trips_obs = trips_obs.drop_duplicates()
-        # gb = trips_obs.groupby("TRIP_ID")
-        # data = []
-        # for x in gb:
-        #
-        #     # Get All Time Diffs As List
-        #     td_df_lst = x[1]["STP_ARV_TM"].tolist()
-        #
-        #     # If All Are Not NaN, And Lenght Is Larger Than 1
-        #     if all(tm_stampt != np.nan for tm_stampt in td_df_lst) and (len(td_df_lst) >= 2):
-        #         data.append(x[1])
-        #
-        # # Put Everything Together
-        # trips_obs = pd.concat(data)
+        # Determine The Time It Took Given The Speed And Distance
+        trips_obs["SECS_TRVL_DSTNC"] = (trips_obs["DTS_2_NXT_STP"] / trips_obs["CLUSTER_AVG_SPD"]) * 3600
+
+        # Make A Copy Of Certain Columns, And Determine The Running Sum Of Time Traveled For Distance, Add Back To Original Time And Merge To Main DF
+        cm_sum_df = trips_obs[["IDX_R", "TRIP_CLUSTER_ID", "CLUSTER_AVG_SPD", "ERROR_START_TIME", "SECS_TRVL_DSTNC"]].copy()
+        cm_sum_df = cm_sum_df.dropna(subset=["TRIP_CLUSTER_ID"])
+        cm_sum_df["TRV_TM_CUMSUM"] = cm_sum_df.groupby(["TRIP_CLUSTER_ID"])["SECS_TRVL_DSTNC"].cumsum()
+        cm_sum_df["TRL_ARV_TM_EST"] = cm_sum_df["ERROR_START_TIME"] + cm_sum_df["TRV_TM_CUMSUM"]
+        cm_sum_df.drop(columns=["CLUSTER_AVG_SPD", "ERROR_START_TIME", "SECS_TRVL_DSTNC", "TRV_TM_CUMSUM"], inplace = True)
+        trips_obs.drop(columns=['CLUSTER_AVG_SPD', 'ERROR_START_TIME', 'DATA_FLG', 'DTS_2_NXT_STP', 'SECS_TRVL_DSTNC'], inplace = True)
+
+        # Merge Data Together
+        trips_obs = trips_obs.merge(cm_sum_df, how="left", on=["IDX_R", "TRIP_CLUSTER_ID"])
+        trips_obs.drop(columns=["IDX_R", "TRIP_CLUSTER_ID"], inplace = True)
+        for col in ["ROUTE_ID", "V_ID"]:
+            trips_obs[col] = trips_obs[col].ffill()
+
+        # Make Note Of Type Of Data, CE = Complete Estimation
+        trips_obs.loc[trips_obs["STP_ARV_TM"].isna(), "STP_ARV_TM"] = trips_obs["TRL_ARV_TM_EST"]
+        trips_obs.loc[trips_obs["DATA_TYPE"] == "", "DATA_TYPE"] = "CE"
+
+        # Remove Unneeded Columns
+        trips_obs.drop(columns=["STP_ARV_DTTM", "TRL_ARV_TM_EST"], inplace = True)
+
+        # Forward Fill Data
+        trips_obs["STP_ARV_TM"] = round(trips_obs["STP_ARV_TM"], 0)
+        trips_obs["STP_ARV_DTTM"] = pd.to_datetime(trips_obs["STP_ARV_TM"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
+        trips_obs.loc[trips_obs["ROUTE_ID"] == "", "ROUTE_ID"] = np.nan
+        trips_obs["ROUTE_ID"] = trips_obs.groupby(["TRIP_ID"])["ROUTE_ID"].ffill()
 
 
+        # Final Bits Of Formatting, Drop Duplicates, And If No Data For Trip ID Don't Keep
+        trips_obs = trips_obs.drop_duplicates()
+        gb = trips_obs.groupby("TRIP_ID")
+        data = []
+        for x in gb:
 
+            # Get All Time Diffs As List
+            td_df_lst = x[1]["STP_ARV_TM"].tolist()
 
+            # If All Are Not NaN, And Lenght Is Larger Than 1
+            if all(tm_stampt != np.nan for tm_stampt in td_df_lst) and (len(td_df_lst) >= 2):
+                data.append(x[1])
 
-        # FOR TESTING REMOVE ONCE IN PRODUCTON!
-        trips_obs.to_csv("TripsObs.csv", index=False)
+        # Put Everything Together
+        trips_obs = pd.concat(data)
+        del trips_obs["STP_ID"]
 
         # For Logging
         now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
         print(f"{now}: Data Formatting Step #3 - Complete")
 
-
-
-        # return trips_obs
+        return trips_obs
 
 
 
@@ -1349,29 +1337,10 @@ class DataCollector:
         del needed_cols
 
         # Format Data
-        # trips_obs =
-        self.__frmt_data_s3(self.__frmt_data_s2(self.__frmt_data_s1(df, td_dt_mx), td_dt_mx))
-        #
-        # # For Testing
-        # trips_obs.to_csv("TripObs.csv")
-        # now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-        # print(f"{now}: Finished")
+        trips_obs = self.__frmt_data_s3(self.__frmt_data_s2(self.__frmt_data_s1(df, td_dt_mx), td_dt_mx))
 
-
-
-
-
-
-        # Looks Like We Have An Issue With The Route Number Being Parsed Need To Fix That First
-        #
-        # print(u_trips, u_routes)
-        # print(bus_routes.columns)
-        #
-        # # Define Where The File Will Be Written
-        # out_path = self.out_dict["FRMTD_DATA"]
-        # db_path = out_path + f"/FRMTED_BUS_DATA_{td_dt_mx.strftime(self.td_s_dt_dsply_frmt)}.csv"
-        # main_data.to_csv(db_path)
-        #
-        # # For Logging
-        # now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-        # print(f"{now}: Formated & Exported Bus Loc/Speed Data")
+        # Export Speed DF To Folder
+        cleaned_dt = f"{td_dt_mx.day:0>2}-{td_dt_mx.month:0>2}-{td_dt_mx.year}"
+        dt_string = datetime.now().strftime(self.td_s_dt_dsply_frmt)
+        out_path = self.out_dict["FRMTD_DATA"] + f"/FRMTD_DATA_{cleaned_dt}.csv"
+        trips_obs.to_csv(out_path, index=False)
