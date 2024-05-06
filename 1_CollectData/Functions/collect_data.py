@@ -1040,7 +1040,7 @@ class DataCollector:
                                                                         RT_ID   = ("ROUTE_ID", "first")
                                                                         )
 
-        trips_obs["RT_ID"] = trips_obs["RT_ID"].str.replace("-344", "")
+        trips_obs["RT_ID"] = trips_obs["RT_ID"].str.split("-").str[0]
         trips_obs["RT_ID"] = trips_obs["RT_ID"].astype(dtype = int, errors = 'ignore')
         trips_obs["RT_ID"] = trips_obs["RT_ID"].astype("Int16")
 
@@ -1348,5 +1348,6 @@ class DataCollector:
             out_path = self.out_dict["FRMTD_DATA"] + f"/FRMTD_DATA_{cleaned_dt}.csv"
             trips_obs.to_csv(out_path, index=False)
 
-        except Exception:
+        except Exception as e:
+            print(e)
             pass
