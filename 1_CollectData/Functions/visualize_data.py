@@ -454,8 +454,38 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
     df['TM_DIFF'] = df['NXT_STP_ARV_TM'] - df['STP_ARV_TM']
     df["SEG_NAME"] = df['STP_NM'] + " To " + df['NXT_STP_NM']
 
-    df.to_csv("Test.csv")
 
-"""
-usecols=['u_id', 'dt_colc', 'vehicle_id', 'route_id']
-"""
+    # Read In Bus Routes Data, Create A Matching Segment Name Dataframe
+    for file in os.listdir(bus_stp_path):
+        if "BUS_RTE_DATA" in file:
+            stp_file_path = f'{bus_stp_path}/{file}'
+
+    needed_cols = ['RT_ID', 'RT_NAME',
+                   'RT_VER', 'STP_NM',
+                   'RT_ID_VER', 'RT_DIR',
+                   'RT_GRP', 'RT_GRP_NUM']
+
+    bus_routes = pd.read_csv(stp_file_path, usecols = needed_cols)
+
+    # Before Using Bus Routes, We Need To Make Sure The Data Contains No Duplicates As Identified In Previous Attemps
+    bus_routes["U_ID"] = bus_routes["RT_ID"].astype(str) + "_" + bus_routes["RT_NAME"].astype(str) + "_" + bus_routes["RT_VER"].astype(str)
+    bus_routes = bus_routes.drop_duplicates()
+
+    # Recreate Stop Num & Total Number Of Stops
+    bus_routes["RT_STP_NUM"] = bus_routes.groupby(["U_ID"]).cumcount() + 1
+    num_stps_df = bus_routes.groupby("U_ID", as_index=False).agg(RT_NUM_STPS = ("U_ID", "count"))
+    bus_routes = bus_routes.merge(num_stps_df, on='U_ID', how='left')
+    del num_stps_df, bus_routes["U_ID"]
+    gc.collect()
+
+
+    # Only Keep Data That Is In Scope
+    bus_routes = bus_routes[bus_routes["RT_ID"].isin(df["RT_ID"])]
+
+
+
+
+
+
+
+    # df.to_csv("Test.csv")
