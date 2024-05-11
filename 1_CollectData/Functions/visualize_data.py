@@ -436,13 +436,26 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
     is present between routes.
     """
 
-    print(td_dt_mx)
-    
-    # # Make Sure We Have At Least 2 Days Worth Of Data
-    # if len(fl_data["FILE_NAME"].tolist()) >= 1:
-    #
-    #     # Find Data For Yesterday
-    #     td_dt_mx = datetime.datetime.strptime(td_dt_mx, td_s_dt_dsply_frmt)
-    #     fl_data = fl_data[fl_data["DATE"] >= td_dt_mx]
-    #     df = pd.concat([pd.read_csv(path_, usecols=['u_id', 'dt_colc', 'vehicle_id', 'route_id']) for path_ in [f"{out_path}/{x}" for x in fl_data["FILE_NAME"].tolist()]])
-    #     del fl_data
+    # FOR TESTING REMOVE!
+    td_dt_mx = "2024-05-10"
+
+    # Make Sure We Have At Least 2 Days Worth Of Data
+    if len(f_af["FILE_NAME"].tolist()) >= 1:
+
+        # Find Data For Yesterday
+        # td_dt_mx = datetime.datetime.strptime(td_dt_mx, td_s_dt_dsply_frmt)   # PUT BACK FOR PRODUCTION!
+        f_af = f_af[f_af["DATE"] >= td_dt_mx]
+        df = pd.concat([pd.read_csv(path_) for path_ in [f"{fmted_path}/{x}" for x in f_af["FILE_NAME"].tolist()]])
+        del f_af, df["index"]
+
+    # Create A Lagged Column, So We Can See The Next Arrival Time, & Determine The Time Between A Segment
+    df['NXT_STP_NM'] = df.groupby(['TRIP_ID'])['STP_NM'].shift(-1)
+    df['NXT_STP_ARV_TM'] = df.groupby(['TRIP_ID'])['STP_ARV_TM'].shift(-1)
+    df['TM_DIFF'] = df['NXT_STP_ARV_TM'] - df['STP_ARV_TM']
+    df["SEG_NAME"] = df['STP_NM'] + " To " + df['NXT_STP_NM']
+
+    df.to_csv("Test.csv")
+
+"""
+usecols=['u_id', 'dt_colc', 'vehicle_id', 'route_id']
+"""
