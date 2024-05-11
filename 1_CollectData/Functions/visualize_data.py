@@ -432,106 +432,17 @@ def data_viz_2(graphics_path, out_path, fl_data, e_out_path, e_fl_data, td_dt_mx
 def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_path, e_fl_data, td_dt_mx):
     """
     Using the formatted data, this function will derive general statistics about
-    when buses arrived at certain bus stops on a given route.
+    when buses arrived at certain bus stops on a given route. And if any variation
+    is present between routes.
     """
 
-    td_dt_mx = "08-04-2024"
-
-    # Make Sure We Have At Least 2 Days Worth Of Data
-    if len(f_af["FILE_NAME"].tolist()) >= 1:
-
-        # Find Days Between Today And Minus 1 Days
-        td_dt_mx = datetime.datetime.strptime(td_dt_mx, td_s_dt_dsply_frmt)
-        f_af = f_af[f_af["DATE"] >= td_dt_mx]
-
-        df = pd.concat([pd.read_csv(path_) for path_ in [f"{fmted_path}/{x}" for x in f_af["FILE_NAME"].tolist()]])
-        del f_af
-
-        # Convert To INT
-        for col in ["CUR_STP_TIME", "NXT_STP_TIME"]:
-            df[col] == df[col].astype("Int64", errors='ignore')
-
-        # The Convert To Human Readable Time
-        df["CUR_STP_TIME_C"] = pd.to_datetime(df["CUR_STP_TIME"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
-        df["NXT_STP_TIME_C"] = pd.to_datetime(df["NXT_STP_TIME"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
-        df["MINUTES_BTW"] = round((df["NXT_STP_TIME"] - df["CUR_STP_TIME"]) / 60, 2)
-
-
-        # Why Do We Have Negative Times?
-        df = df[df["TRIP_ID"] == "23870316-240304-MULTI-Weekday-03"]
-
-        out_path = f"/Users/renacin/Desktop/SegmentStatistics.csv"
-        df.to_csv(out_path, index=False)
-
-
-
-
-        # Determine Time, Speed Between Stops
-
-
-        # # # Remove Unneeded Columns
-        # # df = df[['ID', 'V_ID', 'ROUTE_ID', 'TRIP_ID',
-        # #          'TRIP_TYPE',
-        # #          'CUR_STP_ID', 'CUR_STP_LAT', 'CUR_STP_LONG',
-        # #          'SEGMENT_NAME',
-        # #          'NXT_STP_ID', 'NXT_STP_LAT', 'NXT_STP_LONG',
-        # #          'CUR_STP_TIME_C', 'NXT_STP_TIME_C',
-        # #          'DST_BTW_STPS', 'MINUTES_BTW', 'KPH_BTW']]
-        #
-        #
-        # # Remove Unneeded Columns
-        # df = df[['V_ID', 'ROUTE_ID',
-        #          'SEGMENT_NAME', 'CUR_STP_TIME_C',
-        #          'DST_BTW_STPS', 'MINUTES_BTW', 'KPH_BTW']]
-        #
-        #
-        # # Find File, If Not Exist, Raise Error
-        # for file in os.listdir(bus_stp_path):
-        #     if "BUS_RTE_DATA" in file:
-        #         rte_path = f'{bus_stp_path}/{file}'
-        #
-        # # Read In Data & Catch Possible Error, Create A Column Called Segment ID
-        # try:
-        #     bus_rutes = pd.read_csv(rte_path)
-        #     bus_rutes['NXT_STP'] = bus_rutes.groupby(["RT_NM"])['STP_NM'].shift(-1)
-        #     bus_rutes['NXT_STP'] = bus_rutes['NXT_STP'].fillna(bus_rutes['STP_NM'])
-        #     bus_rutes["SEGMENT_NAME"] = bus_rutes['STP_NM'] + " -- TO -- " + bus_rutes['NXT_STP']
-        #     del bus_rutes["RT_LINK"], bus_rutes["STP_NM"], bus_rutes["NXT_STP"]
-        #
-        # except Exception:
-        #     now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-        #     print(f"{now}: Error Bus Stop / Bus Route Files Do Not Exist")
-        #     sys.exit(1)
-        #
-        #
-        # # Using Bus Routes As A Main Table, Left Join Observations
-        # new_data = bus_rutes.merge(df, on='SEGMENT_NAME', how='left')
-        # del bus_rutes, df
-        # new_data = new_data.groupby(["RT_NM", "RT_STP_NUM", "SEGMENT_NAME"]).agg(
-        #                                     TIME_AVG = ('MINUTES_BTW', 'mean'),
-        #                                     TIME_STD = ('MINUTES_BTW', 'std'),
-        #                                     TIME_MIN = ('MINUTES_BTW', 'min'),
-        #                                     TIME_MAX = ('MINUTES_BTW', 'max'),
-        #                                     KPH_AVG = ('KPH_BTW', 'mean'),
-        #                                     KPH_STD = ('KPH_BTW', 'std'),
-        #                                     KPH_MIN = ('KPH_BTW', 'min'),
-        #                                     KPH_MAX = ('KPH_BTW', 'max'),
-        #                                     NUM_OBS = ('SEGMENT_NAME', 'count')
-        #                                     )
-        # new_data["NUM_OBS"] = new_data["NUM_OBS"] - 1
-        #
-        # # Round Columns For Readability
-        # for col in ["TIME_AVG", "TIME_STD", "TIME_MIN", "TIME_MAX", "KPH_AVG", "KPH_STD", "KPH_MIN", "KPH_MAX"]:
-        #     new_data[col] = round(new_data[col], 2)
-        #
-        # new_data = new_data.reset_index()
-        # # f"{fmted_path}/SegmentStatistics.csv"
-        #
-
-
-
-        # print(df.head())
-        # df.to_csv("Test.csv")
-        # # Data Formating & Grouping
-        # grped_time, dates_in = __d1_s2(__d1_s1(df, td_dt_mx))
-        # del df
+    print(td_dt_mx)
+    
+    # # Make Sure We Have At Least 2 Days Worth Of Data
+    # if len(fl_data["FILE_NAME"].tolist()) >= 1:
+    #
+    #     # Find Data For Yesterday
+    #     td_dt_mx = datetime.datetime.strptime(td_dt_mx, td_s_dt_dsply_frmt)
+    #     fl_data = fl_data[fl_data["DATE"] >= td_dt_mx]
+    #     df = pd.concat([pd.read_csv(path_, usecols=['u_id', 'dt_colc', 'vehicle_id', 'route_id']) for path_ in [f"{out_path}/{x}" for x in fl_data["FILE_NAME"].tolist()]])
+    #     del fl_data
