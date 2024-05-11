@@ -749,6 +749,12 @@ class DataCollector:
             conn.commit()
             conn.close()
 
+            # We Need To Make Sure We Clean Up Everything, Run The Vacuum Command To Clean Up Temp Space
+            conn = sqlite3.connect(self.db_path)
+            conn.execute(f"""vacuum""")
+            conn.commit()
+            conn.close()
+
             # For Logging
             print(f"{tm_nw}: Exported CSV & DB Table - {out_table} Cleaned")
 
