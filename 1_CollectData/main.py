@@ -39,21 +39,21 @@ def main():
     error_path, e_af      =  Collector.return_files_dates("ERROR")
     graphics_path, g_af   =  Collector.return_files_dates("GRAPHICS")
 
+    #
+    # # FOR TESTING PLEASE CLEAN UP!
+    # Collector.frmt_rwbslc_data(td_dt_mx)
+    #
 
     # FOR TESTING PLEASE CLEAN UP!
-    Collector.frmt_rwbslc_data(td_dt_mx)
-
-
-    # FOR TESTING PLEASE CLEAN UP!
-    # # Run Data Visualizations #3
-    # data_viz_3(graphics_path,
-    #             fmted_path,
-    #             f_af,
-    #             bus_stp_path,
-    #             bstp_af,
-    #             error_path,
-    #             e_af,
-    #             td_dt_mx)
+    # Run Data Visualizations #3
+    data_viz_3(graphics_path,
+                fmted_path,
+                f_af,
+                bus_stp_path,
+                bstp_af,
+                error_path,
+                e_af,
+                td_dt_mx)
 
 
 
