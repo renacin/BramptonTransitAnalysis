@@ -437,7 +437,7 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
     """
 
     # FOR TESTING REMOVE!
-    td_dt_mx = "2024-05-10"
+    td_dt_mx = "2024-05-11"
 
     # Make Sure We Have At Least 2 Days Worth Of Data
     if len(f_af["FILE_NAME"].tolist()) >= 1:
@@ -478,9 +478,11 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
     del num_stps_df, bus_routes["U_ID"]
     gc.collect()
 
-
     # Only Keep Data That Is In Scope
     bus_routes = bus_routes[bus_routes["RT_ID"].isin(df["RT_ID"])]
+
+    # In Order To Standardize Comparisons We Need Each Trip To Have An Entire Set Of Segment IDs, Even If It Only Had A Couple Of Stops
+    
 
 
 
