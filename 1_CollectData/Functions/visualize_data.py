@@ -439,6 +439,7 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
     # FOR TESTING REMOVE!
     td_dt_mx = "2024-05-11"
 
+
     # Make Sure We Have At Least 2 Days Worth Of Data
     if len(f_af["FILE_NAME"].tolist()) >= 1:
 
@@ -446,7 +447,8 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
         # td_dt_mx = datetime.datetime.strptime(td_dt_mx, td_s_dt_dsply_frmt)   # PUT BACK FOR PRODUCTION!
         f_af = f_af[f_af["DATE"] >= td_dt_mx]
         df = pd.concat([pd.read_csv(path_) for path_ in [f"{fmted_path}/{x}" for x in f_af["FILE_NAME"].tolist()]])
-        del f_af, df["index"]
+        del f_af, df["index"], df["RT_GRP_NUM"], df["RT_GRP"]
+
 
     # Create A Lagged Column, So We Can See The Next Arrival Time, & Determine The Time Between A Segment
     df['NXT_STP_NM'] = df.groupby(['TRIP_ID'])['STP_NM'].shift(-1)
@@ -478,16 +480,38 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
     del num_stps_df, bus_routes["U_ID"]
     gc.collect()
 
+
     # Only Keep Data That Is In Scope
     bus_routes = bus_routes[bus_routes["RT_ID"].isin(df["RT_ID"])]
 
+
+    # We Need To Join The Trip Data To The Bus Stops (In Order) For A Given Route
+    trips_obs = df.groupby(["TRIP_ID"], as_index=False).agg(TRIP_ID = ("TRIP_ID", "first"),
+                                                            RT_ID   = ("ROUTE_ID", "first")
+                                                            )
+
+    trips_obs["RT_ID"] = trips_obs["RT_ID"].str.split("-").str[0]
+    trips_obs["RT_ID"] = trips_obs["RT_ID"].astype(dtype = int, errors = 'ignore')
+    trips_obs["RT_ID"] = trips_obs["RT_ID"].astype("Int16")
+
+
     # In Order To Standardize Comparisons We Need Each Trip To Have An Entire Set Of Segment IDs, Even If It Only Had A Couple Of Stops
-    
+    trips_obs = trips_obs.merge(bus_routes, how="left", on=["RT_ID"])
+    trips_obs = trips_obs.merge(df, how="left", on=["TRIP_ID", "STP_NM", "RT_ID",
+                                                    "RT_NAME", "RT_VER", "RT_ID_VER",
+                                                    "RT_DIR", "RT_STP_NUM", "RT_NUM_STPS"])
+    del df, bus_routes
+    gc.collect()
+
+
+    # We Only Want Trip IDs With Data, Remove Those That Don't
+    trips_obs["U_ID"] = trips_obs["TRIP_ID"] + "_" + trips_obs["RT_ID_VER"]
+    count_df = trips_obs.groupby(["U_ID"], as_index=False).agg(TM_SUM = ("TM_DIFF", "sum"))
+    count_df = count_df[count_df["TM_SUM"] > 0]
+    trips_obs = trips_obs[trips_obs["U_ID"].isin(count_df["U_ID"])]
+    del count_df, trips_obs["U_ID"]
 
 
 
-
-
-
-
-    # df.to_csv("Test.csv")
+    # For Testing
+    trips_obs.to_csv("Test.csv")
