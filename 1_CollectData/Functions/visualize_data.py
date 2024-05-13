@@ -512,37 +512,45 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
     del count_df, trips_obs["U_ID"]
 
 
-    # Visualize Route Data Collected:
-    for route_ver in trips_obs["RT_ID_VER"].unique().tolist():
-
-        # Focus On Just Route Data
-        route_data = trips_obs[trips_obs["RT_ID_VER"] == route_ver].copy()
-
-        # Group Data, Find Average Time Between Segments, And The Variance Between Them
-        needed_cols = ["RT_ID", "RT_NAME", "RT_VER", "RT_DIR", "RT_STP_NUM", "RT_NUM_STPS", "V_ID", "STP_ARV_TM", "DATA_TYPE", "STP_ARV_DTTM", "TM_DIFF", "SEG_NAME"]
-        route_data = route_data[needed_cols].copy()
-        stats_df = route_data.groupby(["RT_ID", "RT_NAME", "RT_VER", "RT_DIR", "RT_STP_NUM", "RT_NUM_STPS", "SEG_NAME"], as_index=False).agg(TM_AVG = ("TM_DIFF", "mean"),
-                                                                                                                                             NO_OBS = ("TM_DIFF", "count"),
-                                                                                                                                             TM_STD = ("TM_DIFF", "std"),
-                                                                                                                                             TM_VAR = ("TM_DIFF", "var")
-                                                                                                                                             )
+    # For Now Find The Route With The Most Trips | It Looks Like 18_2 Has The Most Data
+    # max_route = trips_obs.copy()
+    # max_route = max_route.dropna()
+    # max_route = max_route.groupby(["RT_ID_VER"], as_index=False).agg(RT_ID_VER_COUNT = ("RT_ID_VER", "count"))
+    # max_route.to_csv("Testing.csv")
 
 
+    # Instead Of Looking At All Routes, For Now Just Focus On The Route That Had The Most Trips
+    # for route_ver in trips_obs["RT_ID_VER"].unique().tolist():
 
-        # Do Some Data Cleaning
-        for col in ["TM_AVG", "TM_STD", "TM_VAR", "NO_OBS"]:
-            stats_df.loc[stats_df["NO_OBS"] <= 1, col] = np.nan
 
-        # Create A Line Chart
-        plt.plot(stats_df["RT_STP_NUM"], stats_df["TM_AVG"])
-        plt.xlabel("X-axis")  # add X-axis label
-        plt.ylabel("Y-axis")  # add Y-axis label
-        plt.title("Any suitable title")  # add title
-        plt.show()
+    # Focus On Just Route Data
+    route_data = trips_obs[trips_obs["RT_ID_VER"] == "18_2"].copy()
 
-        stats_df.to_csv("Test.csv")
+    # Group Data, Find Average Time Between Segments, And The Variance Between Them
+    needed_cols = ["RT_ID", "RT_NAME", "RT_VER", "RT_DIR", "RT_STP_NUM", "RT_NUM_STPS", "V_ID", "STP_ARV_TM", "DATA_TYPE", "STP_ARV_DTTM", "TM_DIFF", "SEG_NAME"]
+    route_data = route_data[needed_cols].copy()
+    stats_df = route_data.groupby(["RT_ID", "RT_NAME", "RT_VER", "RT_DIR", "RT_STP_NUM", "RT_NUM_STPS", "SEG_NAME"], as_index=False).agg(TM_AVG = ("TM_DIFF", "mean"),
+                                                                                                                                         NO_OBS = ("TM_DIFF", "count"),
+                                                                                                                                         TM_STD = ("TM_DIFF", "std"),
+                                                                                                                                         TM_VAR = ("TM_DIFF", "var")
+                                                                                                                                         )
 
-        time.sleep(10)
+
+
+    # Do Some Data Cleaning
+    for col in ["TM_AVG", "TM_STD", "TM_VAR", "NO_OBS"]:
+        stats_df.loc[stats_df["NO_OBS"] <= 1, col] = np.nan
+
+    # Create A Line Chart
+    plt.plot(stats_df["RT_STP_NUM"], stats_df["TM_AVG"])
+    plt.xlabel("X-axis")  # add X-axis label
+    plt.ylabel("Y-axis")  # add Y-axis label
+    plt.title("Any suitable title")  # add title
+    plt.show()
+
+    stats_df.to_csv("Test.csv")
+
+    time.sleep(10)
 
 
 
