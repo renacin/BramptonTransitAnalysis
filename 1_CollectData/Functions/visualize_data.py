@@ -532,16 +532,22 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
     for col in ["TM_AVG", "TM_STD", "TM_VAR", "NO_OBS"]:
         stats_df.loc[stats_df["NO_OBS"] <= 1, col] = np.nan
 
-    # Create A Line Chart
-    plt.plot(stats_df["RT_STP_NUM"], stats_df["TM_AVG"])
-    plt.xlabel("X-axis")  # add X-axis label
+    # Drop Rows Were It Was Just One Observation
+    stats_df = stats_df.dropna(subset=["NO_OBS"])
+
+    # Create A Scatter Plot
+    plt.scatter(stats_df["RT_STP_NUM"], stats_df["NO_OBS"], s=10, c="blue", marker="x", label='first')
+    plt.scatter(stats_df["RT_STP_NUM"], stats_df["TM_STD"], s=10, c="red",  marker="+", label='second')
+    plt.legend(loc='upper left')
+
+    plt.xlabel("Segment Number")  # add X-axis label
     plt.ylabel("Y-axis")  # add Y-axis label
     plt.title(f"Bus Route: {max_route}")  # add title
     plt.show()
 
 
 
-    # stats_df.to_csv("Test.csv")
+    stats_df.to_csv("Test.csv")
     #
 
     # # For Testing
