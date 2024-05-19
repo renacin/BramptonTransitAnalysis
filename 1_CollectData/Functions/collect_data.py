@@ -1115,6 +1115,14 @@ class DataCollector:
         # Make An Indicator For Each Row
         trips_obs["ROW_ID"] = range(len(trips_obs))
 
+
+
+
+
+
+
+
+
         # Make A Copy Of The Database, Keep Only Needed Columns
         test_df = trips_obs[["STP_ARV_TM", "U_ID", "ROW_ID"]].copy()
         test_df = test_df.dropna(subset=["STP_ARV_TM"])
@@ -1152,6 +1160,15 @@ class DataCollector:
         trips_obs.loc[trips_obs["STP_ARV_TM"].isna(), "ERASE_DATA"] = "YES"
         del test_df
         gc.collect()
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1225,6 +1242,10 @@ class DataCollector:
         trips_obs["DTS_2_NXT_STP"] = vec_haversine((trips_obs["STP_LAT"].values, trips_obs["STP_LON"].values), (trips_obs["NXT_STP_LAT"].values, trips_obs["NXT_STP_LON"].values))
         trips_obs.drop(columns=["STP_LAT", "STP_LON", "NXT_STP_LAT", "NXT_STP_LON"], inplace = True)
 
+        # There Are Situations Where The DTS_2_NXT_STP Is Null, Fill With 0
+        trips_obs["DTS_2_NXT_STP"] = trips_obs["DTS_2_NXT_STP"].fillna(0)
+
+
 
 
         # Iterate Through The Data Looking Patterns, Find Clusters Of Missing Data, Use Regex To Find All Matches
@@ -1272,6 +1293,8 @@ class DataCollector:
         cm_sum_df["TRL_ARV_TM_EST"] = cm_sum_df["ERROR_START_TIME"] + cm_sum_df["TRV_TM_CUMSUM"]
         cm_sum_df.drop(columns=["CLUSTER_AVG_SPD", "ERROR_START_TIME", "SECS_TRVL_DSTNC", "TRV_TM_CUMSUM"], inplace = True)
         trips_obs.drop(columns=['CLUSTER_AVG_SPD', 'ERROR_START_TIME', 'DATA_FLG', 'DTS_2_NXT_STP', 'SECS_TRVL_DSTNC'], inplace = True)
+
+
 
 
         # Merge Data Together
@@ -1347,6 +1370,7 @@ class DataCollector:
         # try:
 
         print(td_dt_mx)
+
         dt_copy = td_dt_mx
         dir_list = [x for x in os.listdir(self.out_dict["BUS_LOC"]) if ".csv" in x]
         df = pd.DataFrame(dir_list, columns=['FILE_NAME'])
@@ -1356,7 +1380,6 @@ class DataCollector:
         df["DATE"] = df["DATE"].str.replace(".csv", "", regex=False)
         df["DATE"] = pd.to_datetime(df["DATE"], format = self.td_s_dt_dsply_frmt)
 
-        print(df)
 
         # We Only Need Certain Columns On Data Ingest
         td_dt_mx = datetime.strptime(td_dt_mx, self.td_s_dt_dsply_frmt)
@@ -1365,12 +1388,10 @@ class DataCollector:
         df = pd.concat([pd.read_csv(path_, usecols = needed_cols) for path_ in [f'{self.out_dict["BUS_LOC"]}/{x}' for x in df["FILE_NAME"].tolist()]])
         del needed_cols
 
-        print(df)
-
 
         # Format Data
         # trips_obs =
-        # self.__frmt_data_s3(self.__frmt_data_s2(self.__frmt_data_s1(df, td_dt_mx), td_dt_mx))
+        self.__frmt_data_s3(self.__frmt_data_s2(self.__frmt_data_s1(df, td_dt_mx), td_dt_mx))
 
 
 
