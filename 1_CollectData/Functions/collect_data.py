@@ -1322,9 +1322,8 @@ class DataCollector:
         now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
         print(f"{now}: Data Formatting Step #3 - Complete")
 
-        trips_obs.to_csv("Test.csv")
 
-        # return trips_obs
+        return trips_obs
 
 
 
@@ -1337,41 +1336,36 @@ class DataCollector:
         be exported as a CSV to an output folder.
         """
 
-        # # Step #0: Gather Yesterday's Bus Location Data
-        # try:
+        # Step #0: Gather Yesterday's Bus Location Data
+        try:
 
-        print(td_dt_mx)
+            print(td_dt_mx)
 
-        dt_copy = td_dt_mx
-        dir_list = [x for x in os.listdir(self.out_dict["BUS_LOC"]) if ".csv" in x]
-        df = pd.DataFrame(dir_list, columns=['FILE_NAME'])
+            dt_copy = td_dt_mx
+            dir_list = [x for x in os.listdir(self.out_dict["BUS_LOC"]) if ".csv" in x]
+            df = pd.DataFrame(dir_list, columns=['FILE_NAME'])
 
-        # Create A Dataframe With The Time The File Was Created & Output
-        df["DATE"] = df["FILE_NAME"].str.split('_').str[-1]
-        df["DATE"] = df["DATE"].str.replace(".csv", "", regex=False)
-        df["DATE"] = pd.to_datetime(df["DATE"], format = self.td_s_dt_dsply_frmt)
+            # Create A Dataframe With The Time The File Was Created & Output
+            df["DATE"] = df["FILE_NAME"].str.split('_').str[-1]
+            df["DATE"] = df["DATE"].str.replace(".csv", "", regex=False)
+            df["DATE"] = pd.to_datetime(df["DATE"], format = self.td_s_dt_dsply_frmt)
 
+            # We Only Need Certain Columns On Data Ingest
+            td_dt_mx = datetime.strptime(td_dt_mx, self.td_s_dt_dsply_frmt)
+            df = df[df["DATE"] >= td_dt_mx]
+            needed_cols = ['u_id', 'timestamp', 'route_id', 'trip_id', 'vehicle_id', 'bearing', 'latitude', 'longitude', 'stop_id', 'dt_colc']
+            df = pd.concat([pd.read_csv(path_, usecols = needed_cols) for path_ in [f'{self.out_dict["BUS_LOC"]}/{x}' for x in df["FILE_NAME"].tolist()]])
+            del needed_cols
 
-        # We Only Need Certain Columns On Data Ingest
-        td_dt_mx = datetime.strptime(td_dt_mx, self.td_s_dt_dsply_frmt)
-        df = df[df["DATE"] >= td_dt_mx]
-        needed_cols = ['u_id', 'timestamp', 'route_id', 'trip_id', 'vehicle_id', 'bearing', 'latitude', 'longitude', 'stop_id', 'dt_colc']
-        df = pd.concat([pd.read_csv(path_, usecols = needed_cols) for path_ in [f'{self.out_dict["BUS_LOC"]}/{x}' for x in df["FILE_NAME"].tolist()]])
-        del needed_cols
+            # Format Data
+            trips_obs = self.__frmt_data_s3(self.__frmt_data_s2(self.__frmt_data_s1(df, td_dt_mx), td_dt_mx))
 
+            # Export Speed DF To Folder
+            cleaned_dt = f"{td_dt_mx.day:0>2}-{td_dt_mx.month:0>2}-{td_dt_mx.year}"
+            dt_string = datetime.now().strftime(self.td_s_dt_dsply_frmt)
+            out_path = self.out_dict["FRMTD_DATA"] + f"/FRMTD_DATA_{cleaned_dt}.csv"
+            trips_obs.to_csv(out_path, index=False)
 
-        # Format Data
-        # trips_obs =
-        self.__frmt_data_s3(self.__frmt_data_s2(self.__frmt_data_s1(df, td_dt_mx), td_dt_mx))
-
-
-
-        # # Export Speed DF To Folder
-        # cleaned_dt = f"{td_dt_mx.day:0>2}-{td_dt_mx.month:0>2}-{td_dt_mx.year}"
-        # dt_string = datetime.now().strftime(self.td_s_dt_dsply_frmt)
-        # out_path = self.out_dict["FRMTD_DATA"] + f"/FRMTD_DATA_{cleaned_dt}.csv"
-        # trips_obs.to_csv(out_path, index=False)
-
-        # except Exception as e:
-        #     print(e)
-        #     pass
+        except Exception as e:
+            print(e)
+            pass
