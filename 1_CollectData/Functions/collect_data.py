@@ -1222,6 +1222,8 @@ class DataCollector:
         # Determine Distance To Next Bus Stop
         trips_obs['NXT_STP_LAT'] = trips_obs['STP_LAT'].shift(-1)
         trips_obs['NXT_STP_LON'] = trips_obs['STP_LON'].shift(-1)
+        trips_obs['NXT_STP_NM'] = trips_obs.groupby('TRIP_ID')['STP_NM'].shift(-1)
+
         trips_obs["DTS_2_NXT_STP"] = vec_haversine((trips_obs["STP_LAT"].values, trips_obs["STP_LON"].values), (trips_obs["NXT_STP_LAT"].values, trips_obs["NXT_STP_LON"].values))
         trips_obs.drop(columns=["STP_LAT", "STP_LON", "NXT_STP_LAT", "NXT_STP_LON"], inplace = True)
 
@@ -1272,8 +1274,9 @@ class DataCollector:
         cm_sum_df = cm_sum_df.dropna(subset=["TRIP_CLUSTER_ID"])
         cm_sum_df["TRV_TM_CUMSUM"] = cm_sum_df.groupby(["TRIP_CLUSTER_ID"])["SECS_TRVL_DSTNC"].cumsum()
         cm_sum_df["TRL_ARV_TM_EST"] = cm_sum_df["ERROR_START_TIME"] + cm_sum_df["TRV_TM_CUMSUM"]
+
         cm_sum_df.drop(columns=["CLUSTER_AVG_SPD", "ERROR_START_TIME", "SECS_TRVL_DSTNC", "TRV_TM_CUMSUM"], inplace = True)
-        trips_obs.drop(columns=['CLUSTER_AVG_SPD', 'ERROR_START_TIME', 'DATA_FLG', 'DTS_2_NXT_STP', 'SECS_TRVL_DSTNC'], inplace = True)
+        trips_obs.drop(columns=['CLUSTER_AVG_SPD', 'ERROR_START_TIME', 'DATA_FLG', 'SECS_TRVL_DSTNC'], inplace = True)
 
 
         # Merge Data Together
@@ -1295,6 +1298,9 @@ class DataCollector:
         trips_obs.loc[trips_obs["ROUTE_ID"] == "", "ROUTE_ID"] = np.nan
         trips_obs["ROUTE_ID"] = trips_obs.groupby(["TRIP_ID"])["ROUTE_ID"].ffill()
 
+        # Round A Few Columns
+        for col in ["DTS_2_NXT_STP"]:
+            trips_obs[col] = trips_obs[col].round(2)
 
         # Final Bits Of Formatting, Drop Duplicates, And If No Data For Trip ID Don't Keep
         trips_obs = trips_obs.drop_duplicates()
@@ -1313,17 +1319,21 @@ class DataCollector:
         trips_obs = pd.concat(data)
         del trips_obs["STP_ID"]
 
-
         # Drop Duplicates Again, This Time Based On TRIP_ID, And Stop Number
         trips_obs = trips_obs.drop_duplicates(subset=["TRIP_ID", "RT_STP_NUM"])
 
+        # If Last Stop & No Data Remove Erroneous Data From Next Stop
+        trips_obs["NXT_STP_NM"] = trips_obs["NXT_STP_NM"].fillna("--")
+        trips_obs.loc[trips_obs["NXT_STP_NM"] == "--", "DTS_2_NXT_STP"] = 0
 
         # For Logging
         now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
         print(f"{now}: Data Formatting Step #3 - Complete")
 
-
         return trips_obs
+
+
+
 
 
 
@@ -1338,8 +1348,6 @@ class DataCollector:
 
         # Step #0: Gather Yesterday's Bus Location Data
         try:
-
-            print(td_dt_mx)
 
             dt_copy = td_dt_mx
             dir_list = [x for x in os.listdir(self.out_dict["BUS_LOC"]) if ".csv" in x]

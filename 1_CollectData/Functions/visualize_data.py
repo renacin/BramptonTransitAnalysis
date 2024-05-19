@@ -436,9 +436,6 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
     is present between routes.
     """
 
-    # FOR TESTING REMOVE!
-    td_dt_mx = "2024-05-11"
-
 
     # Make Sure We Have At Least 2 Days Worth Of Data
     if len(f_af["FILE_NAME"].tolist()) >= 1:
@@ -449,9 +446,7 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
         df = pd.concat([pd.read_csv(path_) for path_ in [f"{fmted_path}/{x}" for x in f_af["FILE_NAME"].tolist()]])
         del f_af, df["index"], df["RT_GRP_NUM"], df["RT_GRP"]
 
-
     # Create A Lagged Column, So We Can See The Next Arrival Time, & Determine The Time Between A Segment
-    df['NXT_STP_NM'] = df.groupby(['TRIP_ID'])['STP_NM'].shift(-1)
     df['NXT_STP_ARV_TM'] = df.groupby(['TRIP_ID'])['STP_ARV_TM'].shift(-1)
     df['TM_DIFF'] = df['NXT_STP_ARV_TM'] - df['STP_ARV_TM']
     df["SEG_NAME"] = df['STP_NM'] + " To " + df['NXT_STP_NM']
@@ -524,12 +519,13 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
     route_data = trips_obs[trips_obs["RT_ID_VER"] == max_route].copy()
 
     # Group Data, Find Average Time Between Segments, And The Variance Between Them
-    needed_cols = ["RT_ID", "RT_NAME", "RT_VER", "RT_DIR", "RT_STP_NUM", "RT_NUM_STPS", "V_ID", "STP_ARV_TM", "DATA_TYPE", "STP_ARV_DTTM", "TM_DIFF", "SEG_NAME"]
+    needed_cols = ["RT_ID", "RT_NAME", "RT_VER", "RT_DIR", "RT_STP_NUM", "RT_NUM_STPS", "V_ID", "STP_ARV_TM", "DATA_TYPE", "STP_ARV_DTTM", "TM_DIFF", "SEG_NAME", "DTS_2_NXT_STP"]
     route_data = route_data[needed_cols].copy()
-    stats_df = route_data.groupby(["RT_ID", "RT_NAME", "RT_VER", "RT_DIR", "RT_STP_NUM", "RT_NUM_STPS", "SEG_NAME"], as_index=False).agg(TM_AVG = ("TM_DIFF", "mean"),
-                                                                                                                                         NO_OBS = ("TM_DIFF", "count"),
-                                                                                                                                         TM_STD = ("TM_DIFF", "std"),
-                                                                                                                                         TM_VAR = ("TM_DIFF", "var")
+    stats_df = route_data.groupby(["RT_ID", "RT_NAME", "RT_VER", "RT_DIR", "RT_STP_NUM", "RT_NUM_STPS", "SEG_NAME"], as_index=False).agg(TM_AVG   = ("TM_DIFF", "mean"),
+                                                                                                                                         NO_OBS   = ("TM_DIFF", "count"),
+                                                                                                                                         TM_STD   = ("TM_DIFF", "std"),
+                                                                                                                                         TM_VAR   = ("TM_DIFF", "var"),
+                                                                                                                                         DIST_BTW = ("DTS_2_NXT_STP", "first")
                                                                                                                                          )
 
     # Do Some Data Cleaning
@@ -537,14 +533,16 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
         stats_df.loc[stats_df["NO_OBS"] <= 1, col] = np.nan
 
     # Create A Line Chart
-    plt.plot(stats_df["RT_STP_NUM"], stats_df["TM_STD"])
+    plt.plot(stats_df["RT_STP_NUM"], stats_df["TM_AVG"])
     plt.xlabel("X-axis")  # add X-axis label
     plt.ylabel("Y-axis")  # add Y-axis label
     plt.title(f"Bus Route: {max_route}")  # add title
     plt.show()
 
-    stats_df.to_csv("Test.csv")
 
+
+    # stats_df.to_csv("Test.csv")
+    #
 
     # # For Testing
     # trips_obs.to_csv("Test.csv")

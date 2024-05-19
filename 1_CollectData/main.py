@@ -39,7 +39,7 @@ def main():
     error_path, e_af      =  Collector.return_files_dates("ERROR")
     graphics_path, g_af   =  Collector.return_files_dates("GRAPHICS")
 
-    #
+
     # # FOR TESTING PLEASE CLEAN UP!
     # Collector.frmt_rwbslc_data(td_dt_mx)
 
