@@ -1074,7 +1074,6 @@ class DataCollector:
         gc.collect()
 
 
-
         # Only Keep Data That Is In Scope
         bus_routes = bus_routes[bus_routes["RT_ID"].isin(trips_obs["RT_ID"])]
 
@@ -1111,16 +1110,10 @@ class DataCollector:
         del max_obs, count_df
         gc.collect()
 
+
         # Need To Solve The Later Later Stop Earlier Time Issue
         # Make An Indicator For Each Row
         trips_obs["ROW_ID"] = range(len(trips_obs))
-
-
-
-
-
-
-
 
 
         # Make A Copy Of The Database, Keep Only Needed Columns
@@ -1134,7 +1127,6 @@ class DataCollector:
         test_df = pd.concat([x[1] for x in test_df.groupby("U_ID") if len(x[1]) > 1])
         test_df['NXT_STP_ARV_TM'] = test_df.groupby(['U_ID'])['STP_ARV_TM'].shift(-1)
         test_df['TM_DIFF'] = test_df['NXT_STP_ARV_TM'] - test_df['STP_ARV_TM']
-
 
 
         # We Need To Know Which Rows To Remove Only Keep Data Between First Observation Of Negative Value And Everything Else
@@ -1162,16 +1154,6 @@ class DataCollector:
         gc.collect()
 
 
-
-
-
-
-
-
-
-
-
-
         # Convert Column To String, Remove Erroneous Data
         for col in ["ROUTE_ID", "STP_ARV_DTTM", "DATA_TYPE"]:
             trips_obs[col] = trips_obs[col].astype(str)
@@ -1182,7 +1164,6 @@ class DataCollector:
 
         # Remove Unneeded Column
         trips_obs.drop(["ERASE_DATA", "ROW_ID"], axis=1, inplace=True)
-
 
 
         # We Only Want Data Between The First Occurence, And The Last Of A Given Trip, Remove Occurences With No Data
@@ -1197,6 +1178,9 @@ class DataCollector:
         trips_obs = pd.concat(data)
         del gb, data, trips_obs["U_ID"]
 
+
+        # Drop Duplicates Again, This Time Based On TRIP_ID, And Stop Number
+        trips_obs = trips_obs.drop_duplicates(subset=["TRIP_ID", "RT_STP_NUM"])
 
 
         # Create An Encoding, For A New Column. If There Is Data In The Timestampt Then 1, Else 0
@@ -1235,7 +1219,6 @@ class DataCollector:
         gc.collect()
 
 
-
         # Determine Distance To Next Bus Stop
         trips_obs['NXT_STP_LAT'] = trips_obs['STP_LAT'].shift(-1)
         trips_obs['NXT_STP_LON'] = trips_obs['STP_LON'].shift(-1)
@@ -1244,8 +1227,6 @@ class DataCollector:
 
         # There Are Situations Where The DTS_2_NXT_STP Is Null, Fill With 0
         trips_obs["DTS_2_NXT_STP"] = trips_obs["DTS_2_NXT_STP"].fillna(0)
-
-
 
 
         # Iterate Through The Data Looking Patterns, Find Clusters Of Missing Data, Use Regex To Find All Matches
@@ -1282,9 +1263,9 @@ class DataCollector:
             trips_obs.at[grp_mtch_idx[0] + 1:grp_mtch_idx[1] -1, "ERROR_START_TIME"] = trips_obs.iloc[grp_mtch_idx[0]]["STP_ARV_TM"]
 
 
-
         # Determine The Time It Took Given The Speed And Distance
         trips_obs["SECS_TRVL_DSTNC"] = (trips_obs["DTS_2_NXT_STP"] / trips_obs["CLUSTER_AVG_SPD"]) * 3600
+        trips_obs["SECS_TRVL_DSTNC"] = trips_obs["SECS_TRVL_DSTNC"].fillna(0)
 
         # Make A Copy Of Certain Columns, And Determine The Running Sum Of Time Traveled For Distance, Add Back To Original Time And Merge To Main DF
         cm_sum_df = trips_obs[["IDX_R", "TRIP_CLUSTER_ID", "CLUSTER_AVG_SPD", "ERROR_START_TIME", "SECS_TRVL_DSTNC"]].copy()
@@ -1293,8 +1274,6 @@ class DataCollector:
         cm_sum_df["TRL_ARV_TM_EST"] = cm_sum_df["ERROR_START_TIME"] + cm_sum_df["TRV_TM_CUMSUM"]
         cm_sum_df.drop(columns=["CLUSTER_AVG_SPD", "ERROR_START_TIME", "SECS_TRVL_DSTNC", "TRV_TM_CUMSUM"], inplace = True)
         trips_obs.drop(columns=['CLUSTER_AVG_SPD', 'ERROR_START_TIME', 'DATA_FLG', 'DTS_2_NXT_STP', 'SECS_TRVL_DSTNC'], inplace = True)
-
-
 
 
         # Merge Data Together
@@ -1335,23 +1314,15 @@ class DataCollector:
         del trips_obs["STP_ID"]
 
 
+        # Drop Duplicates Again, This Time Based On TRIP_ID, And Stop Number
+        trips_obs = trips_obs.drop_duplicates(subset=["TRIP_ID", "RT_STP_NUM"])
 
 
+        # For Logging
+        now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+        print(f"{now}: Data Formatting Step #3 - Complete")
 
         trips_obs.to_csv("Test.csv")
-
-
-
-
-
-        # # For Logging
-        # now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-        # print(f"{now}: Data Formatting Step #3 - Complete")
-
-
-
-
-
 
         # return trips_obs
 
