@@ -1,76 +1,54 @@
 ,RT_ID,RT_NAME,RT_VER,RT_DIR,RT_STP_NUM,RT_NUM_STPS,SEG_NAME,TM_AVG,NO_OBS,TM_STD,TM_VAR,DIST_BTW
-0,18,Dixie,2,South,3,78,Mayfield Rd w/of Russell Creek Dr To Russell Creek Dr s/of Seymour Rd,53.69565217391305,23.0,7.911066946825451,62.584980237154156,0.28
-1,18,Dixie,2,South,4,78,Russell Creek Dr s/of Seymour Rd To Russell Creek Dr n/of Inspire Blvd,54.81395348837209,43.0,19.757163636265354,390.34551495016603,0.39
-2,18,Dixie,2,South,5,78,Russell Creek Dr n/of Inspire Blvd To Russell Creek Dr s/of Dolbyhill Dr,54.9622641509434,53.0,21.478936250832906,461.3447024673439,0.36
-3,18,Dixie,2,South,6,78,Russell Creek Dr s/of Dolbyhill Dr To Russell Creek Dr n/of Countryside Dr,34.64150943396226,53.0,9.611880348383453,92.38824383164003,0.17
-4,18,Dixie,2,South,7,78,Russell Creek Dr n/of Countryside Dr To Countryside Dr e/of Blackstone River Dr,36.18867924528302,53.0,16.149608954272146,260.8098693759071,0.25
-5,18,Dixie,2,South,8,78,Countryside Dr e/of Blackstone River Dr To Dixie Rd at Countryside Dr,58.56603773584906,53.0,32.10649912278861,1030.8272859216258,0.34
-6,18,Dixie,2,South,9,78,Dixie Rd at Countryside Dr To Dixie Rd n/of Templehill Rd,48.094339622641506,53.0,17.97676294012677,323.16400580551516,0.29
-7,18,Dixie,2,South,10,78,Dixie Rd n/of Templehill Rd To Dixie Rd n/of Naperton Dr,60.2962962962963,54.0,21.666973066693377,469.4577218728162,0.25
-8,18,Dixie,2,South,11,78,Dixie Rd n/of Naperton Dr To Dixie Rd n/of Octillo Blvd,64.27777777777777,54.0,30.05995058097763,903.6006289308175,0.21
-9,18,Dixie,2,South,12,78,Dixie Rd n/of Octillo Blvd To Dixie Rd s/of Sandalwood Pky E,76.33333333333333,54.0,40.29560582813719,1623.7358490566037,0.72
-10,18,Dixie,2,South,13,78,Dixie Rd s/of Sandalwood Pky E To Dixie Rd at Springtown Trail,42.48148148148148,54.0,16.080857881861643,258.5939902166317,0.32
-11,18,Dixie,2,South,14,78,Dixie Rd at Springtown Trail To Dixie Rd btwn Springtown Trail and Peter Robertson,56.0,54.0,20.65073437407685,426.4528301886793,0.26
-12,18,Dixie,2,South,15,78,Dixie Rd btwn Springtown Trail and Peter Robertson To Dixie Rd n/of Guru Nanak St,56.81481481481482,54.0,22.794466453691246,519.5877009084555,0.34
-14,18,Dixie,2,South,16,78,Dixie Rd n/of Guru Nanak St To Dixie Rd at 10078 Dixie Rd,65.72222222222223,54.0,37.44551597543646,1402.1666666666667,0.39
-15,18,Dixie,2,South,17,78,Dixie Rd at 10078 Dixie Rd To Dixie Rd s/of Bovaird Dr E,55.44444444444444,54.0,25.837421060237904,667.5723270440252,0.32
-16,18,Dixie,2,South,18,78,Dixie Rd s/of Bovaird Dr E To Dixie Rd at Northcliffe St,31.462962962962962,54.0,11.096001256551606,123.12124388539482,0.29
-17,18,Dixie,2,South,19,78,Dixie Rd at Northcliffe St To Dixie Rd btwn Northcliffe St and North Park Dr,48.7962962962963,54.0,17.252158333258915,297.63696715583507,0.18
-18,18,Dixie,2,South,20,78,Dixie Rd btwn Northcliffe St and North Park Dr To Dixie Rd s/of North Park Dr,56.68518518518518,54.0,18.194778510864023,331.04996505939926,0.27
-19,18,Dixie,2,South,21,78,Dixie Rd s/of North Park Dr To Dixie Rd at Northampton St,49.22222222222222,54.0,15.708027831805614,246.74213836477978,0.35
-20,18,Dixie,2,South,22,78,Dixie Rd at Northampton St To Dixie Rd s/of Williams Pky E,46.05555555555556,54.0,27.117784087872632,735.3742138364781,0.35
-22,18,Dixie,2,South,23,78,Dixie Rd s/of Williams Pky E To Dixie Rd at Lascelles Blvd,63.24074074074074,54.0,25.17481159936638,633.7711390635919,0.22
-23,18,Dixie,2,South,24,78,Dixie Rd at Lascelles Blvd To Dixie Rd opp Crescent Hill Dr (S),40.68518518518518,54.0,14.444198514274728,208.63487071977627,0.39
-24,18,Dixie,2,South,25,78,Dixie Rd opp Crescent Hill Dr (S) To Dixie Rd at Howden Blvd,31.185185185185187,54.0,9.245241660513033,85.4744933612858,0.25
-25,18,Dixie,2,South,26,78,Dixie Rd at Howden Blvd To Dixie Rd at Hazelwood Dr,46.092592592592595,54.0,13.228426393556997,174.9912648497554,0.19
-27,18,Dixie,2,South,27,78,Dixie Rd at Hazelwood Dr To Dixie Rd at Hillside Dr (n/of Queen St E),41.132075471698116,53.0,18.4485122767383,340.34760522496373,0.32
-29,18,Dixie,2,South,28,78,Dixie Rd at Hillside Dr (n/of Queen St E) To Dixie Rd at Lisa St,54.26923076923077,52.0,21.72115205175603,471.8084464555052,0.42
-31,18,Dixie,2,South,29,78,Dixie Rd at Lisa St To Clark Blvd at Braemar Dr,61.62,50.0,36.54177927596111,1335.301632653061,0.45
-33,18,Dixie,2,South,30,78,Clark Blvd at Braemar Dr To Clark Blvd at Briar Path,37.5,50.0,25.995486264396924,675.765306122449,0.23
-34,18,Dixie,2,South,31,78,Clark Blvd at Briar Path To Clark Blvd w/of Central Park Dr,38.68,50.0,31.152318353142036,970.46693877551,0.31
-36,18,Dixie,2,South,32,78,Clark Blvd w/of Central Park Dr To Central Park Dr n/of Clark Blvd,65.10416666666667,48.0,42.47364117938867,1804.010195035461,0.25
-37,18,Dixie,2,South,33,78,Central Park Dr n/of Clark Blvd To Knightsbridge Rd w/of Central Park Drive,37.604166666666664,48.0,71.89730844053139,5169.222960992906,0.13
-38,18,Dixie,2,South,34,78,Knightsbridge Rd w/of Central Park Drive To Team Canada Dr btwn Knightsbridge & Peel Cente Dr,49.1875,48.0,92.46751154589035,8550.240691489364,0.13
-39,18,Dixie,2,South,35,78,Team Canada Dr btwn Knightsbridge & Peel Cente Dr To Bramalea Terminal Route 18 SB Stop,106.25,48.0,129.76468063547006,16838.872340425536,0.17
-40,18,Dixie,2,South,36,78,Bramalea Terminal Route 18 SB Stop To Central Park Dr at Knightsbridge Rd,54.791666666666664,48.0,73.02636024601078,5332.849290780144,0.24
-42,18,Dixie,2,South,37,78,Central Park Dr at Knightsbridge Rd To Central Park Dr s/of Knightsbridge Rd,137.4255319148936,47.0,38.9451926378882,1516.7280296022209,0.12
-43,18,Dixie,2,South,38,78,Central Park Dr s/of Knightsbridge Rd To Clark Blvd w/of Peel Centre Dr,116.2127659574468,47.0,56.09849109425965,3147.040703052729,0.41
-44,18,Dixie,2,South,39,78,Clark Blvd w/of Peel Centre Dr To Dixie Rd s/of Clark Blvd,87.36734693877551,49.0,57.78180721384507,3338.7372448979586,0.51
-45,18,Dixie,2,South,40,78,Dixie Rd s/of Clark Blvd To Dixie Rd at Terese Rd,59.94117647058823,51.0,30.88391928800869,953.8164705882353,0.3
-46,18,Dixie,2,South,41,78,Dixie Rd at Terese Rd To Dixie Rd at Balmoral Dr (Rogers),79.13725490196079,51.0,31.23204739228163,975.4407843137258,0.35
-47,18,Dixie,2,South,42,78,Dixie Rd at Balmoral Dr (Rogers) To Dixie Rd n/of Orenda Rd,53.568627450980394,51.0,29.013965535211337,841.8101960784312,0.41
-49,18,Dixie,2,South,43,78,Dixie Rd n/of Orenda Rd To Dixie Rd s/of Orenda Rd (N),45.702127659574465,47.0,34.222999445209744,1171.2136910268264,0.33
-50,18,Dixie,2,South,44,78,Dixie Rd s/of Orenda Rd (N) To Dixie Rd at Orenda Rd (S),49.8936170212766,47.0,27.23507492550672,741.7493061979649,0.19
-52,18,Dixie,2,South,45,78,Dixie Rd at Orenda Rd (S) To Dixie Rd btwn Orenda Rd & Steeles Ave E,43.67391304347826,46.0,32.36943300764959,1047.7801932367147,0.32
-54,18,Dixie,2,South,46,78,Dixie Rd btwn Orenda Rd & Steeles Ave E To Dixie Rd n/of Steeles Ave E,43.6,45.0,22.47463216404422,505.109090909091,0.37
-56,18,Dixie,2,South,47,78,Dixie Rd n/of Steeles Ave E To Dixie Rd s/of Steeles Ave E,82.57142857142857,35.0,24.112830016996583,581.4285714285713,0.24
-57,18,Dixie,2,South,48,78,Dixie Rd s/of Steeles Ave E To Dixie Rd at Advance Blvd,159.68571428571428,35.0,98.08302948150056,9620.28067226891,0.42
-59,18,Dixie,2,South,49,78,Dixie Rd at Advance Blvd To Dixie Rd at Drew Rd,78.2258064516129,31.0,67.45008508886126,4549.513978494624,1.57
-61,18,Dixie,2,South,50,78,Dixie Rd at Drew Rd To Dixie Rd at 7080 Dixie Rd,19.941176470588236,17.0,18.82641292252488,354.43382352941177,0.52
-62,18,Dixie,2,South,51,78,Dixie Rd at 7080 Dixie Rd To Dixie Rd at Derry Rd,30.41176470588235,17.0,26.723254909183062,714.1323529411766,0.32
-64,18,Dixie,2,South,52,78,Dixie Rd at Derry Rd To Dixie Rd at Director Gate,69.84615384615384,13.0,24.92604445770914,621.3076923076925,0.6
-65,18,Dixie,2,South,53,78,Dixie Rd at Director Gate To Dixie Rd at Mid-way Blvd,69.23076923076923,13.0,30.185962096516114,911.1923076923076,0.55
-67,18,Dixie,2,South,54,78,Dixie Rd at Mid-way Blvd To Dixie Rd n/of Courtneypark Dr,46.333333333333336,12.0,27.13713769770575,736.4242424242425,0.75
-68,18,Dixie,2,South,55,78,Dixie Rd n/of Courtneypark Dr To Dixie Rd n/of Meyerside Dr,36.75,12.0,32.78337993557101,1074.7500000000002,0.47
-69,18,Dixie,2,South,56,78,Dixie Rd n/of Meyerside Dr To Meyerside Dr at Ordan Dr,34.5,12.0,13.990256349591052,195.72727272727272,0.2
-70,18,Dixie,2,South,57,78,Meyerside Dr at Ordan Dr To Meyerside Dr at Vipond Dr,32.75,12.0,18.380449099271463,337.84090909090907,0.33
-72,18,Dixie,2,South,58,78,Meyerside Dr at Vipond Dr To Meyerside Dr at Shawson Dr,44.54545454545455,11.0,19.2995525148312,372.47272727272724,0.35
-74,18,Dixie,2,South,59,78,Meyerside Dr at Shawson Dr To Meyerside Dr at Tomken Rd,39.6,10.0,18.47039673519645,341.1555555555556,0.47
-75,18,Dixie,2,South,60,78,Meyerside Dr at Tomken Rd To Tomken Rd at Tristar Dr,27.2,10.0,8.508818954473057,72.39999999999998,0.31
-76,18,Dixie,2,South,61,78,Tomken Rd at Tristar Dr To Tomken Rd at Courtneypark Dr,47.4,10.0,20.90826524500671,437.15555555555557,0.3
-77,18,Dixie,2,South,62,78,Tomken Rd at Courtneypark Dr To Courtneypark Dr btwn Tomken Rd and Shawson Dr,32.6,10.0,20.89763410319721,436.711111111111,0.34
-78,18,Dixie,2,South,63,78,Courtneypark Dr btwn Tomken Rd and Shawson Dr To Courtneypark Dr e/of Shawson Dr,45.9,10.0,35.84364192805562,1284.7666666666669,0.21
-79,18,Dixie,2,South,64,78,Courtneypark Dr e/of Shawson Dr To Courtneypark Dr at Vipond Dr,45.1,10.0,8.45182426067493,71.43333333333334,0.22
-80,18,Dixie,2,South,65,78,Courtneypark Dr at Vipond Dr To Courtneypark Dr at Ordan Dr,34.5,10.0,9.180292902613607,84.27777777777777,0.37
-81,18,Dixie,2,South,66,78,Courtneypark Dr at Ordan Dr To Courtneypark Dr e/of Dixie Rd,39.6,10.0,8.48789988421426,72.04444444444444,0.27
-83,18,Dixie,2,South,67,78,Courtneypark Dr e/of Dixie Rd To Courtneypark Dr at Van Deemter Crt,25.88888888888889,9.0,5.555277770832985,30.861111111111104,0.36
-85,18,Dixie,2,South,68,78,Courtneypark Dr at Van Deemter Crt To Courtneypark Dr at 1750 Courtneypark Dr,19.75,8.0,10.620061877678221,112.78571428571426,0.24
-86,18,Dixie,2,South,69,78,Courtneypark Dr at 1750 Courtneypark Dr To Courtneypark Dr at 1820 Courtneypark Dr,31.875,8.0,12.72160704134056,161.83928571428572,0.18
-87,18,Dixie,2,South,70,78,Courtneypark Dr at 1820 Courtneypark Dr To Courtneypark Dr w/of Netherhart Rd,21.0,8.0,18.852813355798425,355.42857142857144,0.39
-88,18,Dixie,2,South,71,78,Courtneypark Dr w/of Netherhart Rd To Netherhart Rd n/of Bonhill Rd,30.5,8.0,29.50544743892945,870.5714285714286,0.19
-89,18,Dixie,2,South,72,78,Netherhart Rd n/of Bonhill Rd To Meyerside Dr w/of Netherhart Rd,33.75,8.0,42.20951145349656,1781.642857142857,0.3
-90,18,Dixie,2,South,73,78,Meyerside Dr w/of Netherhart Rd To Meyerside Dr at 1795 Meyerside Dr,31.5,8.0,10.295630140986999,105.99999999999999,0.2
-91,18,Dixie,2,South,74,78,Meyerside Dr at 1795 Meyerside Dr To Meyerside Dr at 1715 Meyerside Dr,33.125,8.0,14.826978306933809,219.83928571428575,0.2
-93,18,Dixie,2,South,75,78,Meyerside Dr at 1715 Meyerside Dr To Meyerside Dr at 1675 Meyerside Dr,45.285714285714285,7.0,13.948886284267592,194.57142857142856,0.19
-94,18,Dixie,2,South,76,78,Meyerside Dr at 1675 Meyerside Dr To Meyerside Dr at Bonhill Rd,22.285714285714285,7.0,9.013217807092827,81.23809523809524,0.35
-95,18,Dixie,2,South,77,78,Meyerside Dr at Bonhill Rd To Meyerside Dr at Dixie Rd,32.0,7.0,15.979153085609179,255.33333333333334,0.19
+0,4,Chinguacousy,2,South,2,56,Bovaird Dr e/of Ashby Field Rd To Worthington Ave n/of Salvation Rd,156.75,12.0,135.3078140591095,18308.204545454544,1.03
+1,4,Chinguacousy,2,South,3,56,Worthington Ave n/of Salvation Rd To Worthington Ave opp Clayborne Ave,22.266666666666666,30.0,16.29455871382103,265.5126436781609,0.3
+2,4,Chinguacousy,2,South,4,56,Worthington Ave opp Clayborne Ave To Worthington Ave opp Gabrielle Dr,30.766666666666666,30.0,24.789713291151052,614.5298850574712,0.18
+3,4,Chinguacousy,2,South,5,56,Worthington Ave opp Gabrielle Dr To Worthington Ave at Fairhill Ave,52.06666666666667,30.0,27.924693476332493,779.7885057471265,0.22
+4,4,Chinguacousy,2,South,6,56,Worthington Ave at Fairhill Ave To Fairhill Ave e/of Creditview Rd,40.193548387096776,31.0,31.680087704885658,1003.6279569892473,0.58
+5,4,Chinguacousy,2,South,7,56,Fairhill Ave e/of Creditview Rd To Creditview Rd opp Aylesbury Dr,37.38709677419355,31.0,22.93422103808315,525.9784946236558,0.26
+6,4,Chinguacousy,2,South,8,56,Creditview Rd opp Aylesbury Dr To Creditview Rd n/of McCrimmon Dr,56.516129032258064,31.0,31.575170590979592,996.9913978494625,0.31
+7,4,Chinguacousy,2,South,9,56,Creditview Rd n/of McCrimmon Dr To Creditview Rd n/of Sandalwood Pkwy,62.193548387096776,31.0,40.70824597452684,1657.1612903225805,0.47
+8,4,Chinguacousy,2,South,10,56,Creditview Rd n/of Sandalwood Pkwy To Creditview Rd n/of El Camino Way,43.25806451612903,31.0,31.091228926001495,966.6645161290321,0.33
+9,4,Chinguacousy,2,South,11,56,Creditview Rd n/of El Camino Way To Creditview Rd n/of Buick Blvd,45.25806451612903,31.0,22.150948425045648,490.6645161290323,0.26
+10,4,Chinguacousy,2,South,12,56,Creditview Rd n/of Buick Blvd To Creditview Rd n/of Crown Victoria Dr,39.354838709677416,31.0,23.425838138114038,548.7698924731183,0.36
+11,4,Chinguacousy,2,South,13,56,Creditview Rd n/of Crown Victoria Dr To Wanless Dr e/of Creditview Rd - 4A,50.74193548387097,31.0,65.85335614931887,4336.664516129033,0.2
+12,4,Chinguacousy,2,South,14,56,Wanless Dr e/of Creditview Rd - 4A To Wanless Dr w/of Thornbush Blvd - 4A,75.48387096774194,31.0,52.80332752629764,2788.1913978494626,0.16
+13,4,Chinguacousy,2,South,15,56,Wanless Dr w/of Thornbush Blvd - 4A To Lake Louise - Zum Bovaird Station Stop EB,10.193548387096774,31.0,9.33959083628653,87.2279569892473,3.08
+14,4,Chinguacousy,2,South,16,56,Lake Louise - Zum Bovaird Station Stop EB To Brisdale Dr n/of Bovaird Dr W,20.085106382978722,47.0,28.203322181148337,795.4273820536538,0.33
+15,4,Chinguacousy,2,South,17,56,Brisdale Dr n/of Bovaird Dr W To Brisdale Dr s/of Grovewood Dr,24.4375,48.0,33.11803921243823,1096.8045212765958,0.21
+16,4,Chinguacousy,2,South,18,56,Brisdale Dr s/of Grovewood Dr To Brisdale Dr s/of Linderwood Dr,26.895833333333332,48.0,24.768923205048473,613.4995567375887,0.22
+17,4,Chinguacousy,2,South,19,56,Brisdale Dr s/of Linderwood Dr To Brisdale Dr s/of Fairhill Dr,31.53061224489796,49.0,27.229810594897884,741.4625850340132,0.36
+18,4,Chinguacousy,2,South,20,56,Brisdale Dr s/of Fairhill Dr To Brisdale Dr s/of Sandy Beach Rd,28.489795918367346,49.0,25.680020159146093,659.4634353741496,0.39
+19,4,Chinguacousy,2,South,21,56,Brisdale Dr s/of Sandy Beach Rd To Brisdale Dr n/of Wetmeadow Dr,21.93877551020408,49.0,22.861364937438033,522.6420068027211,0.33
+20,4,Chinguacousy,2,South,22,56,Brisdale Dr n/of Wetmeadow Dr To Brisdale Dr at Sandalwood Pky W,16.3265306122449,49.0,15.805309966250318,249.80782312925166,0.22
+21,4,Chinguacousy,2,South,23,56,Brisdale Dr at Sandalwood Pky W To Brisdale Dr at Ranchero Dr opp St. Edmund Campion,24.755102040816325,49.0,23.761427612348353,564.6054421768707,0.17
+22,4,Chinguacousy,2,South,24,56,Brisdale Dr at Ranchero Dr opp St. Edmund Campion To Brisdale Dr at Ramsey Lane,24.877551020408163,49.0,30.50111517979112,930.3180272108845,0.28
+23,4,Chinguacousy,2,South,25,56,Brisdale Dr at Ramsey Lane To Brisdale at Jessop Dr,27.224489795918366,49.0,24.702619046471614,610.2193877551022,0.21
+24,4,Chinguacousy,2,South,26,56,Brisdale at Jessop Dr To Brisdale Dr n/of Sugarhill Dr,29.714285714285715,49.0,30.932049183115346,956.7916666666669,0.31
+25,4,Chinguacousy,2,South,27,56,Brisdale Dr n/of Sugarhill Dr To Wanless Dr e/of Brisdale Dr,41.91836734693877,49.0,41.6377416608087,1733.7015306122446,0.31
+26,4,Chinguacousy,2,South,28,56,Wanless Dr e/of Brisdale Dr To Chinguacousy Rd s/of Wanless Dr,39.87755102040816,49.0,31.298051492239647,979.5680272108845,0.52
+27,4,Chinguacousy,2,South,29,56,Chinguacousy Rd s/of Wanless Dr To Chinguacousy Rd n/of Sugarhill Dr,63.87755102040816,49.0,27.072920551925765,732.9430272108845,0.27
+28,4,Chinguacousy,2,South,30,56,Chinguacousy Rd n/of Sugarhill Dr To Chinguacousy Rd s/of Botavia Downs Dr,49.0,49.0,34.0183773863481,1157.2499999999998,0.43
+30,4,Chinguacousy,2,South,31,56,Chinguacousy Rd s/of Botavia Downs Dr To Chinguacousy Rd opp Grape Trail,49.375,48.0,25.470571253900058,648.7499999999999,0.24
+32,4,Chinguacousy,2,South,32,56,Chinguacousy Rd opp Grape Trail To Chinguacousy Rd at Sandalwood Pky W,55.38297872340426,47.0,31.100505512101133,967.2414431082329,0.5
+33,4,Chinguacousy,2,South,33,56,Chinguacousy Rd at Sandalwood Pky W To Chinguacousy Rd at Fairhill Ave,61.702127659574465,47.0,33.8146578029584,1143.4310823311753,0.51
+34,4,Chinguacousy,2,South,34,56,Chinguacousy Rd at Fairhill Ave To Chinguacousy Rd at Fandor Way,46.57446808510638,47.0,23.24046759318853,540.1193339500462,0.32
+36,4,Chinguacousy,2,South,35,56,Chinguacousy Rd at Fandor Way To Chinguacousy Rd n/of Grovewood Dr,48.891304347826086,46.0,30.830885135864477,950.5434782608692,0.37
+38,4,Chinguacousy,2,South,36,56,Chinguacousy Rd n/of Grovewood Dr To Chinguacousy Rd n/of Bovaird Dr W,67.34782608695652,46.0,37.49146118565864,1405.6096618357487,0.29
+40,4,Chinguacousy,2,South,37,56,Chinguacousy Rd n/of Bovaird Dr W To Chinguacousy Rd s/of Marotta Ave,70.86666666666666,45.0,52.9316025211267,2801.754545454546,0.5
+41,4,Chinguacousy,2,South,38,56,Chinguacousy Rd s/of Marotta Ave To Chinguacousy Rd n/of Williams Pkwy,122.37777777777778,45.0,46.65457635591063,2176.649494949495,0.25
+43,4,Chinguacousy,2,South,39,56,Chinguacousy Rd n/of Williams Pkwy To Chinguacousy Rd n/of Valleyway Dr,62.95454545454545,44.0,42.54297665395877,1809.9048625792807,0.85
+44,4,Chinguacousy,2,South,40,56,Chinguacousy Rd n/of Valleyway Dr To Chinguacousy Rd opp Flowertown Ave,62.77272727272727,44.0,23.472758714972805,550.9704016913319,0.45
+45,4,Chinguacousy,2,South,41,56,Chinguacousy Rd opp Flowertown Ave To Chinguacousy Rd n/of Daviselm Dr,74.02272727272727,44.0,26.001331483226664,676.0692389006342,0.53
+46,4,Chinguacousy,2,South,42,56,Chinguacousy Rd n/of Daviselm Dr To Chinguacousy Rd s/of Queen St,76.2,45.0,27.40653538516282,751.1181818181817,0.67
+47,4,Chinguacousy,2,South,43,56,Chinguacousy Rd s/of Queen St To Chinguacousy Rd btwn Queen St & Bonnie Braes Dr,65.52173913043478,46.0,30.56195102151605,934.0328502415459,0.45
+48,4,Chinguacousy,2,South,44,56,Chinguacousy Rd btwn Queen St & Bonnie Braes Dr To Chinguacousy Rd s/of Bonnie Braes Dr,48.40425531914894,47.0,20.370118326338883,414.9417206290472,0.36
+49,4,Chinguacousy,2,South,45,56,Chinguacousy Rd s/of Bonnie Braes Dr To Chinguacousy Rd btwn Bonnie Braes Dr & Dusk Dr,57.680851063829785,47.0,19.50708498154801,380.52636447733596,0.29
+51,4,Chinguacousy,2,South,46,56,Chinguacousy Rd btwn Bonnie Braes Dr & Dusk Dr To Chinguacousy Rd s/of Dusk Dr,62.31111111111111,45.0,29.820540680286907,889.2646464646463,0.47
+52,4,Chinguacousy,2,South,47,56,Chinguacousy Rd s/of Dusk Dr To Chinguacousy Rd n/of Charolais Blvd,50.68888888888889,45.0,34.9225260867943,1219.5828282828281,0.52
+53,4,Chinguacousy,2,South,48,56,Chinguacousy Rd n/of Charolais Blvd To Chinguacousy Rd at Charolais Blvd,73.66666666666667,45.0,39.006992380154806,1521.5454545454552,0.39
+54,4,Chinguacousy,2,South,49,56,Chinguacousy Rd at Charolais Blvd To Mavis - Zum Steeles Station Stop EB,78.82222222222222,45.0,49.54717168741544,2454.9222222222224,0.57
+56,4,Chinguacousy,2,South,50,56,Mavis - Zum Steeles Station Stop EB To Steeles Ave W btwn Mavis Rd & Windmill Blvd,100.35,40.0,32.41046839430837,1050.4384615384615,0.31
+57,4,Chinguacousy,2,South,51,56,Steeles Ave W btwn Mavis Rd & Windmill Blvd To Steeles Ave W at Windmill Blvd,71.225,40.0,27.125999922488973,735.8198717948718,0.53
+58,4,Chinguacousy,2,South,52,56,Steeles Ave W at Windmill Blvd To Steeles Ave W at McLaughlin Rd S,52.15,40.0,31.446780439339097,988.9,0.4
+59,4,Chinguacousy,2,South,53,56,Steeles Ave W at McLaughlin Rd S To Steeles Ave W e/of McLaughlin Rd S (Sheridan Ent),108.325,40.0,29.261322594852068,856.2250000000003,0.23
+60,4,Chinguacousy,2,South,54,56,Steeles Ave W e/of McLaughlin Rd S (Sheridan Ent) To Malta - Zum Steeles Station Stop EB,53.975,40.0,17.10373703354973,292.53782051282053,0.62
