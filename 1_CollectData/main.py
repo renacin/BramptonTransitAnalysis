@@ -40,20 +40,20 @@ def main():
     graphics_path, g_af   =  Collector.return_files_dates("GRAPHICS")
 
 
-    # # FOR TESTING PLEASE CLEAN UP!
-    # Collector.frmt_rwbslc_data(td_dt_mx)
-
-
     # FOR TESTING PLEASE CLEAN UP!
-    # Run Data Visualizations #3
-    data_viz_3(graphics_path,
-                fmted_path,
-                f_af,
-                bus_stp_path,
-                bstp_af,
-                error_path,
-                e_af,
-                str((datetime.datetime.now() + datetime.timedelta(days=-7)).strftime(td_s_dt_dsply_frmt)))
+    Collector.frmt_rwbslc_data(td_dt_mx)
+
+
+    # # FOR TESTING PLEASE CLEAN UP!
+    # # Run Data Visualizations #3
+    # data_viz_3(graphics_path,
+    #             fmted_path,
+    #             f_af,
+    #             bus_stp_path,
+    #             bstp_af,
+    #             error_path,
+    #             e_af,
+    #             str((datetime.datetime.now() + datetime.timedelta(days=-7)).strftime(td_s_dt_dsply_frmt)))
 
 
 
