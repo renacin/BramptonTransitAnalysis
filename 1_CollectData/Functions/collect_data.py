@@ -960,6 +960,18 @@ class DataCollector:
         del data_pull, gb
         gc.collect()
 
+
+
+
+
+        transit_df[["YEAR", "MONTH", "DAY"]] = transit_df["DATE_TM"].str[:10].str.split('-', expand=True)
+        print(transit_df["DAY"].unique())
+        del transit_df["YEAR"], transit_df["MONTH"], transit_df["DAY"]
+
+
+
+
+
         # Calculate Distance Between Current Location & Previous Location | Create A Dataframe Elaborating Distance Traveled & Speed
         transit_df["DST_BTW_LOCS"] = vec_haversine((transit_df["P_LAT"].values, transit_df["P_LONG"].values), (transit_df["C_LAT"].values, transit_df["C_LONG"].values))
 
@@ -1020,6 +1032,12 @@ class DataCollector:
         transit_df["NXT_STP_ARV_TM"] = transit_df["EP_TIME"] + transit_df["SEC_2_NXT_STP"]
         transit_df["NXT_STP_ARV_TM"] = transit_df["NXT_STP_ARV_TM"].astype(dtype = int, errors = 'ignore')
         transit_df["NXT_STP_ARV_DTTM"] = pd.to_datetime(transit_df["NXT_STP_ARV_TM"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
+
+
+
+        print(transit_df["NXT_STP_ARV_DTTM"].dt.day.unique())
+
+
 
 
 
