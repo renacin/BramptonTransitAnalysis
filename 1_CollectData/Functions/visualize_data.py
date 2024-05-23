@@ -448,51 +448,54 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
         del f_af, df["index"], df["RT_GRP_NUM"], df["RT_GRP"]
 
 
-	#
+    df[["YEAR", "MONTH", "DAY"]] = df["STP_ARV_DTTM"].str[:10].str.split('-', expand=True)
+    print(df["DAY"].unique())
+
+    #
     # # Create A Lagged Column, So We Can See The Next Arrival Time, & Determine The Time Between A Segment
     # df['NXT_STP_ARV_TM'] = df.groupby(['TRIP_ID'])['STP_ARV_TM'].shift(-1)
     # df['TM_DIFF'] = df['NXT_STP_ARV_TM'] - df['STP_ARV_TM']
     # df["SEG_NAME"] = df['STP_NM'] + " To " + df['NXT_STP_NM']
-	#
-	#
+    #
+    #
     # # Read In Bus Routes Data, Create A Matching Segment Name Dataframe
     # for file in os.listdir(bus_stp_path):
     #     if "BUS_RTE_DATA" in file:
     #         stp_file_path = f'{bus_stp_path}/{file}'
-	#
+    #
     # needed_cols = ['RT_ID', 'RT_NAME',
     #                'RT_VER', 'STP_NM',
     #                'RT_ID_VER', 'RT_DIR',
     #                'RT_GRP', 'RT_GRP_NUM']
-	#
+    #
     # bus_routes = pd.read_csv(stp_file_path, usecols = needed_cols)
-	#
+    #
     # # Before Using Bus Routes, We Need To Make Sure The Data Contains No Duplicates As Identified In Previous Attemps
     # bus_routes["U_ID"] = bus_routes["RT_ID"].astype(str) + "_" + bus_routes["RT_NAME"].astype(str) + "_" + bus_routes["RT_VER"].astype(str)
     # bus_routes = bus_routes.drop_duplicates()
-	#
+    #
     # # Recreate Stop Num & Total Number Of Stops
     # bus_routes["RT_STP_NUM"] = bus_routes.groupby(["U_ID"]).cumcount() + 1
     # num_stps_df = bus_routes.groupby("U_ID", as_index=False).agg(RT_NUM_STPS = ("U_ID", "count"))
     # bus_routes = bus_routes.merge(num_stps_df, on='U_ID', how='left')
     # del num_stps_df, bus_routes["U_ID"]
     # gc.collect()
-	#
-	#
+    #
+    #
     # # Only Keep Data That Is In Scope
     # bus_routes = bus_routes[bus_routes["RT_ID"].isin(df["RT_ID"])]
-	#
-	#
+    #
+    #
     # # We Need To Join The Trip Data To The Bus Stops (In Order) For A Given Route
     # trips_obs = df.groupby(["TRIP_ID"], as_index=False).agg(TRIP_ID = ("TRIP_ID", "first"),
     #                                                         RT_ID   = ("ROUTE_ID", "first")
     #                                                         )
-	#
+    #
     # trips_obs["RT_ID"] = trips_obs["RT_ID"].str.split("-").str[0]
     # trips_obs["RT_ID"] = trips_obs["RT_ID"].astype(dtype = int, errors = 'ignore')
     # trips_obs["RT_ID"] = trips_obs["RT_ID"].astype("Int16")
-	#
-	#
+    #
+    #
     # # In Order To Standardize Comparisons We Need Each Trip To Have An Entire Set Of Segment IDs, Even If It Only Had A Couple Of Stops
     # trips_obs = trips_obs.merge(bus_routes, how="left", on=["RT_ID"])
     # trips_obs = trips_obs.merge(df, how="left", on=["TRIP_ID", "STP_NM", "RT_ID",
@@ -500,27 +503,27 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
     #                                                 "RT_DIR", "RT_STP_NUM", "RT_NUM_STPS"])
     # del df, bus_routes
     # gc.collect()
-	#
-	#
+    #
+    #
     # # We Only Want Trip IDs With Data, Remove Those That Don't
     # trips_obs["U_ID"] = trips_obs["TRIP_ID"] + "_" + trips_obs["RT_ID_VER"]
     # count_df = trips_obs.groupby(["U_ID"], as_index=False).agg(TM_SUM = ("TM_DIFF", "sum"))
     # count_df = count_df[count_df["TM_SUM"] > 0]
     # trips_obs = trips_obs[trips_obs["U_ID"].isin(count_df["U_ID"])]
     # del count_df, trips_obs["U_ID"]
-	#
-	#
+    #
+    #
     # # For Now Find The Route With The Most Trips | It Varies From Day To Day
     # max_route = trips_obs.copy()
     # max_route = max_route.dropna()
     # max_route = max_route.groupby(["RT_ID_VER"], as_index=False).agg(RT_ID_VER_COUNT = ("RT_ID_VER", "count"))
-	#
+    #
     # # Find Route With Max Data Counts
     # max_route = max_route.loc[max_route["RT_ID_VER_COUNT"].idxmax(), "RT_ID_VER"]
-	#
+    #
     # # Focus On Just Route Data
     # route_data = trips_obs[trips_obs["RT_ID_VER"] == max_route].copy()
-	#
+    #
     # # Group Data, Find Average Time Between Segments, And The Variance Between Them
     # needed_cols = ["RT_ID", "RT_NAME", "RT_VER", "RT_DIR", "RT_STP_NUM", "RT_NUM_STPS", "V_ID", "STP_ARV_TM", "DATA_TYPE", "STP_ARV_DTTM", "TM_DIFF", "SEG_NAME", "DTS_2_NXT_STP"]
     # route_data = route_data[needed_cols].copy()
@@ -530,19 +533,19 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
     #                                                                                                                                      TM_VAR   = ("TM_DIFF", "var"),
     #                                                                                                                                      DIST_BTW = ("DTS_2_NXT_STP", "first")
     #                                                                                                                                      )
-	#
+    #
     # # Do Some Data Cleaning
     # for col in ["TM_AVG", "TM_STD", "TM_VAR", "NO_OBS"]:
     #     stats_df.loc[stats_df["NO_OBS"] <= 1, col] = np.nan
-	#
+    #
     # # Drop Rows Were It Was Just One Observation
     # stats_df = stats_df.dropna(subset=["NO_OBS"])
-	#
+    #
     # # Create A Scatter Plot
     # plt.scatter(stats_df["RT_STP_NUM"], stats_df["NO_OBS"], s=10, c="blue", marker="x", label='NO_OBS')
     # plt.scatter(stats_df["RT_STP_NUM"], stats_df["TM_AVG"], s=10, c="red",  marker="+", label='TM_AVG')
     # plt.legend(loc='upper right')
-	#
+    #
     # plt.xlabel("Segment Number")  # add X-axis label
     # plt.ylabel("Y-axis")  # add Y-axis label
     # plt.title(f"Bus Route: {max_route}")  # add title
