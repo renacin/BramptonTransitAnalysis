@@ -1078,6 +1078,14 @@ class DataCollector:
 
 
 
+
+        print(transit_df["STP_ARV_DTTM"].dt.day.unique())
+
+
+
+
+
+
         # We Need To Join The Trip Data To The Bus Stops (In Order) For A Given Route
         trips_obs = transit_df.groupby(["TRIP_ID"], as_index=False).agg(TRIP_ID = ("TRIP_ID", "first"),
                                                                         RT_ID   = ("ROUTE_ID", "first")
@@ -1156,6 +1164,13 @@ class DataCollector:
         # Make A Copy Of The Database, Keep Only Needed Columns
         test_df = trips_obs[["STP_ARV_TM", "U_ID", "ROW_ID"]].copy()
         test_df = test_df.dropna(subset=["STP_ARV_TM"])
+
+        print(test_df["STP_ARV_DTTM"].dt.day.unique())
+
+
+
+
+
 
         # If U_ID Not In Test_DF Don't Keep It In Main DF
         trips_obs = trips_obs[trips_obs["U_ID"].isin(test_df["U_ID"])]
