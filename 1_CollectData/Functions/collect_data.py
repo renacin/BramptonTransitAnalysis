@@ -1013,18 +1013,8 @@ class DataCollector:
         transit_df["NXT_STP_ARV_TM"] = transit_df["NXT_STP_ARV_TM"].astype(dtype = int, errors = 'ignore')
         transit_df["NXT_STP_ARV_DTTM"] = pd.to_datetime(transit_df["NXT_STP_ARV_TM"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
 
-
-        transit_df["DAY"] = transit_df["NXT_STP_ARV_DTTM"].dt.day
-        testing_errors = transit_df[(transit_df["DAY"] != 19) |
-                                    (transit_df["DAY"] != 20)]
-        testing_errors.to_csv("Testing_Errors.csv")
-
-
-
-
-
-
-
+        # Remove Zeros From NXT_STP_ARV_TM
+        transit_df = transit_df[transit_df["NXT_STP_ARV_TM"] != 0]
 
         # For Logging
         now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
@@ -1058,16 +1048,6 @@ class DataCollector:
                                                                              'NXT_STP_ARV_DTTM': "STP_ARV_DTTM",
                                                                              'NXT_STP_ID': "STP_ID"})
 
-
-
-
-        print(transit_df["STP_ARV_DTTM"].dt.day.unique())
-
-
-
-
-
-
         # We Need To Join The Trip Data To The Bus Stops (In Order) For A Given Route
         trips_obs = transit_df.groupby(["TRIP_ID"], as_index=False).agg(TRIP_ID = ("TRIP_ID", "first"),
                                                                         RT_ID   = ("ROUTE_ID", "first")
@@ -1099,7 +1079,6 @@ class DataCollector:
         bus_routes = bus_routes.merge(num_stps_df, on='U_ID', how='left')
         del num_stps_df, bus_routes["U_ID"]
         gc.collect()
-
 
         # Only Keep Data That Is In Scope
         bus_routes = bus_routes[bus_routes["RT_ID"].isin(trips_obs["RT_ID"])]
@@ -1146,14 +1125,6 @@ class DataCollector:
         # Make A Copy Of The Database, Keep Only Needed Columns
         test_df = trips_obs[["STP_ARV_TM", "U_ID", "ROW_ID"]].copy()
         test_df = test_df.dropna(subset=["STP_ARV_TM"])
-
-
-        # print(test_df.columns)
-        # print(test_df["STP_ARV_DTTM"].dt.day.unique())
-
-
-
-
 
 
         # If U_ID Not In Test_DF Don't Keep It In Main DF
@@ -1217,17 +1188,6 @@ class DataCollector:
 
         # Drop Duplicates Again, This Time Based On TRIP_ID, And Stop Number
         trips_obs = trips_obs.drop_duplicates(subset=["TRIP_ID", "RT_STP_NUM"])
-
-
-
-
-        print(trips_obs.columns)
-        trips_obs['STP_ARV_DTTM'] =  pd.to_datetime(trips_obs['STP_ARV_DTTM'])
-        print(trips_obs["STP_ARV_DTTM"].dt.day.unique())
-
-
-
-
 
 
         # Create An Encoding, For A New Column. If There Is Data In The Timestampt Then 1, Else 0
@@ -1343,12 +1303,6 @@ class DataCollector:
         trips_obs["STP_ARV_TM"] = round(trips_obs["STP_ARV_TM"], 0)
         trips_obs["STP_ARV_DTTM"] = pd.to_datetime(trips_obs["STP_ARV_TM"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
 
-
-
-        print(trips_obs["STP_ARV_DTTM"].dt.day.unique())
-
-
-
         trips_obs.loc[trips_obs["ROUTE_ID"] == "", "ROUTE_ID"] = np.nan
         trips_obs["ROUTE_ID"] = trips_obs.groupby(["TRIP_ID"])["ROUTE_ID"].ffill()
 
@@ -1384,7 +1338,7 @@ class DataCollector:
         now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
         print(f"{now}: Data Formatting Step #3 - Complete")
 
-        # return trips_obs
+        return trips_obs
 
 
 
@@ -1400,43 +1354,35 @@ class DataCollector:
         be exported as a CSV to an output folder.
         """
 
-        # # Step #0: Gather Yesterday's Bus Location Data
-        # try:
-        td_dt_mx = "19-05-2024"
+        # Step #0: Gather Yesterday's Bus Location Data
+        try:
+            td_dt_mx = "19-05-2024"
+
+            dir_list = [x for x in os.listdir(self.out_dict["BUS_LOC"]) if ".csv" in x]
+            df = pd.DataFrame(dir_list, columns=['FILE_NAME'])
+
+            # Create A Dataframe With The Time The File Was Created & Output
+            df["DATE"] = df["FILE_NAME"].str.split('_').str[-1]
+            df["DATE"] = df["DATE"].str.replace(".csv", "", regex=False)
+            df["DATE"] = pd.to_datetime(df["DATE"], format = self.td_s_dt_dsply_frmt)
 
 
-        dir_list = [x for x in os.listdir(self.out_dict["BUS_LOC"]) if ".csv" in x]
-        df = pd.DataFrame(dir_list, columns=['FILE_NAME'])
+            # We Only Need Certain Columns On Data Ingest
+            td_dt_mx = datetime.strptime(td_dt_mx, self.td_s_dt_dsply_frmt)
+            df = df[df["DATE"] >= td_dt_mx]
+            needed_cols = ['u_id', 'timestamp', 'route_id', 'trip_id', 'vehicle_id', 'bearing', 'latitude', 'longitude', 'stop_id', 'dt_colc']
+            df = pd.concat([pd.read_csv(path_, usecols = needed_cols) for path_ in [f'{self.out_dict["BUS_LOC"]}/{x}' for x in df["FILE_NAME"].tolist()]])
+            del needed_cols
 
-        # Create A Dataframe With The Time The File Was Created & Output
-        df["DATE"] = df["FILE_NAME"].str.split('_').str[-1]
-        df["DATE"] = df["DATE"].str.replace(".csv", "", regex=False)
-        df["DATE"] = pd.to_datetime(df["DATE"], format = self.td_s_dt_dsply_frmt)
+            # Format Data
+            trips_obs = self.__frmt_data_s3(self.__frmt_data_s2(self.__frmt_data_s1(df, td_dt_mx), td_dt_mx))
 
+            # Export Speed DF To Folder
+            cleaned_dt = f"{td_dt_mx.day:0>2}-{td_dt_mx.month:0>2}-{td_dt_mx.year}"
+            dt_string = datetime.now().strftime(self.td_s_dt_dsply_frmt)
+            out_path = self.out_dict["FRMTD_DATA"] + f"/FRMTD_DATA_{cleaned_dt}.csv"
+            trips_obs.to_csv(out_path, index=False)
 
-        # We Only Need Certain Columns On Data Ingest
-        td_dt_mx = datetime.strptime(td_dt_mx, self.td_s_dt_dsply_frmt)
-        df = df[df["DATE"] >= td_dt_mx]
-        needed_cols = ['u_id', 'timestamp', 'route_id', 'trip_id', 'vehicle_id', 'bearing', 'latitude', 'longitude', 'stop_id', 'dt_colc']
-        df = pd.concat([pd.read_csv(path_, usecols = needed_cols) for path_ in [f'{self.out_dict["BUS_LOC"]}/{x}' for x in df["FILE_NAME"].tolist()]])
-        del needed_cols
-
-        # Format Data
-        # trips_obs =
-        self.__frmt_data_s3(self.__frmt_data_s2(self.__frmt_data_s1(df, td_dt_mx), td_dt_mx))
-
-
-
-
-        # # Export Speed DF To Folder
-        # cleaned_dt = f"{td_dt_mx.day:0>2}-{td_dt_mx.month:0>2}-{td_dt_mx.year}"
-        # dt_string = datetime.now().strftime(self.td_s_dt_dsply_frmt)
-        # out_path = self.out_dict["FRMTD_DATA"] + f"/FRMTD_DATA_{cleaned_dt}.csv"
-        # trips_obs.to_csv(out_path, index=False)
-
-
-
-
-        # except Exception as e:
-        #     print(e)
-        #     pass
+        except Exception as e:
+            print(e)
+            pass

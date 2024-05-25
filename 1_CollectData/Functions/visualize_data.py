@@ -436,7 +436,7 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
     is present between routes.
     """
 
-
+    print(td_dt_mx)
 
     # Make Sure We Have At Least 2 Days Worth Of Data
     if len(f_af["FILE_NAME"].tolist()) >= 1:
@@ -450,6 +450,8 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
 
     df[["YEAR", "MONTH", "DAY"]] = df["STP_ARV_DTTM"].str[:10].str.split('-', expand=True)
     print(df["DAY"].unique())
+
+
 
     #
     # # Create A Lagged Column, So We Can See The Next Arrival Time, & Determine The Time Between A Segment
