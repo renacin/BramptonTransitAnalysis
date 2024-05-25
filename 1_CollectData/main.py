@@ -53,7 +53,7 @@ def main():
                 bstp_af,
                 error_path,
                 e_af,
-                str((datetime.datetime.now() + datetime.timedelta(days=-6)).strftime(td_s_dt_dsply_frmt)))
+                str((datetime.datetime.now() + datetime.timedelta(days=-7)).strftime(td_s_dt_dsply_frmt)))
 
 
 

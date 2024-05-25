@@ -1356,7 +1356,6 @@ class DataCollector:
 
         # Step #0: Gather Yesterday's Bus Location Data
         try:
-            td_dt_mx = "19-05-2024"
 
             dir_list = [x for x in os.listdir(self.out_dict["BUS_LOC"]) if ".csv" in x]
             df = pd.DataFrame(dir_list, columns=['FILE_NAME'])
