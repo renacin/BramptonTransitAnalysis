@@ -1165,7 +1165,9 @@ class DataCollector:
         test_df = trips_obs[["STP_ARV_TM", "U_ID", "ROW_ID"]].copy()
         test_df = test_df.dropna(subset=["STP_ARV_TM"])
 
-        print(test_df["STP_ARV_DTTM"].dt.day.unique())
+
+        # print(test_df.columns)
+        # print(test_df["STP_ARV_DTTM"].dt.day.unique())
 
 
 
@@ -1233,6 +1235,17 @@ class DataCollector:
 
         # Drop Duplicates Again, This Time Based On TRIP_ID, And Stop Number
         trips_obs = trips_obs.drop_duplicates(subset=["TRIP_ID", "RT_STP_NUM"])
+
+
+
+
+        print(trips_obs.columns)
+        trips_obs['STP_ARV_DTTM'] =  pd.to_datetime(trips_obs['STP_ARV_DTTM'])
+        print(trips_obs["STP_ARV_DTTM"].dt.day.unique())
+
+
+
+
 
 
         # Create An Encoding, For A New Column. If There Is Data In The Timestampt Then 1, Else 0
@@ -1347,6 +1360,13 @@ class DataCollector:
         # Forward Fill Data
         trips_obs["STP_ARV_TM"] = round(trips_obs["STP_ARV_TM"], 0)
         trips_obs["STP_ARV_DTTM"] = pd.to_datetime(trips_obs["STP_ARV_TM"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
+
+
+
+        print(trips_obs["STP_ARV_DTTM"].dt.day.unique())
+
+
+
         trips_obs.loc[trips_obs["ROUTE_ID"] == "", "ROUTE_ID"] = np.nan
         trips_obs["ROUTE_ID"] = trips_obs.groupby(["TRIP_ID"])["ROUTE_ID"].ffill()
 
