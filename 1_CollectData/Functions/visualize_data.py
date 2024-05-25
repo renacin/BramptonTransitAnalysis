@@ -524,6 +524,13 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
     # Group Data, Find Average Time Between Segments, And The Variance Between Them
     needed_cols = ["RT_ID", "RT_NAME", "RT_VER", "RT_DIR", "RT_STP_NUM", "RT_NUM_STPS", "V_ID", "STP_ARV_TM", "DATA_TYPE", "STP_ARV_DTTM", "TM_DIFF", "SEG_NAME", "DTS_2_NXT_STP"]
     route_data = route_data[needed_cols].copy()
+
+    # Sort By TIME DIFF, Should Be Relatively The Same, Values Should Be Greater Than 0 Obviously, And Smaller Than 30 Minutes
+    route_data = route_data[route_data["TM_DIFF"] > 0]
+    route_data = route_data[route_data["TM_DIFF"] < 900]
+    route_data = route_data[route_data["DATA_TYPE"] != "IE"]
+
+    # Group Data By Each Bus Stop Segment
     stats_df = route_data.groupby(["RT_ID", "RT_NAME", "RT_VER", "RT_DIR", "RT_STP_NUM", "RT_NUM_STPS", "SEG_NAME"], as_index=False).agg(TM_AVG   = ("TM_DIFF", "mean"),
                                                                                                                                          NO_OBS   = ("TM_DIFF", "count"),
                                                                                                                                          TM_STD   = ("TM_DIFF", "std"),
@@ -538,8 +545,10 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
     # Drop Rows Were It Was Just One Observation
     stats_df = stats_df.dropna(subset=["NO_OBS"])
 
+    print(stats_df.corr())
+
     # Create A Scatter Plot
-    plt.scatter(stats_df["RT_STP_NUM"], stats_df["NO_OBS"], s=10, c="blue", marker="x", label='NO_OBS')
+    plt.scatter(stats_df["RT_STP_NUM"], stats_df["TM_AVG"], s=10, c="blue", marker="x", label='TM_AVG')
     plt.scatter(stats_df["RT_STP_NUM"], stats_df["DIST_BTW"], s=10, c="red",  marker="+", label='DIST_BTW')
     plt.legend(loc='upper right')
 
