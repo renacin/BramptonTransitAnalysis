@@ -842,18 +842,9 @@ class DataCollector:
         df[["HOUR", "MINUTE", "SECOND"]] = df["dt_colc"].str[11:19].str.split(':', expand=True)
 
 
-        print(df["DAY"].unique())
-
-
         # We Only Want Data From td_dt_mx Date
         f_day = str(td_dt_mx.day).zfill(2)
         df = df[df["DAY"] == f_day]
-
-
-
-        print(df["DAY"].unique())
-
-
 
 
         df = df.drop(["YEAR", "MONTH", "DAY", "MINUTE", "SECOND", "u_id"], axis=1)
@@ -877,7 +868,6 @@ class DataCollector:
         df["TRIP_ID"] = df["TRIP_ID"].astype("category")
         df["ROUTE_ID"] = df["ROUTE_ID"].astype("category")
         df["HOUR"] = df["HOUR"].astype("category")
-
 
 
         # We Need To Determine Average DIR For Each Trip
@@ -961,22 +951,12 @@ class DataCollector:
         gc.collect()
 
 
-
-
-
-        transit_df[["YEAR", "MONTH", "DAY"]] = transit_df["DATE_TM"].str[:10].str.split('-', expand=True)
-        print(transit_df["DAY"].unique())
-        del transit_df["YEAR"], transit_df["MONTH"], transit_df["DAY"]
-
-
-
-
-
         # Calculate Distance Between Current Location & Previous Location | Create A Dataframe Elaborating Distance Traveled & Speed
         transit_df["DST_BTW_LOCS"] = vec_haversine((transit_df["P_LAT"].values, transit_df["P_LONG"].values), (transit_df["C_LAT"].values, transit_df["C_LONG"].values))
 
         # First Create A Copy Of Main Data Table | We Only Need Certain Columns, Not All!
         speed_df = transit_df[['U_NAME', 'TRIP_ID', 'ROUTE_ID', 'V_ID', 'AVG_DIR', 'EP_TIME', 'HOUR', 'DST_BTW_LOCS']].copy()
+
 
         # Find The Previous Travel Time, Determine The Trip Speed & Trip Duration
         speed_df["P_EP_TIME"] = speed_df.groupby(["U_NAME"])["EP_TIME"].shift(+1)
@@ -1034,8 +1014,10 @@ class DataCollector:
         transit_df["NXT_STP_ARV_DTTM"] = pd.to_datetime(transit_df["NXT_STP_ARV_TM"], unit='s').dt.tz_localize('UTC').dt.tz_convert('Canada/Eastern')
 
 
-
-        print(transit_df["NXT_STP_ARV_DTTM"].dt.day.unique())
+        transit_df["DAY"] = transit_df["NXT_STP_ARV_DTTM"].dt.day
+        testing_errors = transit_df[(transit_df["DAY"] != 19) |
+                                    (transit_df["DAY"] != 20)]
+        testing_errors.to_csv("Testing_Errors.csv")
 
 
 
