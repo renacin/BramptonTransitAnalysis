@@ -532,10 +532,6 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
     route_data = route_data[route_data["TM_DIFF"] < 900]
     route_data = route_data[route_data["SEG_DATA_TYPE"] == "IE To IE"]
 
-    print(route_data.columns)
-    route_data.to_csv("Test_1.csv")
-
-
     # Group Data By Each Bus Stop Segment
     stats_df = route_data.groupby(["RT_ID", "RT_NAME", "RT_VER", "RT_DIR", "RT_STP_NUM", "RT_NUM_STPS", "SEG_NAME"], as_index=False).agg(TM_AVG   = ("TM_DIFF", "mean"),
                                                                                                                                          NO_OBS   = ("TM_DIFF", "count"),
@@ -551,8 +547,6 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
     # Drop Rows Were It Was Just One Observation
     stats_df = stats_df.dropna(subset=["NO_OBS"])
 
-    print(stats_df.corr())
-
     # Create A Scatter Plot
     plt.scatter(stats_df["RT_STP_NUM"], stats_df["TM_AVG"], s=10, c="blue", marker="x", label='TM_AVG')
     plt.scatter(stats_df["RT_STP_NUM"], stats_df["DIST_BTW"], s=10, c="red",  marker="+", label='DIST_BTW')
@@ -562,11 +556,3 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
     plt.ylabel("Y-axis")  # add Y-axis label
     plt.title(f"Bus Route: {max_route}")  # add title
     plt.show()
-
-
-
-    # stats_df.to_csv("Test.csv")
-    #
-
-    # # For Testing
-    # trips_obs.to_csv("Test.csv")
