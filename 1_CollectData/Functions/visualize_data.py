@@ -451,8 +451,10 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
 
     # Create A Lagged Column, So We Can See The Next Arrival Time, & Determine The Time Between A Segment
     df['NXT_STP_ARV_TM'] = df.groupby(['TRIP_ID'])['STP_ARV_TM'].shift(-1)
+    df['NXT_DATA_TYPE'] = df.groupby(['TRIP_ID'])['DATA_TYPE'].shift(-1)
     df['TM_DIFF'] = df['NXT_STP_ARV_TM'] - df['STP_ARV_TM']
     df["SEG_NAME"] = df['STP_NM'] + " To " + df['NXT_STP_NM']
+    df["SEG_DATA_TYPE"] = df['DATA_TYPE'] + " To " + df['NXT_DATA_TYPE']
 
 
     # Read In Bus Routes Data, Create A Matching Segment Name Dataframe
@@ -528,7 +530,10 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
     # Sort By TIME DIFF, Should Be Relatively The Same, Values Should Be Greater Than 0 Obviously, And Smaller Than 30 Minutes
     route_data = route_data[route_data["TM_DIFF"] > 0]
     route_data = route_data[route_data["TM_DIFF"] < 900]
-    route_data = route_data[route_data["DATA_TYPE"] != "IE"]
+    route_data = route_data[route_data["SEG_DATA_TYPE"] != "CE To CE"]
+
+    route_data.to_csv("Test_1.csv")
+
 
     # Group Data By Each Bus Stop Segment
     stats_df = route_data.groupby(["RT_ID", "RT_NAME", "RT_VER", "RT_DIR", "RT_STP_NUM", "RT_NUM_STPS", "SEG_NAME"], as_index=False).agg(TM_AVG   = ("TM_DIFF", "mean"),
