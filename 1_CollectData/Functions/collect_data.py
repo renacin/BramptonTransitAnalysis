@@ -1342,9 +1342,6 @@ class DataCollector:
 
 
 
-
-
-
     # ------------------------- Public Function 5 ------------------------------
     def frmt_rwbslc_data(self, td_dt_mx):
         """
