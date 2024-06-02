@@ -547,6 +547,9 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
     # Drop Rows Were It Was Just One Observation
     stats_df = stats_df.dropna(subset=["NO_OBS"])
 
+    # Print Correlation Matrix
+    print(stats_df.corr())
+
     # Create A Scatter Plot
     plt.scatter(stats_df["RT_STP_NUM"], stats_df["TM_AVG"], s=10, c="blue", marker="x", label='TM_AVG')
     plt.scatter(stats_df["RT_STP_NUM"], stats_df["DIST_BTW"], s=10, c="red",  marker="+", label='DIST_BTW')
