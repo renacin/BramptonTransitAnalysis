@@ -552,7 +552,8 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
 
     # Create A Scatter Plot
     plt.scatter(stats_df["RT_STP_NUM"], stats_df["TM_AVG"], s=10, c="blue", marker="x", label='TM_AVG')
-    plt.scatter(stats_df["RT_STP_NUM"], stats_df["DIST_BTW"], s=10, c="red",  marker="+", label='DIST_BTW')
+    plt.scatter(stats_df["RT_STP_NUM"], stats_df["DIST_BTW"], s=10, c="red",  marker="x", label='DIST_BTW')
+    plt.scatter(stats_df["RT_STP_NUM"], stats_df["NO_OBS"], s=10, c="black",  marker="x", label='NO_OBS')
     plt.legend(loc='upper right')
 
     plt.xlabel("Segment Number")  # add X-axis label
