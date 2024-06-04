@@ -29,120 +29,120 @@ def main():
     # Instantiate Data Collector
     Collector = DataCollector(skp_dwnld=True)
 
-    # # Get Today's Date As A Variable
-    # td_dt_mx = str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt))
+    # Get Today's Date As A Variable
+    td_dt_mx = str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt))
 
-    # # Define Needed Connections
-    # bus_loc_path, b_af    =  Collector.return_files_dates("BUS_LOC")
-    # bus_stp_path, bstp_af =  Collector.return_files_dates("BUS_STP")
-    # fmted_path, f_af      =  Collector.return_files_dates("FRMTD_DATA")
-    # error_path, e_af      =  Collector.return_files_dates("ERROR")
-    # graphics_path, g_af   =  Collector.return_files_dates("GRAPHICS")
+    # Define Needed Connections
+    bus_loc_path, b_af    =  Collector.return_files_dates("BUS_LOC")
+    bus_stp_path, bstp_af =  Collector.return_files_dates("BUS_STP")
+    fmted_path, f_af      =  Collector.return_files_dates("FRMTD_DATA")
+    error_path, e_af      =  Collector.return_files_dates("ERROR")
+    graphics_path, g_af   =  Collector.return_files_dates("GRAPHICS")
+
+
+
+    # Run Data Visualizations #3
+    data_viz_3(graphics_path,
+                fmted_path,
+                f_af,
+                bus_stp_path,
+                bstp_af,
+                error_path,
+                e_af,
+                str((datetime.datetime.now() + datetime.timedelta(days=-10)).strftime(td_s_dt_dsply_frmt)))
+
+
+
+
+
+
+
+
+    #
+    # # Main Loop Of Code
+    # while True:
+    #
+    #     # Get The Current Time
+    #     cur_dt =   str(datetime.datetime.now().strftime(td_s_dt_dsply_frmt))
+    #     cur_hr =   int(datetime.datetime.now().strftime('%H'))
+    #     td_dt_mx = str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt))
+    #
+    #     try:
+    #         # If It's 0300AM, Do Certain Things
+    #         if (cur_hr == alrm_hr and cur_dt == alrm_dt):
+    #
+    #             # Get Today's Date As A Variable
+    #             td_dt_mx = str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt))
+    #
+    #             # If It's Time, Export Data & Render Data Visualizations
+    #             Collector.xprt_data("BUS_LOC", "BUS_LOC_DB", "u_id", True)
+    #             Collector.xprt_data("ERROR", "ERROR_DB", "timestamp", True)
+    #
+    #             # Run Main Data Formatter
+    #             Collector.frmt_rwbslc_data(td_dt_mx)
+    #
+    #             # Define Needed Connections
+    #             bus_loc_path, b_af    =  Collector.return_files_dates("BUS_LOC")
+    #             bus_stp_path, bstp_af =  Collector.return_files_dates("BUS_STP")
+    #             fmted_path, f_af      =  Collector.return_files_dates("FRMTD_DATA")
+    #             error_path, e_af      =  Collector.return_files_dates("ERROR")
+    #             graphics_path, g_af   =  Collector.return_files_dates("GRAPHICS")
+    #
+    #             # Run Data Visualizations #1
+    #             data_viz_1(graphics_path,
+    #                         bus_loc_path,
+    #                         b_af,
+    #                         error_path,
+    #                         e_af,
+    #                         td_dt_mx)
+    #
+    #             # Run Data Visualizations #2
+    #             data_viz_2(graphics_path,
+    #                         bus_loc_path,
+    #                         b_af,
+    #                         error_path,
+    #                         e_af,
+    #                         td_dt_mx)
+    #
+    #             # Run Data Visualizations #3
+    #             data_viz_3(graphics_path,
+    #                         fmted_path,
+    #                         f_af,
+    #                         bus_stp_path,
+    #                         bstp_af,
+    #                         error_path,
+    #                         e_af,
+    #                         str((datetime.datetime.now() + datetime.timedelta(days=-10)).strftime(td_s_dt_dsply_frmt)))
+    #
+    #
+    #             # Upload Gaphics To Dropbox Folder
+    #             Collector.upld_2_dbx()
+    #
+    #             # Once Complete Set New Alarm
+    #             alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=+1)).strftime(td_s_dt_dsply_frmt))
     #
     #
     #
-    # # Run Data Visualizations #3
-    # data_viz_3(graphics_path,
-    #             fmted_path,
-    #             f_af,
-    #             bus_stp_path,
-    #             bstp_af,
-    #             error_path,
-    #             e_af,
-    #             str((datetime.datetime.now() + datetime.timedelta(days=-10)).strftime(td_s_dt_dsply_frmt)))
-
-
-
-
-
-
-
-
-
-    # Main Loop Of Code
-    while True:
-
-        # Get The Current Time
-        cur_dt =   str(datetime.datetime.now().strftime(td_s_dt_dsply_frmt))
-        cur_hr =   int(datetime.datetime.now().strftime('%H'))
-        td_dt_mx = str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt))
-
-        try:
-            # If It's 0300AM, Do Certain Things
-            if (cur_hr == alrm_hr and cur_dt == alrm_dt):
-
-                # Get Today's Date As A Variable
-                td_dt_mx = str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt))
-
-                # If It's Time, Export Data & Render Data Visualizations
-                Collector.xprt_data("BUS_LOC", "BUS_LOC_DB", "u_id", True)
-                Collector.xprt_data("ERROR", "ERROR_DB", "timestamp", True)
-
-                # Run Main Data Formatter
-                Collector.frmt_rwbslc_data(td_dt_mx)
-
-                # Define Needed Connections
-                bus_loc_path, b_af    =  Collector.return_files_dates("BUS_LOC")
-                bus_stp_path, bstp_af =  Collector.return_files_dates("BUS_STP")
-                fmted_path, f_af      =  Collector.return_files_dates("FRMTD_DATA")
-                error_path, e_af      =  Collector.return_files_dates("ERROR")
-                graphics_path, g_af   =  Collector.return_files_dates("GRAPHICS")
-
-                # Run Data Visualizations #1
-                data_viz_1(graphics_path,
-                            bus_loc_path,
-                            b_af,
-                            error_path,
-                            e_af,
-                            td_dt_mx)
-
-                # Run Data Visualizations #2
-                data_viz_2(graphics_path,
-                            bus_loc_path,
-                            b_af,
-                            error_path,
-                            e_af,
-                            td_dt_mx)
-
-                # Run Data Visualizations #3
-                data_viz_3(graphics_path,
-                            fmted_path,
-                            f_af,
-                            bus_stp_path,
-                            bstp_af,
-                            error_path,
-                            e_af,
-                            str((datetime.datetime.now() + datetime.timedelta(days=-10)).strftime(td_s_dt_dsply_frmt)))
-
-
-                # Upload Gaphics To Dropbox Folder
-                Collector.upld_2_dbx()
-
-                # Once Complete Set New Alarm
-                alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=+1)).strftime(td_s_dt_dsply_frmt))
-
-
-
-            # If It's Not Scheduled Maintenance Just Collect Data
-            else:
-                Collector.get_bus_loc()
-
-
-
-            #When Done Iteration Implement Delay
-            time.sleep(tm_delay)
-
-
-        except KeyboardInterrupt:
-            now = datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
-            print(f"{now}: Keyboard Interrupt Error")
-            break
-
-
-        except Exception as e:
-            now = datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
-            print(f"{now}: Logic Operation Error (Type - {e})")
-            time.sleep(tm_delay)
+    #         # If It's Not Scheduled Maintenance Just Collect Data
+    #         else:
+    #             Collector.get_bus_loc()
+    #
+    #
+    #
+    #         #When Done Iteration Implement Delay
+    #         time.sleep(tm_delay)
+    #
+    #
+    #     except KeyboardInterrupt:
+    #         now = datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
+    #         print(f"{now}: Keyboard Interrupt Error")
+    #         break
+    #
+    #
+    #     except Exception as e:
+    #         now = datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
+    #         print(f"{now}: Logic Operation Error (Type - {e})")
+    #         time.sleep(tm_delay)
 
 
 
