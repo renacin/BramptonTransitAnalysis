@@ -526,7 +526,8 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
 
 	# Hold Up. We Need Data For Our Machine Learning Data Rectification Bit. Why Are We Limiting To Just Stops For A Given Route. We Need As Much Data As Possible.
 	# Find The Segments In A Route, But Then Find All Segments That Were Recorded The Numbers Should Go Upt Giving Us More Data!
-	
+
+	# How Do I Grab All Occurences Of Stops For A Bus Route Given All Data?
 
 
     # Group Data, Find Average Time Between Segments, And The Variance Between Them
