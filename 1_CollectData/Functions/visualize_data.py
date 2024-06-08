@@ -500,7 +500,7 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
     trips_obs = trips_obs.merge(df, how="left", on=["TRIP_ID", "STP_NM", "RT_ID",
                                                     "RT_NAME", "RT_VER", "RT_ID_VER",
                                                     "RT_DIR", "RT_STP_NUM", "RT_NUM_STPS"])
-    del df, bus_routes
+    del df
     gc.collect()
 
 
@@ -517,35 +517,44 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
     max_route = max_route.dropna()
     max_route = max_route.groupby(["RT_ID_VER"], as_index=False).agg(RT_ID_VER_COUNT = ("RT_ID_VER", "count"))
 
+
     # Find Route With Max Data Counts
     max_route = max_route.loc[max_route["RT_ID_VER_COUNT"].idxmax(), "RT_ID_VER"]
 
+
     # Focus On Just Route Data
-    route_data = trips_obs[trips_obs["RT_ID_VER"] == max_route].copy()
+    u_id_data = trips_obs[trips_obs["RT_ID_VER"] == max_route].copy()
 
 
-	# Hold Up. We Need Data For Our Machine Learning Data Rectification Bit. Why Are We Limiting To Just Stops For A Given Route. We Need As Much Data As Possible.
-	# Find The Segments In A Route, But Then Find All Segments That Were Recorded The Numbers Should Go Upt Giving Us More Data!
+    # We Need The Bus Stops In A Given Route
+    trip_details = bus_routes[bus_routes["RT_ID_VER"] == max_route].copy()
+    trip_details['NXT_STP_NAME'] = trip_details.groupby(['RT_ID_VER'])['STP_NM'].shift(-1)
+    trip_details["SEG_NAME"] = trip_details['STP_NM'] + " To " + trip_details['NXT_STP_NAME']
+    trip_details.dropna(inplace=True)
+    del trip_details["NXT_STP_NAME"]
 
-	# How Do I Grab All Occurences Of Stops For A Bus Route Given All Data?
 
+    # Looking At The Entire Database, Grab Data Where The Segment Name Is In The List Of Unique Segment IDs For The Given Trip
+    route_data = trips_obs[trips_obs["SEG_NAME"].isin(trip_details["SEG_NAME"].unique())].copy()
 
     # Group Data, Find Average Time Between Segments, And The Variance Between Them
     needed_cols = ["RT_ID", "RT_NAME", "RT_VER", "RT_DIR", "RT_STP_NUM", "RT_NUM_STPS", "V_ID", "STP_ARV_TM", "DATA_TYPE", "STP_ARV_DTTM", "TM_DIFF", "SEG_NAME", "SEG_DATA_TYPE", "DTS_2_NXT_STP"]
     route_data = route_data[needed_cols].copy()
 
-    # Sort By TIME DIFF, Should Be Relatively The Same, Values Should Be Greater Than 0 Obviously, And Smaller Than 30 Minutes
-    route_data = route_data[route_data["TM_DIFF"] > 0]
-    route_data = route_data[route_data["TM_DIFF"] < 900]
-    route_data = route_data[route_data["SEG_DATA_TYPE"] == "IE To IE"]
+    # Sort By TIME DIFF, Should Be Relatively The Same, Values Should Be Greater Than 0 Obviously, And Smaller Than Mean + 4 * STD
+    max_val = (route_data["TM_DIFF"].mean()) + (route_data["TM_DIFF"].std() * 4)
+    route_data = route_data[(route_data["TM_DIFF"] > 0) & (route_data["TM_DIFF"] < max_val)]
+    route_data = route_data[route_data["SEG_DATA_TYPE"].isin(["IE To IE"])]
+
+    print(len(route_data))
 
     # Group Data By Each Bus Stop Segment
-    stats_df = route_data.groupby(["RT_ID", "RT_NAME", "RT_VER", "RT_DIR", "RT_STP_NUM", "RT_NUM_STPS", "SEG_NAME"], as_index=False).agg(TM_AVG   = ("TM_DIFF", "mean"),
-                                                                                                                                         NO_OBS   = ("TM_DIFF", "count"),
-                                                                                                                                         TM_STD   = ("TM_DIFF", "std"),
-                                                                                                                                         TM_VAR   = ("TM_DIFF", "var"),
-                                                                                                                                         DIST_BTW = ("DTS_2_NXT_STP", "first")
-                                                                                                                                         )
+    stats_df = route_data.groupby(["SEG_NAME"], as_index=False).agg(TM_AVG   = ("TM_DIFF", "mean"),
+                                                                    NO_OBS   = ("TM_DIFF", "count"),
+                                                                    TM_STD   = ("TM_DIFF", "std"),
+                                                                    TM_VAR   = ("TM_DIFF", "var"),
+                                                                    DIST_BTW = ("DTS_2_NXT_STP", "first")
+                                                                    )
 
     # Do Some Data Cleaning
     for col in ["TM_AVG", "TM_STD", "TM_VAR", "NO_OBS"]:
@@ -558,12 +567,5 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
     print(stats_df.corr())
 
     # Create A Scatter Plot
-    plt.scatter(stats_df["RT_STP_NUM"], stats_df["TM_AVG"], s=10, c="blue", marker="x", label='TM_AVG')
-    plt.scatter(stats_df["RT_STP_NUM"], stats_df["DIST_BTW"], s=10, c="red",  marker="x", label='DIST_BTW')
-    plt.scatter(stats_df["RT_STP_NUM"], stats_df["NO_OBS"], s=10, c="black",  marker="x", label='NO_OBS')
-    plt.legend(loc='upper right')
-
-    plt.xlabel("Segment Number")  # add X-axis label
-    plt.ylabel("Y-axis")  # add Y-axis label
-    plt.title(f"Bus Route: {max_route}")  # add title
+    plt.scatter(stats_df["TM_AVG"], stats_df["DIST_BTW"], s=10, c="blue", marker="x")
     plt.show()
