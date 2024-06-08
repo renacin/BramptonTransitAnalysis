@@ -42,6 +42,7 @@ def main():
 
 
     # Run Data Visualizations #3
+    num_days = 14
     data_viz_3(graphics_path,
                 fmted_path,
                 f_af,
@@ -49,7 +50,8 @@ def main():
                 bstp_af,
                 error_path,
                 e_af,
-                str((datetime.datetime.now() + datetime.timedelta(days=-7)).strftime(td_s_dt_dsply_frmt)))
+                str((datetime.datetime.now() + datetime.timedelta(days=-num_days)).strftime(td_s_dt_dsply_frmt)),
+                num_days)
 
 
 

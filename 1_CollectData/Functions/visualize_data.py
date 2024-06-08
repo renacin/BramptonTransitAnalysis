@@ -429,7 +429,7 @@ def data_viz_2(graphics_path, out_path, fl_data, e_out_path, e_fl_data, td_dt_mx
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_path, e_fl_data, td_dt_mx):
+def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_path, e_fl_data, td_dt_mx, num_days):
     """
     Using the formatted data, this function will derive general statistics about
     when buses arrived at certain bus stops on a given route. And if any variation
@@ -448,148 +448,131 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
 
     # Filter Data Based On Cleaned Date
     f_af = f_af[f_af["DATE"] >= new_filter_dt]
-    print(f_af)
+
+    # If Number Of Files Smaller Than Number Of Days Looking Back, Raise An Error
+    if len(f_af) >= num_days:
+        print("True")
+
+    # Combine Files Into One
+    df = pd.concat([pd.read_csv(path_) for path_ in [f"{fmted_path}/{x}" for x in f_af["FILE_NAME"].tolist()]])
+    del f_af, df["index"], df["RT_GRP_NUM"], df["RT_GRP"]
 
 
-    # df = pd.concat([pd.read_csv(path_) for path_ in [f"{fmted_path}/{x}" for x in f_af["FILE_NAME"].tolist()]])
-    # del f_af, df["index"], df["RT_GRP_NUM"], df["RT_GRP"]
-    #
-    # print(len(df))
 
-#
-#     # Create A Lagged Column, So We Can See The Next Arrival Time, & Determine The Time Between A Segment
-#     df['NXT_STP_ARV_TM'] = df.groupby(['TRIP_ID'])['STP_ARV_TM'].shift(-1)
-#     df['NXT_DATA_TYPE'] = df.groupby(['TRIP_ID'])['DATA_TYPE'].shift(-1)
-#     df['TM_DIFF'] = df['NXT_STP_ARV_TM'] - df['STP_ARV_TM']
-#     df["SEG_NAME"] = df['STP_NM'] + " To " + df['NXT_STP_NM']
-#     df["SEG_DATA_TYPE"] = df['DATA_TYPE'] + " To " + df['NXT_DATA_TYPE']
-#
-#
-#     # Read In Bus Routes Data, Create A Matching Segment Name Dataframe
-#     for file in os.listdir(bus_stp_path):
-#         if "BUS_RTE_DATA" in file:
-#             stp_file_path = f'{bus_stp_path}/{file}'
-#
-#     needed_cols = ['RT_ID', 'RT_NAME',
-#                    'RT_VER', 'STP_NM',
-#                    'RT_ID_VER', 'RT_DIR',
-#                    'RT_GRP', 'RT_GRP_NUM']
-#
-#     bus_routes = pd.read_csv(stp_file_path, usecols = needed_cols)
-#
-#     # Before Using Bus Routes, We Need To Make Sure The Data Contains No Duplicates As Identified In Previous Attemps
-#     bus_routes["U_ID"] = bus_routes["RT_ID"].astype(str) + "_" + bus_routes["RT_NAME"].astype(str) + "_" + bus_routes["RT_VER"].astype(str)
-#     bus_routes = bus_routes.drop_duplicates()
-#
-#     # Recreate Stop Num & Total Number Of Stops
-#     bus_routes["RT_STP_NUM"] = bus_routes.groupby(["U_ID"]).cumcount() + 1
-#     num_stps_df = bus_routes.groupby("U_ID", as_index=False).agg(RT_NUM_STPS = ("U_ID", "count"))
-#     bus_routes = bus_routes.merge(num_stps_df, on='U_ID', how='left')
-#     del num_stps_df, bus_routes["U_ID"]
-#     gc.collect()
-#
-#
-#     # Only Keep Data That Is In Scope
-#     bus_routes = bus_routes[bus_routes["RT_ID"].isin(df["RT_ID"])]
-#
-#
-#     # We Need To Join The Trip Data To The Bus Stops (In Order) For A Given Route
-#     trips_obs = df.groupby(["TRIP_ID"], as_index=False).agg(TRIP_ID = ("TRIP_ID", "first"),
-#                                                             RT_ID   = ("ROUTE_ID", "first")
-#                                                             )
-#
-#     trips_obs["RT_ID"] = trips_obs["RT_ID"].str.split("-").str[0]
-#     trips_obs["RT_ID"] = trips_obs["RT_ID"].astype(dtype = int, errors = 'ignore')
-#     trips_obs["RT_ID"] = trips_obs["RT_ID"].astype("Int16")
-#
-#
-#     # In Order To Standardize Comparisons We Need Each Trip To Have An Entire Set Of Segment IDs, Even If It Only Had A Couple Of Stops
-#     trips_obs = trips_obs.merge(bus_routes, how="left", on=["RT_ID"])
-#     trips_obs = trips_obs.merge(df, how="left", on=["TRIP_ID", "STP_NM", "RT_ID",
-#                                                     "RT_NAME", "RT_VER", "RT_ID_VER",
-#                                                     "RT_DIR", "RT_STP_NUM", "RT_NUM_STPS"])
-#     del df
-#     gc.collect()
-#
-#
-#     # We Only Want Trip IDs With Data, Remove Those That Don't
-#     trips_obs["U_ID"] = trips_obs["TRIP_ID"] + "_" + trips_obs["RT_ID_VER"]
-#     count_df = trips_obs.groupby(["U_ID"], as_index=False).agg(TM_SUM = ("TM_DIFF", "sum"))
-#     count_df = count_df[count_df["TM_SUM"] > 0]
-#     trips_obs = trips_obs[trips_obs["U_ID"].isin(count_df["U_ID"])]
-#     del count_df, trips_obs["U_ID"]
-#
-#
-#     # For Now Find The Route With The Most Trips | It Varies From Day To Day
-#     max_route = trips_obs.copy()
-#     max_route = max_route.dropna()
-#     max_route = max_route.groupby(["RT_ID_VER"], as_index=False).agg(RT_ID_VER_COUNT = ("RT_ID_VER", "count"))
-#
-#
-#     # Find Route With Max Data Counts
-#     max_route = max_route.loc[max_route["RT_ID_VER_COUNT"].idxmax(), "RT_ID_VER"]
-#
-#
-#     # Focus On Just Route Data
-#     u_id_data = trips_obs[trips_obs["RT_ID_VER"] == max_route].copy()
-#
-#
-#     # We Need The Bus Stops In A Given Route
-#     trip_details = bus_routes[bus_routes["RT_ID_VER"] == max_route].copy()
-#     trip_details['NXT_STP_NAME'] = trip_details.groupby(['RT_ID_VER'])['STP_NM'].shift(-1)
-#     trip_details["SEG_NAME"] = trip_details['STP_NM'] + " To " + trip_details['NXT_STP_NAME']
-#     trip_details.dropna(inplace=True)
-#     del trip_details["NXT_STP_NAME"]
-#
-#
-#     # Looking At The Entire Database, Grab Data Where The Segment Name Is In The List Of Unique Segment IDs For The Given Trip
-#     route_data = trips_obs[trips_obs["SEG_NAME"].isin(trip_details["SEG_NAME"].unique())].copy()
-#
-#     # Group Data, Find Average Time Between Segments, And The Variance Between Them
-#     needed_cols = ["RT_ID", "RT_NAME", "RT_VER", "RT_DIR", "RT_STP_NUM", "RT_NUM_STPS", "V_ID", "STP_ARV_TM", "DATA_TYPE", "STP_ARV_DTTM", "TM_DIFF", "SEG_NAME", "SEG_DATA_TYPE", "DTS_2_NXT_STP"]
-#     route_data = route_data[needed_cols].copy()
-#
-#     # Sort By TIME DIFF, Should Be Relatively The Same, Values Should Be Greater Than 0 Obviously, And Smaller Than Mean + 4 * STD
-#     max_val = (route_data["TM_DIFF"].mean()) + (route_data["TM_DIFF"].std() * 4)
-#     route_data = route_data[(route_data["TM_DIFF"] > 0) & (route_data["TM_DIFF"] < max_val)]
-#     route_data = route_data[route_data["SEG_DATA_TYPE"].isin(["IE To IE"])]
-#
-#     # Remove Columns We Don't Need, And Change The Data In Others So It's More Accurate For This Given Route
-# V_ID		DATA_TYPE				SEG_DATA_TYPE
-#
-#     print(len(route_data))
-#
-#     # Group Data By Each Bus Stop Segment
-#     stats_df = route_data.groupby(["SEG_NAME"], as_index=False).agg(TM_AVG   = ("TM_DIFF", "mean"),
-#                                                                     NO_OBS   = ("TM_DIFF", "count"),
-#                                                                     TM_STD   = ("TM_DIFF", "std"),
-#                                                                     TM_VAR   = ("TM_DIFF", "var"),
-#                                                                     DIST_BTW = ("DTS_2_NXT_STP", "first")
-#                                                                     )
-#
-#     # Do Some Data Cleaning
-#     for col in ["TM_AVG", "TM_STD", "TM_VAR", "NO_OBS"]:
-#         stats_df.loc[stats_df["NO_OBS"] <= 1, col] = np.nan
-#
-#     # Drop Rows Were It Was Just One Observation
-#     stats_df = stats_df.dropna(subset=["NO_OBS"])
-#
-#     # Print Correlation Matrix
-#     print(stats_df.corr())
-#
-#     # What Columns Do We Have
-#     print(route_data.head())
-#     print(route_data.columns)
-#
-#     # For Testing
-#     route_data.to_csv("Test.csv")
-#
-#
-# V_ID		DATA_TYPE				SEG_DATA_TYPE
-#
-#
-#
-#
-#     # Create A Scatter Plot
-#     plt.scatter(stats_df["TM_AVG"], stats_df["DIST_BTW"], s=10, c="blue", marker="x")
-#     plt.show()
+
+    # Create A Lagged Column, So We Can See The Next Arrival Time, & Determine The Time Between A Segment
+    df['NXT_STP_ARV_TM'] = df.groupby(['TRIP_ID'])['STP_ARV_TM'].shift(-1)
+    df['NXT_DATA_TYPE'] = df.groupby(['TRIP_ID'])['DATA_TYPE'].shift(-1)
+    df['TM_DIFF'] = df['NXT_STP_ARV_TM'] - df['STP_ARV_TM']
+    df["SEG_NAME"] = df['STP_NM'] + " To " + df['NXT_STP_NM']
+    df["SEG_DATA_TYPE"] = df['DATA_TYPE'] + " To " + df['NXT_DATA_TYPE']
+
+    # Read In Bus Routes Data, Create A Matching Segment Name Dataframe
+    for file in os.listdir(bus_stp_path):
+        if "BUS_RTE_DATA" in file:
+            stp_file_path = f'{bus_stp_path}/{file}'
+
+    needed_cols = ['RT_ID', 'RT_NAME', 'RT_VER', 'STP_NM', 'RT_ID_VER', 'RT_DIR', 'RT_GRP', 'RT_GRP_NUM']
+    bus_routes = pd.read_csv(stp_file_path, usecols = needed_cols)
+
+    # Before Using Bus Routes, We Need To Make Sure The Data Contains No Duplicates As Identified In Previous Attemps
+    bus_routes["U_ID"] = bus_routes["RT_ID"].astype(str) + "_" + bus_routes["RT_NAME"].astype(str) + "_" + bus_routes["RT_VER"].astype(str)
+    bus_routes = bus_routes.drop_duplicates()
+
+    # Recreate Stop Num & Total Number Of Stops
+    bus_routes["RT_STP_NUM"] = bus_routes.groupby(["U_ID"]).cumcount() + 1
+    num_stps_df = bus_routes.groupby("U_ID", as_index=False).agg(RT_NUM_STPS = ("U_ID", "count"))
+    bus_routes = bus_routes.merge(num_stps_df, on='U_ID', how='left')
+    del num_stps_df, bus_routes["U_ID"]
+    gc.collect()
+
+
+    # Only Keep Data That Is In Scope
+    bus_routes = bus_routes[bus_routes["RT_ID"].isin(df["RT_ID"])]
+
+
+    # We Need To Join The Trip Data To The Bus Stops (In Order) For A Given Route
+    trips_obs = df.groupby(["TRIP_ID"], as_index=False).agg(TRIP_ID = ("TRIP_ID", "first"),
+                                                            RT_ID   = ("ROUTE_ID", "first")
+                                                            )
+
+    trips_obs["RT_ID"] = trips_obs["RT_ID"].str.split("-").str[0]
+    trips_obs["RT_ID"] = trips_obs["RT_ID"].astype(dtype = int, errors = 'ignore')
+    trips_obs["RT_ID"] = trips_obs["RT_ID"].astype("Int16")
+
+
+    # In Order To Standardize Comparisons We Need Each Trip To Have An Entire Set Of Segment IDs, Even If It Only Had A Couple Of Stops
+    trips_obs = trips_obs.merge(bus_routes, how="left", on=["RT_ID"])
+    trips_obs = trips_obs.merge(df, how="left", on=["TRIP_ID", "STP_NM", "RT_ID",
+                                                    "RT_NAME", "RT_VER", "RT_ID_VER",
+                                                    "RT_DIR", "RT_STP_NUM", "RT_NUM_STPS"])
+    del df
+    gc.collect()
+
+
+    # We Only Want Trip IDs With Data, Remove Those That Don't
+    trips_obs["U_ID"] = trips_obs["TRIP_ID"] + "_" + trips_obs["RT_ID_VER"]
+    count_df = trips_obs.groupby(["U_ID"], as_index=False).agg(TM_SUM = ("TM_DIFF", "sum"))
+    count_df = count_df[count_df["TM_SUM"] > 0]
+    trips_obs = trips_obs[trips_obs["U_ID"].isin(count_df["U_ID"])]
+    del count_df, trips_obs["U_ID"]
+
+
+    # For Now Find The Route With The Most Trips | It Varies From Day To Day
+    max_route = trips_obs.copy()
+    max_route = max_route.dropna()
+    max_route = max_route.groupby(["RT_ID_VER"], as_index=False).agg(RT_ID_VER_COUNT = ("RT_ID_VER", "count"))
+
+
+    # Find Route With Max Data Counts
+    max_route = max_route.loc[max_route["RT_ID_VER_COUNT"].idxmax(), "RT_ID_VER"]
+
+
+    # Focus On Just Route Data
+    u_id_data = trips_obs[trips_obs["RT_ID_VER"] == max_route].copy()
+
+
+    # We Need The Bus Stops In A Given Route
+    trip_details = bus_routes[bus_routes["RT_ID_VER"] == max_route].copy()
+    trip_details['NXT_STP_NAME'] = trip_details.groupby(['RT_ID_VER'])['STP_NM'].shift(-1)
+    trip_details["SEG_NAME"] = trip_details['STP_NM'] + " To " + trip_details['NXT_STP_NAME']
+    trip_details.dropna(inplace=True)
+    del trip_details["NXT_STP_NAME"]
+
+
+
+
+    # Looking At The Entire Database, Grab Data Where The Segment Name Is In The List Of Unique Segment IDs For The Given Trip
+    route_data = trips_obs[trips_obs["SEG_NAME"].isin(trip_details["SEG_NAME"].unique())].copy()
+
+    # Group Data, Find Average Time Between Segments, And The Variance Between Them
+    needed_cols = ["RT_ID", "RT_NAME", "RT_VER", "RT_DIR", "RT_STP_NUM", "RT_NUM_STPS", "V_ID", "STP_ARV_TM", "DATA_TYPE", "STP_ARV_DTTM", "TM_DIFF", "SEG_NAME", "SEG_DATA_TYPE", "DTS_2_NXT_STP"]
+    route_data = route_data[needed_cols].copy()
+
+    # Sort By TIME DIFF, Should Be Relatively The Same, Values Should Be Greater Than 0 Obviously, And Smaller Than Mean + 4 * STD
+    max_val = (route_data["TM_DIFF"].mean()) + (route_data["TM_DIFF"].std() * 4)
+    route_data = route_data[(route_data["TM_DIFF"] > 0) & (route_data["TM_DIFF"] < max_val)]
+    route_data = route_data[route_data["SEG_DATA_TYPE"].isin(["IE To IE"])]
+
+    # Create Additional Columns For Machine Learning Attempt
+    route_data["STP_ARV_DTTM"] = pd.to_datetime(route_data["STP_ARV_DTTM"])
+    route_data["WEEK_DAY"] = route_data["STP_ARV_DTTM"].dt.day_name()
+    route_data["HOUR"] = route_data["STP_ARV_DTTM"].dt.hour
+    route_data["MINUTE"] = route_data["STP_ARV_DTTM"].dt.minute
+
+    # Remove Columns We Don't Need, And Change The Data In Others So It's More Accurate For This Given Route
+    route_data = route_data.drop(["RT_ID", "RT_NAME", "RT_VER", "RT_DIR", "RT_STP_NUM", "RT_NUM_STPS", "V_ID", "DATA_TYPE", "SEG_DATA_TYPE", "DTS_2_NXT_STP", "STP_ARV_TM", "STP_ARV_DTTM"], axis=1)
+
+    # One Hot Encode Weekday Name, And Seg_Name. Will A Neural Network Work Best For This?
+    route_data = pd.get_dummies(data = route_data, columns = ["WEEK_DAY"])
+
+    # Left Join Transit Details To Get Number Instead of Name For Segments, Then Use One Hot Encoding
+    merge_seg_num = trip_details[["SEG_NAME", "RT_STP_NUM"]].copy()
+    merge_seg_num["RT_STP_NUM"] = merge_seg_num["RT_STP_NUM"].astype(str)
+    route_data = route_data.merge(merge_seg_num, on='SEG_NAME', how='left')
+    route_data = route_data.drop(["SEG_NAME"], axis=1)
+
+    # One Hot Encode Weekday Name, And Seg_Name. Will A Neural Network Work Best For This?
+    route_data = pd.get_dummies(data = route_data, columns = ["RT_STP_NUM"])
+
+    print(len(route_data))
