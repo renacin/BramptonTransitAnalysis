@@ -524,7 +524,7 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
     max_route = max_route.groupby(["RT_ID_VER"], as_index=False).agg(RT_ID_VER_COUNT = ("RT_ID_VER", "count"))
     max_route = max_route.sort_values(['RT_ID_VER_COUNT'], ascending=[False])
 
-    max_route = max_route.head(5)
+    max_route = max_route.head(6)
     max_routes = max_route["RT_ID_VER"].to_list()
 
 
@@ -570,11 +570,18 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
 
         # Create Time Segments
         route_data['TIME_SEGMT'] = ""
-        route_data.loc[((route_data['HOUR'] >= 0)  & (route_data['HOUR'] <= 4)), 'TIME_SEGMT']  = '00-04'
-        route_data.loc[((route_data['HOUR'] >= 5)  & (route_data['HOUR'] <= 9)), 'TIME_SEGMT']  = '05-09'
-        route_data.loc[((route_data['HOUR'] >= 10) & (route_data['HOUR'] <= 14)), 'TIME_SEGMT'] = '10-14'
-        route_data.loc[((route_data['HOUR'] >= 15) & (route_data['HOUR'] <= 19)), 'TIME_SEGMT'] = '15-19'
-        route_data.loc[((route_data['HOUR'] >= 20) & (route_data['HOUR'] <= 24)), 'TIME_SEGMT'] = '20-24'
+        # route_data.loc[(route_data['HOUR'].isin([23, 24, 0, 1, 2, 3, 4, 5])), 'TIME_SEGMT']  = 'Off Peak (23 - 05)'
+        # route_data.loc[(route_data['HOUR'].isin([6, 7, 8, 9, 10])), 'TIME_SEGMT']  = 'Morning Commute (06 - 10)'
+        # route_data.loc[(route_data['HOUR'].isin([11, 12, 13, 14, 15])), 'TIME_SEGMT'] = 'Mid Day Peak (11 - 15)'
+        # route_data.loc[(route_data['HOUR'].isin([16, 17, 18, 19, 20, 21, 22])), 'TIME_SEGMT'] = 'Afternoon Rush (16 - 22)'
+
+        route_data.loc[(route_data['HOUR'].isin([23, 24, 0, 1, 2, 3, 4, 5])),                   'TIME_SEGMT']  = 'Off Peak (11PM - 5AM)'
+        route_data.loc[(route_data['HOUR'].isin([11, 12, 13, 14, 15])),                         'TIME_SEGMT']  = 'Mid Day Peak (11AM - 3PM)'
+        route_data.loc[(route_data['HOUR'].isin([6, 7, 8, 9, 10, 16, 17, 18, 19, 20, 21, 22])), 'TIME_SEGMT']  = 'Morning & Afternoon Commute (6AM - 10AM & 4PM - 10PM)'
+
+
+
+
 
 
         # Does The Average Time Per Segment Change Every Hour?
@@ -587,7 +594,7 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
         route_data_stats = route_data_stats.sort_values(by=["TIME_SEGMT", "RT_STP_NUM"])
 
         # We Need A Lot Of Data Before Doing An Analysis
-        route_data_stats = route_data_stats[route_data_stats["OBS_COUNT"] > 5]
+        route_data_stats = route_data_stats[route_data_stats["OBS_COUNT"] > 3]
 
 
 
@@ -598,14 +605,18 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
 
             # Plot Sample Data
             sample_data = route_data_stats[route_data_stats["TIME_SEGMT"] == segment]
-            plt.scatter(sample_data["RT_STP_NUM"], sample_data["TIME_BTW_SEG_STD"], c = clr_, marker="x", alpha=0.2, label=f"Data: {segment}")
+            plt.scatter(sample_data["RT_STP_NUM"], sample_data["TIME_BTW_SEG_STD"], c = clr_, marker="x", alpha=0.3)
 
             # Plot A Curve Of Best Fit
-            curve = np.polyfit(sample_data["RT_STP_NUM"], sample_data["TIME_BTW_SEG_STD"], 6)
+            curve = np.polyfit(sample_data["RT_STP_NUM"], sample_data["TIME_BTW_SEG_STD"], 5)
             poly = np.poly1d(curve)
             yy = poly(sample_data["RT_STP_NUM"])
             plt.plot(sample_data["RT_STP_NUM"], yy, c = clr_, alpha=0.8, label=f"Best Fit: {segment}")
 
+        # Print Segment Names
+        sample_data = sample_data[["RT_STP_NUM", "SEG_NAME"]]
+        u_names = sample_data.drop_duplicates()
+        print(u_names)
 
         # To show the plot
         plt.title(f"STD Of Segment Route Times: {max_route}")
