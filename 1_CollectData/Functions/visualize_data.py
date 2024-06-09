@@ -561,18 +561,50 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
     route_data["MINUTE"] = route_data["STP_ARV_DTTM"].dt.minute
 
     # Remove Columns We Don't Need, And Change The Data In Others So It's More Accurate For This Given Route
-    route_data = route_data.drop(["RT_ID", "RT_NAME", "RT_VER", "RT_DIR", "RT_STP_NUM", "RT_NUM_STPS", "V_ID", "DATA_TYPE", "SEG_DATA_TYPE", "DTS_2_NXT_STP", "STP_ARV_TM", "STP_ARV_DTTM"], axis=1)
-
-    # One Hot Encode Weekday Name, And Seg_Name. Will A Neural Network Work Best For This?
-    route_data = pd.get_dummies(data = route_data, columns = ["WEEK_DAY"])
-
-    # Left Join Transit Details To Get Number Instead of Name For Segments, Then Use One Hot Encoding
     merge_seg_num = trip_details[["SEG_NAME", "RT_STP_NUM"]].copy()
-    merge_seg_num["RT_STP_NUM"] = merge_seg_num["RT_STP_NUM"].astype(str)
+
+    route_data = route_data.drop(["RT_ID", "RT_NAME", "RT_VER", "RT_DIR", "RT_STP_NUM", "RT_NUM_STPS", "V_ID", "DATA_TYPE", "SEG_DATA_TYPE", "DTS_2_NXT_STP", "STP_ARV_TM", "STP_ARV_DTTM"], axis=1)
     route_data = route_data.merge(merge_seg_num, on='SEG_NAME', how='left')
-    route_data = route_data.drop(["SEG_NAME"], axis=1)
 
-    # One Hot Encode Weekday Name, And Seg_Name. Will A Neural Network Work Best For This?
-    route_data = pd.get_dummies(data = route_data, columns = ["RT_STP_NUM"])
 
-    print(len(route_data))
+    # Does The Average Time Per Segment Change Every Hour?
+    route_data_stats = route_data.groupby(["SEG_NAME", "HOUR"], as_index=False).agg(RT_STP_NUM         = ("RT_STP_NUM", "first"),
+                                                                                    OBS_COUNT          = ("TM_DIFF", "count"),
+                                                                                    TIME_BTW_SEG_AVG   = ("TM_DIFF", "mean"),
+                                                                                    TIME_BTW_SEG_STD   = ("TM_DIFF", "std")
+                                                                                    )
+
+    route_data_stats = route_data_stats.sort_values(by=["HOUR", "RT_STP_NUM"])
+
+    for hour_ in route_data_stats["HOUR"].tolist():
+        sample_data = route_data_stats[route_data_stats["HOUR"] == hour_]
+        plt.plot(sample_data["RT_STP_NUM"], sample_data["TIME_BTW_SEG_AVG"], c = np.random.rand(3, ), alpha=0.5)
+
+    # To show the plot
+    plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # # One Hot Encode Weekday Name, And Seg_Name. Will A Neural Network Work Best For This?
+    # route_data = pd.get_dummies(data = route_data, columns = ["WEEK_DAY"])
+    #
+    # # Left Join Transit Details To Get Number Instead of Name For Segments, Then Use One Hot Encoding
+    # merge_seg_num = trip_details[["SEG_NAME", "RT_STP_NUM"]].copy()
+    # merge_seg_num["RT_STP_NUM"] = merge_seg_num["RT_STP_NUM"].astype(str)
+    # route_data = route_data.merge(merge_seg_num, on='SEG_NAME', how='left')
+    # route_data = route_data.drop(["SEG_NAME"], axis=1)
+    #
+    # # One Hot Encode Weekday Name, And Seg_Name. Will A Neural Network Work Best For This?
+    # route_data = pd.get_dummies(data = route_data, columns = ["RT_STP_NUM"])
