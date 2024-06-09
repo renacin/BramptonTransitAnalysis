@@ -522,89 +522,92 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
     max_route = trips_obs.copy()
     max_route = max_route.dropna()
     max_route = max_route.groupby(["RT_ID_VER"], as_index=False).agg(RT_ID_VER_COUNT = ("RT_ID_VER", "count"))
+    max_route = max_route.sort_values(['RT_ID_VER_COUNT'], ascending=[False])
+
+    max_route = max_route.head(5)
+    max_routes = max_route["RT_ID_VER"].to_list()
 
 
-    # Find Route With Max Data Counts
-    max_route = max_route.loc[max_route["RT_ID_VER_COUNT"].idxmax(), "RT_ID_VER"]
+    # Iterate Through Each Max Route:
+    for max_route in max_routes:
+        # Focus On Just Route Data
+        u_id_data = trips_obs[trips_obs["RT_ID_VER"] == max_route].copy()
 
 
-    # Focus On Just Route Data
-    u_id_data = trips_obs[trips_obs["RT_ID_VER"] == max_route].copy()
+        # We Need The Bus Stops In A Given Route
+        trip_details = bus_routes[bus_routes["RT_ID_VER"] == max_route].copy()
+        trip_details['NXT_STP_NAME'] = trip_details.groupby(['RT_ID_VER'])['STP_NM'].shift(-1)
+        trip_details["SEG_NAME"] = trip_details['STP_NM'] + " To " + trip_details['NXT_STP_NAME']
+        trip_details.dropna(inplace=True)
+        del trip_details["NXT_STP_NAME"]
 
 
-    # We Need The Bus Stops In A Given Route
-    trip_details = bus_routes[bus_routes["RT_ID_VER"] == max_route].copy()
-    trip_details['NXT_STP_NAME'] = trip_details.groupby(['RT_ID_VER'])['STP_NM'].shift(-1)
-    trip_details["SEG_NAME"] = trip_details['STP_NM'] + " To " + trip_details['NXT_STP_NAME']
-    trip_details.dropna(inplace=True)
-    del trip_details["NXT_STP_NAME"]
+        # Looking At The Entire Database, Grab Data Where The Segment Name Is In The List Of Unique Segment IDs For The Given Trip
+        route_data = trips_obs[trips_obs["SEG_NAME"].isin(trip_details["SEG_NAME"].unique())].copy()
+
+        # Group Data, Find Average Time Between Segments, And The Variance Between Them
+        needed_cols = ["RT_ID", "RT_NAME", "RT_VER", "RT_DIR", "RT_STP_NUM", "RT_NUM_STPS", "V_ID", "STP_ARV_TM", "DATA_TYPE", "STP_ARV_DTTM", "TM_DIFF", "SEG_NAME", "SEG_DATA_TYPE", "DTS_2_NXT_STP"]
+        route_data = route_data[needed_cols].copy()
 
 
+        # Sort By TIME DIFF, Should Be Relatively The Same, Values Should Be Greater Than 0 Obviously, And Smaller Than Mean + 4 * STD
+        max_val = (route_data["TM_DIFF"].mean()) + (route_data["TM_DIFF"].std() * 4)
+        route_data = route_data[(route_data["TM_DIFF"] > 0) & (route_data["TM_DIFF"] < max_val)]
+
+        route_data = route_data[route_data["SEG_DATA_TYPE"].isin(["IE To IE"])]
+
+        # Create Additional Columns
+        route_data["STP_ARV_DTTM"] = pd.to_datetime(route_data["STP_ARV_DTTM"])
+        route_data["WEEK_DAY"] = route_data["STP_ARV_DTTM"].dt.day_name()
+        route_data["HOUR"] = route_data["STP_ARV_DTTM"].dt.hour
+        route_data["MINUTE"] = route_data["STP_ARV_DTTM"].dt.minute
+
+        # Remove Columns We Don't Need, And Change The Data In Others So It's More Accurate For This Given Route
+        merge_seg_num = trip_details[["SEG_NAME", "RT_STP_NUM"]].copy()
+        route_data = route_data.drop(["RT_ID", "RT_NAME", "RT_VER", "RT_DIR", "RT_STP_NUM", "RT_NUM_STPS", "V_ID", "DATA_TYPE", "SEG_DATA_TYPE", "DTS_2_NXT_STP", "STP_ARV_TM", "STP_ARV_DTTM"], axis=1)
+        route_data = route_data.merge(merge_seg_num, on='SEG_NAME', how='left')
 
 
-    # Looking At The Entire Database, Grab Data Where The Segment Name Is In The List Of Unique Segment IDs For The Given Trip
-    route_data = trips_obs[trips_obs["SEG_NAME"].isin(trip_details["SEG_NAME"].unique())].copy()
-
-    # Group Data, Find Average Time Between Segments, And The Variance Between Them
-    needed_cols = ["RT_ID", "RT_NAME", "RT_VER", "RT_DIR", "RT_STP_NUM", "RT_NUM_STPS", "V_ID", "STP_ARV_TM", "DATA_TYPE", "STP_ARV_DTTM", "TM_DIFF", "SEG_NAME", "SEG_DATA_TYPE", "DTS_2_NXT_STP"]
-    route_data = route_data[needed_cols].copy()
-
-    # Sort By TIME DIFF, Should Be Relatively The Same, Values Should Be Greater Than 0 Obviously, And Smaller Than Mean + 4 * STD
-    max_val = (route_data["TM_DIFF"].mean()) + (route_data["TM_DIFF"].std() * 4)
-    route_data = route_data[(route_data["TM_DIFF"] > 0) & (route_data["TM_DIFF"] < max_val)]
-    route_data = route_data[route_data["SEG_DATA_TYPE"].isin(["IE To IE"])]
-
-    # Create Additional Columns For Machine Learning Attempt
-    route_data["STP_ARV_DTTM"] = pd.to_datetime(route_data["STP_ARV_DTTM"])
-    route_data["WEEK_DAY"] = route_data["STP_ARV_DTTM"].dt.day_name()
-    route_data["HOUR"] = route_data["STP_ARV_DTTM"].dt.hour
-    route_data["MINUTE"] = route_data["STP_ARV_DTTM"].dt.minute
-
-    # Remove Columns We Don't Need, And Change The Data In Others So It's More Accurate For This Given Route
-    merge_seg_num = trip_details[["SEG_NAME", "RT_STP_NUM"]].copy()
-
-    route_data = route_data.drop(["RT_ID", "RT_NAME", "RT_VER", "RT_DIR", "RT_STP_NUM", "RT_NUM_STPS", "V_ID", "DATA_TYPE", "SEG_DATA_TYPE", "DTS_2_NXT_STP", "STP_ARV_TM", "STP_ARV_DTTM"], axis=1)
-    route_data = route_data.merge(merge_seg_num, on='SEG_NAME', how='left')
+        # Create Time Segments
+        route_data['TIME_SEGMT'] = ""
+        route_data.loc[((route_data['HOUR'] >= 0)  & (route_data['HOUR'] <= 4)), 'TIME_SEGMT']  = '00-04'
+        route_data.loc[((route_data['HOUR'] >= 5)  & (route_data['HOUR'] <= 9)), 'TIME_SEGMT']  = '05-09'
+        route_data.loc[((route_data['HOUR'] >= 10) & (route_data['HOUR'] <= 14)), 'TIME_SEGMT'] = '10-14'
+        route_data.loc[((route_data['HOUR'] >= 15) & (route_data['HOUR'] <= 19)), 'TIME_SEGMT'] = '15-19'
+        route_data.loc[((route_data['HOUR'] >= 20) & (route_data['HOUR'] <= 24)), 'TIME_SEGMT'] = '20-24'
 
 
-    # Does The Average Time Per Segment Change Every Hour?
-    route_data_stats = route_data.groupby(["SEG_NAME", "HOUR"], as_index=False).agg(RT_STP_NUM         = ("RT_STP_NUM", "first"),
-                                                                                    OBS_COUNT          = ("TM_DIFF", "count"),
-                                                                                    TIME_BTW_SEG_AVG   = ("TM_DIFF", "mean"),
-                                                                                    TIME_BTW_SEG_STD   = ("TM_DIFF", "std")
-                                                                                    )
+        # Does The Average Time Per Segment Change Every Hour?
+        route_data_stats = route_data.groupby(["SEG_NAME", "TIME_SEGMT"], as_index=False).agg(RT_STP_NUM         = ("RT_STP_NUM", "first"),
+                                                                                              OBS_COUNT          = ("TM_DIFF", "count"),
+                                                                                              TIME_BTW_SEG_AVG   = ("TM_DIFF", "mean"),
+                                                                                              TIME_BTW_SEG_STD   = ("TM_DIFF", "std")
+                                                                                              )
 
-    route_data_stats = route_data_stats.sort_values(by=["HOUR", "RT_STP_NUM"])
+        route_data_stats = route_data_stats.sort_values(by=["TIME_SEGMT", "RT_STP_NUM"])
 
-    for hour_ in route_data_stats["HOUR"].tolist():
-        sample_data = route_data_stats[route_data_stats["HOUR"] == hour_]
-        plt.plot(sample_data["RT_STP_NUM"], sample_data["TIME_BTW_SEG_AVG"], c = np.random.rand(3, ), alpha=0.5)
-
-    # To show the plot
-    plt.show()
-
-
-
-
-
-
-
-
-
+        # We Need A Lot Of Data Before Doing An Analysis
+        route_data_stats = route_data_stats[route_data_stats["OBS_COUNT"] > 5]
 
 
 
+        for segment in route_data_stats["TIME_SEGMT"].unique().tolist():
+
+            # Colour For This Sample
+            clr_ = np.random.rand(3, )
+
+            # Plot Sample Data
+            sample_data = route_data_stats[route_data_stats["TIME_SEGMT"] == segment]
+            plt.scatter(sample_data["RT_STP_NUM"], sample_data["TIME_BTW_SEG_STD"], c = clr_, marker="x", alpha=0.2, label=f"Data: {segment}")
+
+            # Plot A Curve Of Best Fit
+            curve = np.polyfit(sample_data["RT_STP_NUM"], sample_data["TIME_BTW_SEG_STD"], 6)
+            poly = np.poly1d(curve)
+            yy = poly(sample_data["RT_STP_NUM"])
+            plt.plot(sample_data["RT_STP_NUM"], yy, c = clr_, alpha=0.8, label=f"Best Fit: {segment}")
 
 
-
-    # # One Hot Encode Weekday Name, And Seg_Name. Will A Neural Network Work Best For This?
-    # route_data = pd.get_dummies(data = route_data, columns = ["WEEK_DAY"])
-    #
-    # # Left Join Transit Details To Get Number Instead of Name For Segments, Then Use One Hot Encoding
-    # merge_seg_num = trip_details[["SEG_NAME", "RT_STP_NUM"]].copy()
-    # merge_seg_num["RT_STP_NUM"] = merge_seg_num["RT_STP_NUM"].astype(str)
-    # route_data = route_data.merge(merge_seg_num, on='SEG_NAME', how='left')
-    # route_data = route_data.drop(["SEG_NAME"], axis=1)
-    #
-    # # One Hot Encode Weekday Name, And Seg_Name. Will A Neural Network Work Best For This?
-    # route_data = pd.get_dummies(data = route_data, columns = ["RT_STP_NUM"])
+        # To show the plot
+        plt.title(f"STD Of Segment Route Times: {max_route}")
+        plt.legend()
+        plt.show()
