@@ -524,7 +524,7 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
     max_route = max_route.groupby(["RT_ID_VER"], as_index=False).agg(RT_ID_VER_COUNT = ("RT_ID_VER", "count"))
     max_route = max_route.sort_values(['RT_ID_VER_COUNT'], ascending=[False])
 
-    max_route = max_route.head(6)
+    max_route = max_route.head(3)
     max_routes = max_route["RT_ID_VER"].to_list()
 
 
@@ -551,7 +551,7 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
 
 
         # Sort By TIME DIFF, Should Be Relatively The Same, Values Should Be Greater Than 0 Obviously, And Smaller Than Mean + 4 * STD
-        max_val = (route_data["TM_DIFF"].mean()) + (route_data["TM_DIFF"].std() * 4)
+        max_val = (route_data["TM_DIFF"].mean()) + (route_data["TM_DIFF"].std() * 3)
         route_data = route_data[(route_data["TM_DIFF"] > 0) & (route_data["TM_DIFF"] < max_val)]
 
         route_data = route_data[route_data["SEG_DATA_TYPE"].isin(["IE To IE"])]
@@ -570,18 +570,8 @@ def data_viz_3(graphics_path, fmted_path, f_af, bus_stp_path, bstp_af, e_out_pat
 
         # Create Time Segments
         route_data['TIME_SEGMT'] = ""
-        # route_data.loc[(route_data['HOUR'].isin([23, 24, 0, 1, 2, 3, 4, 5])), 'TIME_SEGMT']  = 'Off Peak (23 - 05)'
-        # route_data.loc[(route_data['HOUR'].isin([6, 7, 8, 9, 10])), 'TIME_SEGMT']  = 'Morning Commute (06 - 10)'
-        # route_data.loc[(route_data['HOUR'].isin([11, 12, 13, 14, 15])), 'TIME_SEGMT'] = 'Mid Day Peak (11 - 15)'
-        # route_data.loc[(route_data['HOUR'].isin([16, 17, 18, 19, 20, 21, 22])), 'TIME_SEGMT'] = 'Afternoon Rush (16 - 22)'
-
-        route_data.loc[(route_data['HOUR'].isin([23, 24, 0, 1, 2, 3, 4, 5])),                   'TIME_SEGMT']  = 'Off Peak (11PM - 5AM)'
-        route_data.loc[(route_data['HOUR'].isin([11, 12, 13, 14, 15])),                         'TIME_SEGMT']  = 'Mid Day Peak (11AM - 3PM)'
-        route_data.loc[(route_data['HOUR'].isin([6, 7, 8, 9, 10, 16, 17, 18, 19, 20, 21, 22])), 'TIME_SEGMT']  = 'Morning & Afternoon Commute (6AM - 10AM & 4PM - 10PM)'
-
-
-
-
+        route_data.loc[((route_data['HOUR'] >= 23) | (route_data['HOUR'] <= 5)),  'TIME_SEGMT']  = 'Off Peak (11PM - 5AM)'
+        route_data.loc[((route_data['HOUR'] >= 6)  & (route_data['HOUR'] <= 22)), 'TIME_SEGMT']  = 'On Peak  (6AM - 10PM)'
 
 
         # Does The Average Time Per Segment Change Every Hour?
