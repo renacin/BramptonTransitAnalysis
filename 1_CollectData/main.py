@@ -43,6 +43,8 @@ def main():
     Collector.frmt_rwbslc_data(td_dt_mx)
 
 
+
+
     #
     # # Run Data Visualizations #3
     # num_days = 14
