@@ -39,6 +39,9 @@ def main():
     error_path, e_af      =  Collector.return_files_dates("ERROR")
     graphics_path, g_af   =  Collector.return_files_dates("GRAPHICS")
 
+	# Format Speed Data
+	frmt_speed_data(str((datetime.datetime.now() + datetime.timedelta(days=-14)).strftime(td_s_dt_dsply_frmt)))
+
 
 
 

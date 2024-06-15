@@ -829,3 +829,24 @@ class DataCollector:
         Using the bus data collected, it will determine the speed between each entry,
         and determine route statistics.
         """
+
+        # Format File Data For Easier Manipulation
+        f_af["DATE"] = f_af["DATE"].astype(str)
+        f_af["DATE"] = pd.to_datetime(f_af["DATE"], format='%Y-%m-%d')
+        f_af = f_af.sort_values(by="DATE")
+        f_af = f_af.reset_index()
+        del f_af["index"]
+
+        # Format td_dt_mx For Easier Manipulation
+        new_filter_dt = pd.to_datetime(f'''{td_dt_mx.split("-")[-1]}-{td_dt_mx.split("-")[1]}-{td_dt_mx.split("-")[0]}''', format='%Y-%m-%d')
+
+        # Filter Data Based On Cleaned Date
+        f_af = f_af[f_af["DATE"] >= new_filter_dt]
+
+        # If Number Of Files Smaller Than Number Of Days Looking Back, Raise An Error
+        if len(f_af) >= num_days:
+            print("True")
+
+        # Combine Files Into One
+        df = pd.concat([pd.read_csv(path_) for path_ in [f"{fmted_path}/{x}" for x in f_af["FILE_NAME"].tolist()]])
+        del f_af, df["index"], df["RT_GRP_NUM"], df["RT_GRP"]
