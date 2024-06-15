@@ -823,7 +823,7 @@ class DataCollector:
 
 
     # ------------------------- Public Function 5 ------------------------------
-    def frmt_speed_data(self, td_dt_mx):
+    def frmt_speed_data(self, b_loc, b_af, num_days, td_dt_mx):
         """
         When called, this function will read x amount days, for bus data collected.
         Using the bus data collected, it will determine the speed between each entry,
@@ -831,22 +831,21 @@ class DataCollector:
         """
 
         # Format File Data For Easier Manipulation
-        f_af["DATE"] = f_af["DATE"].astype(str)
-        f_af["DATE"] = pd.to_datetime(f_af["DATE"], format='%Y-%m-%d')
-        f_af = f_af.sort_values(by="DATE")
-        f_af = f_af.reset_index()
-        del f_af["index"]
+        b_af["DATE"] = b_af["DATE"].astype(str)
+        b_af["DATE"] = pd.to_datetime(b_af["DATE"], format='%Y-%m-%d')
+        b_af = b_af.sort_values(by="DATE")
+        b_af = b_af.reset_index()
+        del b_af["index"]
 
         # Format td_dt_mx For Easier Manipulation
         new_filter_dt = pd.to_datetime(f'''{td_dt_mx.split("-")[-1]}-{td_dt_mx.split("-")[1]}-{td_dt_mx.split("-")[0]}''', format='%Y-%m-%d')
 
         # Filter Data Based On Cleaned Date
-        f_af = f_af[f_af["DATE"] >= new_filter_dt]
+        b_af = b_af[b_af["DATE"] >= new_filter_dt]
 
-        # If Number Of Files Smaller Than Number Of Days Looking Back, Raise An Error
-        if len(f_af) >= num_days:
-            print("True")
+        # # If Number Of Files Smaller Than Number Of Days Looking Back, Raise An Error
+        # if (len(b_af) + 1) >= num_days:
 
         # Combine Files Into One
-        df = pd.concat([pd.read_csv(path_) for path_ in [f"{fmted_path}/{x}" for x in f_af["FILE_NAME"].tolist()]])
-        del f_af, df["index"], df["RT_GRP_NUM"], df["RT_GRP"]
+        df = pd.concat([pd.read_csv(path_) for path_ in [f"{b_loc}/{x}" for x in b_af["FILE_NAME"].tolist()]])
+        print(df.info())
