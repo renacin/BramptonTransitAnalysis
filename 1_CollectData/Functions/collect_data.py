@@ -849,3 +849,30 @@ class DataCollector:
         # Combine Files Into One
         df = pd.concat([pd.read_csv(path_) for path_ in [f"{b_loc}/{x}" for x in b_af["FILE_NAME"].tolist()]])
         print(df.info())
+
+        """
+         0   u_id                   1654085 non-null  object
+         1   id                     1654085 non-null  int64
+         2   is_deleted             1654085 non-null  int64
+         3   trip_update            0 non-null        float64
+         4   alert                  0 non-null        float64
+         5   trip_id                1654085 non-null  object
+         6   start_time             0 non-null        float64
+         7   start_date             0 non-null        float64
+         8   schedule_relationship  1654085 non-null  int64
+         9   route_id               1654085 non-null  object
+         10  latitude               1654085 non-null  float64
+         11  longitude              1654085 non-null  float64
+         12  bearing                1654085 non-null  float64
+         13  odometer               1654085 non-null  float64
+         14  speed                  1654085 non-null  float64
+         15  current_stop_sequence  1654085 non-null  int64
+         16  current_status         1654085 non-null  int64
+         17  timestamp              1654085 non-null  int64
+         18  congestion_level       1654085 non-null  int64
+         19  stop_id                1654085 non-null  int64
+         20  vehicle_id             1654085 non-null  int64
+         21  label                  1654085 non-null  int64
+         22  license_plate          1595220 non-null  object
+         23  dt_colc                1654085 non-null  object
+         """
