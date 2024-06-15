@@ -39,22 +39,24 @@ def main():
     error_path, e_af      =  Collector.return_files_dates("ERROR")
     graphics_path, g_af   =  Collector.return_files_dates("GRAPHICS")
 
+    # Run Data Formatter - Get Bus Speeds For Each Route, Looking Back 14 Days.
+    Collector.frmt_rwbslc_data(td_dt_mx)
 
 
+    #
+    # # Run Data Visualizations #3
+    # num_days = 14
+    # data_viz_3(graphics_path,
+    #             fmted_path,
+    #             f_af,
+    #             bus_stp_path,
+    #             bstp_af,
+    #             error_path,
+    #             e_af,
+    #             str((datetime.datetime.now() + datetime.timedelta(days=-num_days)).strftime(td_s_dt_dsply_frmt)),
+    #             num_days)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+    #
     # # Main Loop Of Code
     # while True:
     #
