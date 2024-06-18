@@ -854,9 +854,12 @@ class DataCollector:
 
         def_d_types = {"bearing":               np.float16,
                        "speed":                 np.float16,
+                       "latitude":              np.float32,
+                       "longitude":             np.float32,
                        "current_stop_sequence": np.int16,
                        "timestamp":             np.int32,
                        "stop_id":               np.int16,
                        "vehicle_id":            np.int16}
 
         df = pd.concat([pd.read_csv(path_, usecols = needed_cols, dtype = def_d_types) for path_ in [f"{b_loc}/{x}" for x in b_af["FILE_NAME"].tolist()]])
+        print(df.info())
