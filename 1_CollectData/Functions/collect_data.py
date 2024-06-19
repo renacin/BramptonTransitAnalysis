@@ -863,3 +863,6 @@ class DataCollector:
 
         df = pd.concat([pd.read_csv(path_, usecols = needed_cols, dtype = def_d_types) for path_ in [f"{b_loc}/{x}" for x in b_af["FILE_NAME"].tolist()]])
         print(df.info())
+
+        # How Do I Move Forward With This?
+        
