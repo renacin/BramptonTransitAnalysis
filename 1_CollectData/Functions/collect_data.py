@@ -869,16 +869,6 @@ class DataCollector:
                                                                   NUM_OBS   = ("speed", "count")
                                                                   )
 
-        df_no_zeros = df[df["speed"] > 0]
-        avg_spd_df_nz = df_no_zeros.groupby(["route_id"], as_index=False).agg(AVG_SPEED_NZ = ("speed", "mean"),
-                                                                              NUM_OBS_NZ   = ("speed", "count")
-                                                                              )
-
-        # Export Data For Analysis
-        avg_spd_df = avg_spd_df.merge(avg_spd_df_nz, how="left", on=["route_id"])
-        avg_spd_df.to_csv("AverageSpeedOfTrip.csv")
-
-
-
 
         # A Bit Deeper, Can We Determine The Average Speed Of A Bus Route (Which Way Is It Going?)
+        
