@@ -40,7 +40,7 @@ def main():
     graphics_path, g_af   =  Collector.return_files_dates("GRAPHICS")
 
     # Format Speed Data
-    num_days = 100
+    num_days = 150
     Collector.frmt_speed_data(bus_loc_path,
                               b_af,
                               num_days,
