@@ -871,4 +871,3 @@ class DataCollector:
 
 
         # A Bit Deeper, Can We Determine The Average Speed Of A Bus Route (Which Way Is It Going?)
-        # HOW DO I DO THIS> DID I LOOSE THE WILL TO PROGRAM?!?!?!
