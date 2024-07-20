@@ -870,5 +870,4 @@ class DataCollector:
                                                                   )
 
 
-        # A Bit Deeper, Can We Determine The Average Speed Of A Bus Route (Which Way Is It Going?)
-        #
+        # For Each Group Of Observations Determine The Direction Of Travel
