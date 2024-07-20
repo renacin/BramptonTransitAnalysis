@@ -871,3 +871,4 @@ class DataCollector:
 
 
         # For Each Group Of Observations Determine The Direction Of Travel
+        
