@@ -871,4 +871,12 @@ class DataCollector:
 
 
         # For Each Group Of Observations Determine The Direction Of Travel
-        
+        print(avg_spd_df)
+
+        # Can We Use current_stop_sequence
+        # What happens when current stop sequence is 0? Should we remove data?                  Example: 23925497-240429-MULTI-Weekday-01
+        # What happens when current_status is 1? Should we remove those data points as well?    Example: 23926223-240429-MULTI-Weekday-01
+        # Is Current Stop Sequence Is 0, The Current Status Is Almost Always Zero               Example: 23925495-240429-MULTI-Weekday-01
+        # Also, stop_id is the stop that the bus is travelling to
+
+        # Remove Data Where current_stop_sequence == 0
