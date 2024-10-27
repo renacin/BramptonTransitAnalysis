@@ -120,46 +120,61 @@ class DataCollector:
             self.rfresh_tkn_path = r"/home/pi/Desktop/GrabToken.sh"
 
 
+        elif socket.gethostname() == "RenacinDesktop":
+            now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+            print(f"{now}: Running On Microsoft Desktop")
+
+            db_out_path = r"C:\Users\renac\Documents\Programming\Python\BramptonTransitAnalysis\3_Data"
+            self.db_folder = db_out_path
+            self.csv_out_path = r"E:\STORAGE"
+            self.db_path = db_out_path + "\DataStorage.db"
+            # self.rfresh_tkn_path = r"/home/pi/Desktop/GrabToken.sh"
+
+
         else:
             now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
             print(f"{now}: Invalid Host Name")
             sys.exit(1)
 
 
-        # Internalize Needed URLs: Bus Location API, Bus Routes, Bus Stops
-        self.bus_loc_url    = r"https://nextride.brampton.ca:81/API/VehiclePositions?format=json"
-        self.bus_routes_url = r"https://www1.brampton.ca/EN/residents/transit/plan-your-trip/Pages/Schedules-and-Maps.aspx"
-        self.bus_stops_url  = r"https://opendata.arcgis.com/api/v3/datasets/1c9869fd805e45339a9e3373fc10ce08_0/downloads/data?format=csv&spatialRefId=3857&where=1%3D1"
-
-        # Check To See If Appropriate Sub Folders Exist, Where Are We Writting Data?
-        self.out_dict = {}
-        self.__out_folder_check(self.csv_out_path)
-
-        # Create An Internal Reference To The Database Location
-        self.db_path = self.db_path
-
-        # Ensure Database Exists
-        self.__db_check()
 
 
-        # If Optionset Equals False, Grab Recent Bus Stop Info & Grab Route Data
-        if skp_dwnld == False:
 
-            try:
-                self.__get_routes_nd_stops()
-
-            except KeyboardInterrupt as e:
-                now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-                print(f"{now}: Keyboard Interupt")
-                sys.exit(1)
-
-            except Exception as e:
-                now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-                print(f"{now}: Bus Stop/Bus Route Download Error")
-                sys.exit(1)
-
-        # Collect Garbage So Everything Any Unused Memory Is Released
-        gc.collect()
+        #
+        # # Internalize Needed URLs: Bus Location API, Bus Routes, Bus Stops
+        # self.bus_loc_url    = r"https://nextride.brampton.ca:81/API/VehiclePositions?format=json"
+        # self.bus_routes_url = r"https://www1.brampton.ca/EN/residents/transit/plan-your-trip/Pages/Schedules-and-Maps.aspx"
+        # self.bus_stops_url  = r"https://opendata.arcgis.com/api/v3/datasets/1c9869fd805e45339a9e3373fc10ce08_0/downloads/data?format=csv&spatialRefId=3857&where=1%3D1"
+        #
+        # # Check To See If Appropriate Sub Folders Exist, Where Are We Writting Data?
+        # self.out_dict = {}
+        # self.__out_folder_check(self.csv_out_path)
+        #
+        # # Create An Internal Reference To The Database Location
+        # self.db_path = self.db_path
+        #
+        # # Ensure Database Exists
+        # self.__db_check()
+        #
+        #
+        # # If Optionset Equals False, Grab Recent Bus Stop Info & Grab Route Data
+        # if skp_dwnld == False:
+        #
+        #     try:
+        #         self.__get_routes_nd_stops()
+        #
+        #     except KeyboardInterrupt as e:
+        #         now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+        #         print(f"{now}: Keyboard Interupt")
+        #         sys.exit(1)
+        #
+        #     except Exception as e:
+        #         now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+        #         print(f"{now}: Bus Stop/Bus Route Download Error")
+        #         sys.exit(1)
+        #
+        # # Collect Garbage So Everything Any Unused Memory Is Released
+        # gc.collect()
 
 
 

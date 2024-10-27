@@ -29,23 +29,44 @@ def main():
     # Instantiate Data Collector
     Collector = DataCollector(skp_dwnld=True)
 
-    # Get Today's Date As A Variable
-    td_dt_mx = str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt))
 
-    # Define Needed Connections
-    bus_loc_path, b_af    =  Collector.return_files_dates("BUS_LOC")
-    bus_stp_path, bstp_af =  Collector.return_files_dates("BUS_STP")
-    fmted_path, f_af      =  Collector.return_files_dates("FRMTD_DATA")
-    error_path, e_af      =  Collector.return_files_dates("ERROR")
-    graphics_path, g_af   =  Collector.return_files_dates("GRAPHICS")
 
-    # Format Speed Data
-    num_days = 150
-    Collector.frmt_speed_data(bus_loc_path,
-                              b_af,
-                              num_days,
-                              str((datetime.datetime.now() + datetime.timedelta(days=-num_days)).strftime(td_s_dt_dsply_frmt)))
 
+    # # Get Today's Date As A Variable
+    # td_dt_mx = str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt))
+    #
+    # # Define Needed Connections
+    # bus_loc_path, b_af    =  Collector.return_files_dates("BUS_LOC")
+    # bus_stp_path, bstp_af =  Collector.return_files_dates("BUS_STP")
+    # fmted_path, f_af      =  Collector.return_files_dates("FRMTD_DATA")
+    # error_path, e_af      =  Collector.return_files_dates("ERROR")
+    # graphics_path, g_af   =  Collector.return_files_dates("GRAPHICS")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # # Format Speed Data
+    # num_days = 150
+    # Collector.frmt_speed_data(bus_loc_path,
+    #                           b_af,
+    #                           num_days,
+    #                           str((datetime.datetime.now() + datetime.timedelta(days=-num_days)).strftime(td_s_dt_dsply_frmt)))
+    #
 
 
 
