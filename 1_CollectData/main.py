@@ -28,26 +28,24 @@ def main():
     Collector = DataCollector(skp_dwnld=True)
 
     # Main Loop Of Code
-    num_iterations = 5
+    num_iterations = 200
     counter = num_iterations
     while True:
 
-
         # Implement Simpler Version; Every 100 Iterations Export A Log File With The Current Local Scape Variables & Size
         try:
-            # Collect Data
-            Collector.get_bus_loc()
-
-            # When Done Iteration Implement Delay
-            time.sleep(tm_delay)
 
             # If We Are At The Counter Min Export Data & Reset Counter
             if counter == 0:
-                break
-                # counter = num_iterations
+
+                # A Local Scope Won't Help, We Need Granular Data From Within The Class
+                counter = num_iterations
+                Collector.disp_mem_consum()
 
             # If We Aren't At The Counter Min Minus One From The Counter & Keep Going
             else:
+                Collector.get_bus_loc()
+                time.sleep(tm_delay)
                 counter -= 1
 
 

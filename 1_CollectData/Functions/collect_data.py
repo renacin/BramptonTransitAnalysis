@@ -141,7 +141,7 @@ class DataCollector:
         self.bus_loc_url    = r"https://nextride.brampton.ca:81/API/VehiclePositions?format=json"
         self.bus_routes_url = r"https://www1.brampton.ca/EN/residents/transit/plan-your-trip/Pages/Schedules-and-Maps.aspx"
         self.bus_stops_url  = r"https://opendata.arcgis.com/api/v3/datasets/1c9869fd805e45339a9e3373fc10ce08_0/downloads/data?format=csv&spatialRefId=3857&where=1%3D1"
-        
+
         # Check To See If Appropriate Sub Folders Exist, Where Are We Writting Data?
         self.out_dict = {}
         self.__out_folder_check(self.csv_out_path)
@@ -834,60 +834,18 @@ class DataCollector:
 
 
     # ------------------------- Public Function 5 ------------------------------
-    def frmt_speed_data(self, b_loc, b_af, num_days, td_dt_mx):
-        """
-        When called, this function will read x amount days, for bus data collected.
-        Using the bus data collected, it will determine the speed between each entry,
-        and determine route statistics.
-        """
+    def disp_mem_consum(self):
 
-        # Format File Data For Easier Manipulation
-        b_af["DATE"] = b_af["DATE"].astype(str)
-        b_af["DATE"] = pd.to_datetime(b_af["DATE"], format='%Y-%m-%d')
-        b_af = b_af.sort_values(by="DATE")
-        b_af = b_af.reset_index()
-        del b_af["index"]
+        # When Called This Function Will Display All Variables Within The Scope Of The Collector Class. Hopefully
+        local_vars = list(locals().items())
+        memory_dict = {"Vars_": [], "Size_": []}
 
-        # Format td_dt_mx For Easier Manipulation
-        new_filter_dt = pd.to_datetime(f'''{td_dt_mx.split("-")[-1]}-{td_dt_mx.split("-")[1]}-{td_dt_mx.split("-")[0]}''', format='%Y-%m-%d')
+        # Collect Data
+        for var, obj in local_vars:
+            memory_dict["Vars_"].append(var)
+            memory_dict["Size_"].append((sys.getsizeof(obj)/1000))
 
-        # Filter Data Based On Cleaned Date
-        b_af = b_af[b_af["DATE"] >= new_filter_dt]
-
-        # # If Number Of Files Smaller Than Number Of Days Looking Back, Raise An Error
-        # if (len(b_af) + 1) >= num_days:
-
-        # Combine Files Into One
-        needed_cols = ["trip_id", "route_id",
-                       "latitude", "longitude", "bearing",
-                       "speed", "current_stop_sequence", "timestamp",
-                       "stop_id", "vehicle_id", "dt_colc"]
-
-        def_d_types = {"bearing":               np.float16,
-                       "speed":                 np.float16,
-                       "latitude":              np.float32,
-                       "longitude":             np.float32,
-                       "current_stop_sequence": np.int16,
-                       "timestamp":             np.int32,
-                       "stop_id":               np.int16,
-                       "vehicle_id":            np.int16}
-
-        df = pd.concat([pd.read_csv(path_, usecols = needed_cols, dtype = def_d_types) for path_ in [f"{b_loc}/{x}" for x in b_af["FILE_NAME"].tolist()]])
-        # print(df.info())
-
-        # Lets Start Small, Can We Determine The Average Speed For Each Bus Route, How Many Observations?
-        avg_spd_df = df.groupby(["route_id"], as_index=False).agg(AVG_SPEED = ("speed", "mean"),
-                                                                  NUM_OBS   = ("speed", "count")
-                                                                  )
-
-
-        # For Each Group Of Observations Determine The Direction Of Travel
-        print(avg_spd_df)
-
-        # Can We Use current_stop_sequence
-        # What happens when current stop sequence is 0? Should we remove data?                  Example: 23925497-240429-MULTI-Weekday-01
-        # What happens when current_status is 1? Should we remove those data points as well?    Example: 23926223-240429-MULTI-Weekday-01
-        # Is Current Stop Sequence Is 0, The Current Status Is Almost Always Zero               Example: 23925495-240429-MULTI-Weekday-01
-        # Also, stop_id is the stop that the bus is travelling to
-
-        # Remove Data Where current_stop_sequence == 0
+        # Export As A CSV
+        tm_nw = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
+        data = pd.DataFrame(memory_dict)
+        data.to_csv(f"E:\STORAGE\Memory_Consumption_{tm_nw}.csv", index=False)
