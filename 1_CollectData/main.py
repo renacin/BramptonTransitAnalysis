@@ -23,44 +23,32 @@ def main():
 
     # Scheduled Maintenance Will Be The Next Day (+1) At 0300 AM
     tm_delay = 18
-    alrm_hr = 3
-    alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime(td_s_dt_dsply_frmt))
 
     # Instantiate Data Collector
     Collector = DataCollector(skp_dwnld=True)
 
-    # Get Today's Date As A Variable
-    td_dt_mx = str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt))
-
-
     # Main Loop Of Code
+    num_iterations = 5
+    counter = num_iterations
     while True:
 
-        # Get The Current Time
-        cur_dt =   str(datetime.datetime.now().strftime(td_s_dt_dsply_frmt))
-        cur_hr =   int(datetime.datetime.now().strftime('%H'))
-        td_dt_mx = str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt))
 
+        # Implement Simpler Version; Every 100 Iterations Export A Log File With The Current Local Scape Variables & Size
         try:
-            # If It's 0300AM, Do Certain Things
-            if (cur_hr == alrm_hr and cur_dt == alrm_dt):
+            # Collect Data
+            Collector.get_bus_loc()
 
-                # Get Today's Date As A Variable
-                td_dt_mx = str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt))
-
-                # If It's Time, Export Data & Render Data Visualizations
-                Collector.xprt_data("BUS_LOC", "BUS_LOC_DB", "u_id", True)
-                Collector.xprt_data("ERROR", "ERROR_DB", "timestamp", True)
-
-                # Once Complete Set New Alarm
-                alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=+1)).strftime(td_s_dt_dsply_frmt))
-
-            # If It's Not Scheduled Maintenance Just Collect Data
-            else:
-                Collector.get_bus_loc()
-
-            #When Done Iteration Implement Delay
+            # When Done Iteration Implement Delay
             time.sleep(tm_delay)
+
+            # If We Are At The Counter Min Export Data & Reset Counter
+            if counter == 0:
+                break
+                # counter = num_iterations
+
+            # If We Aren't At The Counter Min Minus One From The Counter & Keep Going
+            else:
+                counter -= 1
 
 
         except KeyboardInterrupt:
