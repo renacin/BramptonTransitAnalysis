@@ -771,88 +771,11 @@ class DataCollector:
 
 
 
-    # ------------------------- Public Function 3 ------------------------------
-    def return_files_dates(self, out_path):
+    # -------------------------- Public Function 3 -----------------------------
+    def clean_class(self):
         """
-        When called, this function will look at all the files in a folder and
-        return a formatted pandas dataframe for the user to query in later functions
-        """
-
-        # Navigate To Data Folder | Get All Appropriate Files
-        out_path = self.out_dict[out_path]
-
-        dir_list = [x for x in os.listdir(out_path) if ".csv" in x]
-        df = pd.DataFrame(dir_list, columns=['FILE_NAME'])
-
-        # Create A Dataframe With The Time The File Was Created & Output
-        df["DATE"] = df["FILE_NAME"].str.split('_').str[-1]
-        df["DATE"] = df["DATE"].str.replace(".csv", "", regex=False)
-        df["DATE"] = pd.to_datetime(df["DATE"], format = self.td_s_dt_dsply_frmt)
-
-        return out_path, df
-
-
-
-    # ------------------------- Public Function 4 ------------------------------
-    def upld_2_dbx(self):
-        """
-        When called, this function will upload all graphics found in the graphics
-        folder and upload them to the connected dropbox application folder.
+        When called, this function will run the garbage collector within the class.
         """
 
-        # For Logging
-        tm_nw = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-
-        try:
-            # Navigate To Shell Script Location, And Generate A New Token
-            raw_resp = subprocess.check_output(['sh', self.rfresh_tkn_path], stderr=subprocess.DEVNULL)
-            raw_resp = raw_resp.decode('ascii')
-            json_data = json.loads(raw_resp)
-
-            # Create An Instance Of DBX Class
-            dbx = dropbox.Dropbox(json_data["access_token"])
-
-            # If Files In Graphics Folder, Then Upload
-            if len(os.listdir(self.out_dict["GRAPHICS"])) > 0:
-                for file_ in os.listdir(self.out_dict["GRAPHICS"]):
-                    out_path = self.out_dict["GRAPHICS"]
-                    file_path = f"{out_path}/{file_}"
-                    with open(file_path, "rb") as f:
-                        file_data = f.read()
-                        dbx.files_upload(file_data, f"/{file_}", mode=dropbox.files.WriteMode.overwrite)
-                print(f"{tm_nw}: Uploaded Graphics To DropBox Folder")
-
-            # If No Files Exit
-            else:
-                print(f"{tm_nw}: No Files To Upload To DropBox Folder")
-
-        except Exception as e:
-            # For Logging | Bad
-            tm_nw = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-            print(f"{tm_nw}: Failure, Could Not Upload Graphics To DropBox Folder")
-            print(f"{e}")
-
-
-    # ------------------------- Public Function 5 ------------------------------
-    def disp_mem_consum(self, loc_var, loc_size):
-
-        # When Called This Function Will Display All Variables Within The Scope Of The Collector Class. Hopefully
-        obj_vars = self.__dict__.items()
-        memory_dict = {"Vars_": [], "Size_": []}
-
-        # Collect Data
-        for var, obj in obj_vars:
-            memory_dict["Vars_"].append(var)
-            memory_dict["Size_"].append(sys.getsizeof(obj))
-
-        # Add Data From The Outside Local Scope
-        memory_dict["Vars_"].extend(loc_var)
-        memory_dict["Size_"].extend(loc_size)
-
-        # Create A Pandas DF
-        data = pd.DataFrame(memory_dict)
-        data["Cur_time"] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-
-        # Export Data
-        tm_nw = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
-        data.to_csv(f"E:\STORAGE\MC\MC_{tm_nw}.csv", index=False)
+        # Hopefully This Releases Some Memory?
+        gc.collect()

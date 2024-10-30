@@ -8,68 +8,78 @@ from Functions.visualize_data import *
 import datetime
 import time
 import sys
+import gc
 
 import warnings
 warnings.filterwarnings("ignore")
 # ----------------------------------------------------------------------------------------------------------------------
 
 
-# Main Logic Of Python Code
-def main():
 
-    # Needed Standards
-    td_l_dt_dsply_frmt = "%d-%m-%Y %H:%M:%S"
-    td_s_dt_dsply_frmt = "%d-%m-%Y"
+# Needed Standards
+td_l_dt_dsply_frmt = "%d-%m-%Y %H:%M:%S"
+td_s_dt_dsply_frmt = "%d-%m-%Y"
 
-    # Scheduled Maintenance Will Be The Next Day (+1) At 0300 AM
-    tm_delay = 18
+# Scheduled Maintenance Will Be The Next Day (+1) At 0300 AM
+tm_delay = 18
+alrm_hr = 3
+alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime(td_s_dt_dsply_frmt))
 
-    # Instantiate Data Collector
-    Collector = DataCollector(skp_dwnld=True)
+# Instantiate Data Collector
+Collector = DataCollector(skp_dwnld=True)
 
-    # Main Loop Of Code
-    num_iterations = 100
-    counter = num_iterations
-    while True:
-
-        # Implement Simpler Version; Every 100 Iterations Export A Log File With The Current Local Scape Variables & Size
-        try:
-
-            # If We Are At The Counter Min Export Data & Reset Counter
-            if counter == 0:
-
-                # A Local Scope Won't Help, We Need Granular Data From Within The Class
-                counter = num_iterations
-
-                # Pass Local Data Within Main To See If We Can See Anything On A Granular Picture
-                local_vars = list(locals().items())
-                loc_vars = []
-                loc_size = []
-                for var, obj in local_vars:
-                    loc_vars.append(var)
-                    loc_size.append(sys.getsizeof(obj))
-
-                Collector.disp_mem_consum(loc_vars, loc_size)
+# Get Today's Date As A Variable
+td_dt_mx = str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt))
 
 
-            # If We Aren't At The Counter Min Minus One From The Counter & Keep Going
-            else:
-                Collector.get_bus_loc()
-                time.sleep(tm_delay)
-                counter -= 1
+# Main Loop Of Code
+while True:
+
+    # Run Garbage For Each Scope - Hopefully This Solves Our Memory Leak Issue
+    gc.collect()
+    Collector.clean_class()
 
 
-        except KeyboardInterrupt:
-            now = datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
-            print(f"{now}: Keyboard Interrupt Error")
-            break
+    # Get The Current Time
+    cur_dt =   str(datetime.datetime.now().strftime(td_s_dt_dsply_frmt))
+    cur_hr =   int(datetime.datetime.now().strftime('%H'))
+    td_dt_mx = str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt))
 
 
-        except Exception as e:
-            now = datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
-            print(f"{now}: Logic Operation Error (Type - {e})")
-            time.sleep(tm_delay)
+    try:
+        # If It's 0300AM, Do Certain Things
+        if (cur_hr == alrm_hr and cur_dt == alrm_dt):
 
+            # Get Today's Date As A Variable
+            td_dt_mx = str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt))
+
+            # If It's Time, Export Data & Render Data Visualizations
+            Collector.xprt_data("BUS_LOC", "BUS_LOC_DB", "u_id", True)
+            Collector.xprt_data("ERROR", "ERROR_DB", "timestamp", True)
+
+            # Once Complete Set New Alarm
+            alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=+1)).strftime(td_s_dt_dsply_frmt))
+
+
+        # If It's Not Scheduled Maintenance Just Collect Data
+        else:
+            Collector.get_bus_loc()
+
+
+        #When Done Iteration Implement Delay
+        time.sleep(tm_delay)
+
+
+    except KeyboardInterrupt:
+        now = datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
+        print(f"{now}: Keyboard Interrupt Error")
+        break
+
+
+    except Exception as e:
+        now = datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
+        print(f"{now}: Logic Operation Error (Type - {e})")
+        time.sleep(tm_delay)
 
 
 
@@ -78,4 +88,7 @@ def main():
 if __name__ == "__main__":
     main()
 
-    # Notes: Looks Like It Starts At 86MB - 2024-10-29 10:08PM
+    # Notes: Looks Like It Starts At 2024-10-30 1:49PM
+    #                                1.1 MB -  1.1 MB
+    #                                7.5 MB -  7.7 MB
+    #                               80.4 MB - 80.6 MB
