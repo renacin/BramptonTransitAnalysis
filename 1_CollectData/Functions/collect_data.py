@@ -1,6 +1,6 @@
 # Name:                                            Renacin Matadeen
-# Date:                                               03/03/2024
-# Title                           Main Logic Of Data Collector: Version 2 Memory Optimized?
+# Date:                                               10/30/2024
+# Title                                     Main Logic Of Data Collector
 #
 # ----------------------------------------------------------------------------------------------------------------------
 import gc

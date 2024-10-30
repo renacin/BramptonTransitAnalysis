@@ -1,10 +1,9 @@
 # Name:                                            Renacin Matadeen
-# Date:                                               04/06/2024
+# Date:                                               10/30/2024
 # Title                                      Main Logic Of Data Collector
 #
 # ----------------------------------------------------------------------------------------------------------------------
 from Functions.collect_data import *
-from Functions.visualize_data import *
 import datetime
 import time
 import sys
@@ -15,21 +14,16 @@ warnings.filterwarnings("ignore")
 # ----------------------------------------------------------------------------------------------------------------------
 
 
-
-# Needed Standards
+# Define Constants & Next Alarm Date Scheduled Maintenance Will Be The Next Day (+1) At 0300 AM
+alrm_hr = 3
+tm_delay = 18
 td_l_dt_dsply_frmt = "%d-%m-%Y %H:%M:%S"
 td_s_dt_dsply_frmt = "%d-%m-%Y"
-
-# Scheduled Maintenance Will Be The Next Day (+1) At 0300 AM
-tm_delay = 18
-alrm_hr = 3
 alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime(td_s_dt_dsply_frmt))
-
-# Instantiate Data Collector
-Collector = DataCollector(skp_dwnld=True)
-
-# Get Today's Date As A Variable
 td_dt_mx = str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt))
+
+# Instantiate The Data Collector
+Collector = DataCollector(skp_dwnld=True)
 
 
 # Main Loop Of Code
@@ -38,7 +32,6 @@ while True:
     # Run Garbage For Each Scope - Hopefully This Solves Our Memory Leak Issue
     gc.collect()
     Collector.clean_class()
-
 
     # Get The Current Time
     cur_dt =   str(datetime.datetime.now().strftime(td_s_dt_dsply_frmt))
