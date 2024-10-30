@@ -28,7 +28,7 @@ def main():
     Collector = DataCollector(skp_dwnld=True)
 
     # Main Loop Of Code
-    num_iterations = 200
+    num_iterations = 100
     counter = num_iterations
     while True:
 
@@ -40,7 +40,17 @@ def main():
 
                 # A Local Scope Won't Help, We Need Granular Data From Within The Class
                 counter = num_iterations
-                Collector.disp_mem_consum()
+
+                # Pass Local Data Within Main To See If We Can See Anything On A Granular Picture
+                local_vars = list(locals().items())
+                loc_vars = []
+                loc_size = []
+                for var, obj in local_vars:
+                    loc_vars.append(var)
+                    loc_size.append(sys.getsizeof(obj))
+
+                Collector.disp_mem_consum(loc_vars, loc_size)
+
 
             # If We Aren't At The Counter Min Minus One From The Counter & Keep Going
             else:

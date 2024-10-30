@@ -834,18 +834,25 @@ class DataCollector:
 
 
     # ------------------------- Public Function 5 ------------------------------
-    def disp_mem_consum(self):
+    def disp_mem_consum(self, loc_var, loc_size):
 
         # When Called This Function Will Display All Variables Within The Scope Of The Collector Class. Hopefully
-        local_vars = list(locals().items())
+        obj_vars = self.__dict__.items()
         memory_dict = {"Vars_": [], "Size_": []}
 
         # Collect Data
-        for var, obj in local_vars:
+        for var, obj in obj_vars:
             memory_dict["Vars_"].append(var)
-            memory_dict["Size_"].append((sys.getsizeof(obj)/1000))
+            memory_dict["Size_"].append(sys.getsizeof(obj))
 
-        # Export As A CSV
-        tm_nw = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
+        # Add Data From The Outside Local Scope
+        memory_dict["Vars_"].extend(loc_var)
+        memory_dict["Size_"].extend(loc_size)
+
+        # Create A Pandas DF
         data = pd.DataFrame(memory_dict)
-        data.to_csv(f"E:\STORAGE\Memory_Consumption_{tm_nw}.csv", index=False)
+        data["Cur_time"] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+
+        # Export Data
+        tm_nw = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
+        data.to_csv(f"E:\STORAGE\MC\MC_{tm_nw}.csv", index=False)
