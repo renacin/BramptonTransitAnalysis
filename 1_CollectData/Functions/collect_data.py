@@ -9,20 +9,14 @@ import re
 import sys
 import json
 import time
-import math
 import socket
 import sqlite3
 import requests
 import urllib.request
-import dropbox
-import dropbox.files
-import subprocess
 import numpy as np
 import pandas as pd
 from bs4 import BeautifulSoup
 from datetime import datetime
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -297,7 +291,7 @@ class DataCollector:
         bus_stops.to_csv(out_path, index=False)
 
         now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-        print(f"{now}: Exported Bus Stop Data")
+        # print(f"{now}: Exported Bus Stop Data")
 
         return bus_stops
 
@@ -400,7 +394,7 @@ class DataCollector:
 
                         # For Logging
                         now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-                        print(f"{now}: ({counter}/{total_rts}) - Parsed Bus Route Data: {name}")
+                        # print(f"{now}: ({counter}/{total_rts}) - Parsed Bus Route Data: {name}")
                         counter += 1
 
                 # If There Is An Error, Try Again
@@ -445,7 +439,7 @@ class DataCollector:
 
         # For Logging
         now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-        print(f"{now}: Downloaded Bus Route Data")
+        # print(f"{now}: Downloaded Bus Route Data")
 
         # Return Data To Variable
         return data_dict
@@ -473,7 +467,7 @@ class DataCollector:
         # Which Bus Stops Are Missing?
         now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
         misng_stps = unq_parsed_stps[unq_parsed_stps["In_OpenData"] == "N"]
-        print(f"{now}: Parsed DF Len: {len(parsed_df)}, Downloaded DF Len: {len(downld_df)}, Number Of Missing Stops: {len(misng_stps)}")
+        # print(f"{now}: Parsed DF Len: {len(parsed_df)}, Downloaded DF Len: {len(downld_df)}, Number Of Missing Stops: {len(misng_stps)}")
 
         return parsed_df
 
@@ -503,7 +497,7 @@ class DataCollector:
         stp_data_df.to_csv(out_path, index=False)
 
         now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-        print(f"{now}: Exported Route Data")
+        # print(f"{now}: Exported Route Data")
 
 
 
@@ -713,7 +707,7 @@ class DataCollector:
             conn.close()
 
             # For Logging
-            print(f"{tm_nw}: Exported CSV & DB Table - {out_table} Cleaned")
+            # print(f"{tm_nw}: Exported CSV & DB Table - {out_table} Cleaned")
 
 
 
