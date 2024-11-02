@@ -114,3 +114,16 @@ def main():
 # Entry Point Into Python Code
 if __name__ == "__main__":
     main()
+
+    """
+    Notes:
+        + Observations as of 3:35PM 2024-11-02
+        + It does look like Child Processes do work differently. In the task manager I see the following;
+            - Console Window Host       ( 8.1 MB)
+            - Python                    (76.7 MB)
+            - Windows Command Processor ( 1.1 MB)
+            - Python (Occassionaly)     (80.0 MB)
+
+        + Child processes are seperate from the main process. When called, a seperate Python process is
+          spun up, work is done, and then killed - with no memory overhead (or so I currently see.)
+    """
