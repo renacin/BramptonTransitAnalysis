@@ -15,6 +15,20 @@ def test_func():
 	test_list = [x for x in range(100_000_000)]
 
 
-with ThreadPoolExecutor(max_workers=1) as executor:
-	result = executor.submit(test_func).result()
-	# executor.submit(test_func)
+# # Continuously Loop To See If Memory Decreases
+# while True:
+#
+# 	with ThreadPoolExecutor(max_workers=1) as executor:
+# 		result = executor.submit(test_func).result()
+# 		# executor.submit(test_func)
+#
+# 	time.sleep(10)
+
+
+
+
+# Continuously Loop To See If Memory Decreases
+while True:
+
+	test_func()
+	time.sleep(10)
