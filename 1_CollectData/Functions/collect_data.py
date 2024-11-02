@@ -46,7 +46,7 @@ class DataCollector:
         # Where Is This Running On?
         if socket.gethostname() == "Renacins-MacBook-Pro.local":
             now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-            print(f"{now}: Running On Macbook Pro")
+            # print(f"{now}: Running On Macbook Pro")
 
             db_out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/3_Data"
             self.db_folder = db_out_path
@@ -57,7 +57,7 @@ class DataCollector:
 
         elif socket.gethostname() == "raspberrypi":
             now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-            print(f"{now}: Running On RPI3")
+            # print(f"{now}: Running On RPI3")
 
             db_out_path = r"/home/pi/Documents/Python/BramptonTransitAnalysis/3_Data"
             self.db_folder = db_out_path
@@ -68,7 +68,7 @@ class DataCollector:
 
         elif socket.gethostname() == "RenacinDesktop":
             now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-            print(f"{now}: Running On Microsoft Desktop")
+            # print(f"{now}: Running On Microsoft Desktop")
 
             db_out_path = r"C:\Users\renac\Documents\Programming\Python\BramptonTransitAnalysis\3_Data"
             self.db_folder = db_out_path
@@ -79,7 +79,7 @@ class DataCollector:
 
         else:
             now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-            print(f"{now}: Invalid Host Name")
+            # print(f"{now}: Invalid Host Name")
             sys.exit(1)
 
 
@@ -139,7 +139,7 @@ class DataCollector:
                 os.makedirs(dir_chk)
 
         now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-        print(f"{now}: Database & Folders Exist")
+        # print(f"{now}: Database & Folders Exist")
 
 
 

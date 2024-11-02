@@ -18,20 +18,23 @@ warnings.filterwarnings("ignore")
 
 def Collector_Setup():
     """ This function will download all necessary files, but won't pass on an object """
-    DataCollector(skp_dwnld=False)
+    Collector = DataCollector(skp_dwnld=False)
+    del Collector
 
 
 def Collector_Collect():
     "This function will create an instance of the Collector Class, collect data, and execute main logic"
-    Collector = DataCollector(skp_dwnld=False)
+    Collector = DataCollector(skp_dwnld=True)
     Collector.get_bus_loc()
+    del Collector
 
 
 def Collector_Export():
     "This function will create an instance of the Collector Class, and export data"
-    Collector = DataCollector(skp_dwnld=False)
+    Collector = DataCollector(skp_dwnld=True)
     Collector.xprt_data("BUS_LOC", "BUS_LOC_DB", "u_id", True)
     Collector.xprt_data("ERROR", "ERROR_DB", "timestamp", True)
+    del Collector
 
 
 # # --------------------------------------------------------------------------------------------------------------------
@@ -49,7 +52,7 @@ def main():
 
 
     # Spin Up A Child Process, Reduce Memory Considerations - Download Data
-    with ProcessPoolExecutor() as exe:
+    with ProcessPoolExecutor(max_workers=1) as exe:
         exe.submit(Collector_Setup)
 
 
@@ -57,9 +60,11 @@ def main():
     while True:
 
         # Get The Current Time
-        cur_dt =   str(datetime.datetime.now().strftime(td_s_dt_dsply_frmt))
-        cur_hr =   int(datetime.datetime.now().strftime('%H'))
+        cur_dt   =   str(datetime.datetime.now().strftime(td_s_dt_dsply_frmt))
+        cur_hr   =   int(datetime.datetime.now().strftime('%H'))
         td_dt_mx = str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt))
+        now      = datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
+
 
         try:
             # If It's 0300AM, Do Certain Things
@@ -69,7 +74,7 @@ def main():
                 td_dt_mx = str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt))
 
                 # Spin Up A Child Process, Reduce Memory Considerations - Export Data
-                with ProcessPoolExecutor() as exe:
+                with ProcessPoolExecutor(max_workers=1) as exe:
                     exe.submit(Collector_Export)
 
                 # Once Complete Set New Alarm
@@ -80,8 +85,9 @@ def main():
             else:
 
                 # Spin Up A Child Process, Reduce Memory Considerations - Collect Data
-                with ProcessPoolExecutor() as exe:
+                with ProcessPoolExecutor(max_workers=1) as exe:
                     exe.submit(Collector_Collect)
+
 
             #When Done Iteration Implement Delay
             time.sleep(tm_delay)
@@ -99,6 +105,7 @@ def main():
             time.sleep(tm_delay)
 
         # Run Garbage For Each Scope - Hopefully This Solves Our Memory Leak Issue
+        del cur_dt, cur_hr, td_dt_mx, now
         gc.collect()
 
 
