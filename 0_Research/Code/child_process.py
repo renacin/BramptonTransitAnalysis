@@ -4,9 +4,17 @@
 #
 # ----------------------------------------------------------------------------------------------------------------------
 import time
-import sqlite3
-import numpy as np
-import pandas as pd
+from concurrent.futures import ThreadPoolExecutor
 # ----------------------------------------------------------------------------------------------------------------------
 
-print("Hello World")
+# for var, obj in list(locals().items()):
+#     print(var, sys.getsizeof(obj))
+
+# Define Function
+def test_func():
+	test_list = [x for x in range(100_000_000)]
+
+
+with ThreadPoolExecutor(max_workers=1) as executor:
+	result = executor.submit(test_func).result()
+	# executor.submit(test_func)
