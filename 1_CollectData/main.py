@@ -3,26 +3,22 @@
 # Title                                      Main Logic Of Data Collector
 #
 # ----------------------------------------------------------------------------------------------------------------------
-from concurrent.futures import ProcessPoolExecutor
-from Functions.collect_data import *
-import warnings
+from concurrent.futures     import ProcessPoolExecutor
 import datetime
 import time
-import gc
-
-warnings.filterwarnings("ignore")
-
-# ----------------------------------------------------------------------------------------------------------------------
+# # ----------------------------------------------------------------------------------------------------------------------
 
 
 def Collector_Setup():
     """ This function will download all necessary files, but won't pass on an object """
+    from Functions.collect_data import DataCollector
     Collector = DataCollector(skp_dwnld=False)
     del Collector
 
 
 def Collector_Collect():
     "This function will create an instance of the Collector Class, collect data, and execute main logic"
+    from Functions.collect_data import DataCollector
     Collector = DataCollector(skp_dwnld=True)
     Collector.get_bus_loc()
     del Collector
@@ -30,6 +26,7 @@ def Collector_Collect():
 
 def Collector_Export():
     "This function will create an instance of the Collector Class, and export data"
+    from Functions.collect_data import DataCollector
     Collector = DataCollector(skp_dwnld=True)
     Collector.xprt_data("BUS_LOC", "BUS_LOC_DB", "u_id", True)
     Collector.xprt_data("ERROR", "ERROR_DB", "timestamp", True)
@@ -64,48 +61,36 @@ def main():
         td_dt_mx = str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt))
         now      = datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
 
-
+        # Enter Main Logic, Is It Time To Collect Or Export Data?
         try:
-            # If It's 0300AM, Do Certain Things
             if (cur_hr == alrm_hr and cur_dt == alrm_dt):
-
-                # Get Today's Date As A Variable
-                td_dt_mx = str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt))
 
                 # Spin Up A Child Process, Reduce Memory Considerations - Export Data
                 with ProcessPoolExecutor(max_workers=1) as exe:
                     exe.submit(Collector_Export)
 
-                # Once Complete Set New Alarm
+                td_dt_mx = str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt))
                 alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=+1)).strftime(td_s_dt_dsply_frmt))
 
-
-            # If It's Not Scheduled Maintenance Just Collect Data
             else:
-
                 # Spin Up A Child Process, Reduce Memory Considerations - Collect Data
                 with ProcessPoolExecutor(max_workers=1) as exe:
                     exe.submit(Collector_Collect)
 
-
-            #When Done Iteration Implement Delay
             time.sleep(tm_delay)
 
-
+        # Catch Keyboard Interupt
         except KeyboardInterrupt:
-            now = datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
             print(f"{now}: Keyboard Interrupt Error")
             break
 
-
+        # Catch All Other Errors
         except Exception as e:
-            now = datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
             print(f"{now}: Logic Operation Error (Type - {e})")
             time.sleep(tm_delay)
 
-        # Run Garbage For Each Scope - Hopefully This Solves Our Memory Leak Issue
+        # Try To Conserve Memory
         del cur_dt, cur_hr, td_dt_mx, now
-        gc.collect()
 
 
 
@@ -114,12 +99,14 @@ def main():
 if __name__ == "__main__":
     main()
 
+
+
     """
     Notes:
-        + Observations as of 8:10 PM 2024-11-02
+        + Observations as of 9:20 PM 2024-12-02
         + It does look like Child Processes do work differently. In the task manager I see the following;
-            - Console Window Host       ( 7.5 MB)
-            - Python                    (41.9 MB)
+            - Console Window Host       ( 7.6 MB)
+            - Python                    (41.8 MB)
             - Windows Command Processor ( 0.8 MB)
             - Python (Occassionaly)     (30.0 MB)
 

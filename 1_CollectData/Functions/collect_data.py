@@ -9,13 +9,9 @@ import json
 import time
 import sqlite3
 import requests
-import urllib.request
 import pandas as pd
 from bs4 import BeautifulSoup
 from datetime import datetime
-
-import warnings
-warnings.filterwarnings("ignore")
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -342,6 +338,9 @@ class DataCollector:
         function navigates through each, pulling information regarding each bus stop
         visited. This function returns a pandas dataframe with all the parsed information.
         """
+
+        # We Only Need The UrlLib Request Library Here
+        import urllib.request
 
         # Create A Dictionary That Will Store All The Data Gathered
         data_dict = {"stp_data": [], "rt_number_data": [],
