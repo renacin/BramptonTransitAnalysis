@@ -48,6 +48,17 @@
 	  Well instead of writing to a large database that gets bigger every second, why not
 	  upload to a database that is only as large as the day's total updates.
 
+	+ One improvement that I thought was pretty useful was the implementation of the VACCUM feature in SQLite3.
+	  There were certain situations where the database would offload all of it's data for the day, but still stay at
+	  around 10MB - even though it was empty. After looking into the issue further this is because when data is written,
+	  then deleted, the storage system can become fragmented. And as a result, the overall size of the database will most likely
+	  still be large. The VACCUM feature helps solve this by defragmenting the storage system, and database.
+
+	+ Below you can see the overall time it took to make a database update. In Methodology 1, I simply read both
+	  the API call, and the entire database as a pandas data-frame, merged the two, and wrote to the database.
+	  Methodology 2, depicts the implementation of a daily offload feature. And Methodology 3, depicts the usage of the
+	  VACCUM feature in SQLite3.
+
 DB Update: Methodology 1
 <p align="center">
 <img src="https://github.com/renacin/BramptonTransitAnalysis/blob/master/0_Research/Images/DB_UPDATE_1.png" width="500"/>
