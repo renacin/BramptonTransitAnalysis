@@ -50,17 +50,17 @@
 
 DB Update: Methodology 1
 <p align="center">
-<img src="https://github.com/renacin/BramptonTransitAnalysis/tree/master/0_Research/Images/DB_UPDATE_1.png" width="500"/>
+<img src="https://github.com/renacin/BramptonTransitAnalysis/0_Research/Images/DB_UPDATE_1.png" width="500"/>
 </p>
 
 DB Update: Methodology 2
 <p align="center">
-<img src="https://github.com/renacin/BramptonTransitAnalysis/tree/master/0_Research/Images/DB_UPDATE_2.png" width="500"/>
+<img src="https://github.com/renacin/BramptonTransitAnalysis/0_Research/Images/DB_UPDATE_2.png" width="500"/>
 </p>
 
 DB Update: Methodology 3
 <p align="center">
-<img src="https://github.com/renacin/BramptonTransitAnalysis/tree/master/0_Research/Images/DB_UPDATE_3.png" width="500"/>
+<img src="https://github.com/renacin/BramptonTransitAnalysis/0_Research/Images/DB_UPDATE_3.png" width="500"/>
 </p>
 
 
