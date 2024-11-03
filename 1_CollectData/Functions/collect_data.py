@@ -3,17 +3,13 @@
 # Title                                     Main Logic Of Data Collector
 #
 # ----------------------------------------------------------------------------------------------------------------------
-import gc
-import os
 import re
 import sys
 import json
 import time
-import socket
 import sqlite3
 import requests
 import urllib.request
-import numpy as np
 import pandas as pd
 from bs4 import BeautifulSoup
 from datetime import datetime
@@ -36,12 +32,14 @@ class DataCollector:
         self.td_l_dt_dsply_frmt = "%d-%m-%Y %H:%M:%S"
         self.td_s_dt_dsply_frmt = "%d-%m-%Y"
 
+        # Set Debugging Value 1 = Print LOGS, 0 = Print Nothing
+        self.DEBUG_VAL = 0
+
+        # Need Socket Library Quickly
+        import socket
 
         # Where Is This Running On?
         if socket.gethostname() == "Renacins-MacBook-Pro.local":
-            now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-            # print(f"{now}: Running On Macbook Pro")
-
             db_out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/3_Data"
             self.db_folder = db_out_path
             self.csv_out_path = r"/Users/renacin/Documents/BramptonTransitAnalysis/3_Data"
@@ -50,9 +48,6 @@ class DataCollector:
 
 
         elif socket.gethostname() == "raspberrypi":
-            now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-            # print(f"{now}: Running On RPI3")
-
             db_out_path = r"/home/pi/Documents/Python/BramptonTransitAnalysis/3_Data"
             self.db_folder = db_out_path
             self.csv_out_path = r"/media/pi/STORAGE"
@@ -61,9 +56,6 @@ class DataCollector:
 
 
         elif socket.gethostname() == "RenacinDesktop":
-            now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-            # print(f"{now}: Running On Microsoft Desktop")
-
             db_out_path = r"C:\Users\renac\Documents\Programming\Python\BramptonTransitAnalysis\3_Data"
             self.db_folder = db_out_path
             self.csv_out_path = r"E:\STORAGE"
@@ -73,9 +65,16 @@ class DataCollector:
 
         else:
             now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-            # print(f"{now}: Invalid Host Name")
+            print(f"{now}: Invalid Host Name")
             sys.exit(1)
 
+        # For Debugging
+        if self.DEBUG_VAL == 1:
+            now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+            print(f"{now}: Operating On {socket.gethostname()}")
+
+        # No Longer Need Socket Library
+        del socket
 
         # Internalize Needed URLs: Bus Location API, Bus Routes, Bus Stops
         self.bus_loc_url    = r"https://nextride.brampton.ca:81/API/VehiclePositions?format=json"
@@ -109,9 +108,6 @@ class DataCollector:
                 print(f"{now}: Bus Stop/Bus Route Download Error")
                 sys.exit(1)
 
-        # Collect Garbage So Everything Any Unused Memory Is Released
-        gc.collect()
-
 
 
     # -------------------------- Private Function 1 ----------------------------
@@ -120,6 +116,9 @@ class DataCollector:
         operating system this script is running on, additionally check to see
         if the approrpriate folders are available to write to, if not create
         them."""
+
+        # Only Need Library For This Step
+        import os
 
         # First Check To See If The Main Folder Exists!
         if not os.path.isdir(self.db_folder):
@@ -132,8 +131,13 @@ class DataCollector:
             if not os.path.exists(dir_chk):
                 os.makedirs(dir_chk)
 
-        now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-        # print(f"{now}: Database & Folders Exist")
+        # For Debugging
+        if self.DEBUG_VAL == 1:
+            now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+            print(f"{now}: Database & Folders Exist")
+
+        del os
+
 
 
 
@@ -290,8 +294,12 @@ class DataCollector:
         out_path = self.out_dict["BUS_STP"] + f"/BUS_STP_DATA_{dt_string}.csv"
         bus_stops.to_csv(out_path, index=False)
 
-        now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-        # print(f"{now}: Exported Bus Stop Data")
+
+        # For Debugging
+        if self.DEBUG_VAL == 1:
+            now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+            print(f"{now}: Exported Bus Stop Data")
+
 
         return bus_stops
 
@@ -392,9 +400,11 @@ class DataCollector:
                         # Stop The While Loop
                         pass_flag = False
 
-                        # For Logging
-                        now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-                        # print(f"{now}: ({counter}/{total_rts}) - Parsed Bus Route Data: {name}")
+                        # For Debugging
+                        if self.DEBUG_VAL == 1:
+                            now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+                            print(f"{now}: ({counter}/{total_rts}) - Parsed Bus Route Data: {name}")
+
                         counter += 1
 
                 # If There Is An Error, Try Again
@@ -437,9 +447,12 @@ class DataCollector:
 
         del num_stps_df
 
-        # For Logging
-        now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-        # print(f"{now}: Downloaded Bus Route Data")
+
+        # For Debugging
+        if self.DEBUG_VAL == 1:
+            now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+            print(f"{now}: Downloaded Bus Route Data")
+
 
         # Return Data To Variable
         return data_dict
@@ -457,6 +470,9 @@ class DataCollector:
             1) In some cases "&" is written as "&amp;"
         """
 
+        # Only Need Numpy For This Part
+        import numpy as np
+
         # Informed By Comparison, Make Changes
         parsed_df["STP_NM"] = parsed_df["STP_NM"].str.replace('&amp;', '&')
 
@@ -467,8 +483,15 @@ class DataCollector:
         # Which Bus Stops Are Missing?
         now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
         misng_stps = unq_parsed_stps[unq_parsed_stps["In_OpenData"] == "N"]
-        # print(f"{now}: Parsed DF Len: {len(parsed_df)}, Downloaded DF Len: {len(downld_df)}, Number Of Missing Stops: {len(misng_stps)}")
 
+
+        # For Debugging
+        if self.DEBUG_VAL == 1:
+            now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+            print(f"{now}: Parsed DF Len: {len(parsed_df)}, Downloaded DF Len: {len(downld_df)}, Number Of Missing Stops: {len(misng_stps)}")
+
+        # Remove Unneeded Library
+        del np
         return parsed_df
 
 
@@ -496,8 +519,12 @@ class DataCollector:
         out_path = self.out_dict["BUS_STP"] + f"/BUS_RTE_DATA_{dt_string}.csv"
         stp_data_df.to_csv(out_path, index=False)
 
-        now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-        # print(f"{now}: Exported Route Data")
+
+        # For Debugging
+        if self.DEBUG_VAL == 1:
+            now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+            print(f"{now}: Exported Route Data")
+
 
 
 
@@ -706,16 +733,6 @@ class DataCollector:
             conn.commit()
             conn.close()
 
-            # For Logging
-            # print(f"{tm_nw}: Exported CSV & DB Table - {out_table} Cleaned")
-
-
-
-    # -------------------------- Public Function 3 -----------------------------
-    def clean_class(self):
-        """
-        When called, this function will run the garbage collector within the class.
-        """
-
-        # Hopefully This Releases Some Memory?
-        gc.collect()
+            # For Debugging
+            if self.DEBUG_VAL == 1:
+                print(f"{tm_nw}: Exported CSV & DB Table - {out_table} Cleaned")
