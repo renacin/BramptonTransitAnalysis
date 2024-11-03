@@ -1,11 +1,13 @@
 # Name:                                            Renacin Matadeen
-# Date:                                               10/30/2024
+# Date:                                               11/02/2024
 # Title                                      Main Logic Of Data Collector
 #
 # ----------------------------------------------------------------------------------------------------------------------
 from concurrent.futures     import ProcessPoolExecutor
 import datetime
 import time
+import sys
+import gc
 # # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -13,7 +15,8 @@ def Collector_Setup():
     """ This function will download all necessary files, but won't pass on an object """
     from Functions.collect_data import DataCollector
     Collector = DataCollector(skp_dwnld=False)
-    del Collector
+    del Collector, DataCollector
+    gc.collect()
 
 
 def Collector_Collect():
@@ -21,7 +24,8 @@ def Collector_Collect():
     from Functions.collect_data import DataCollector
     Collector = DataCollector(skp_dwnld=True)
     Collector.get_bus_loc()
-    del Collector
+    del Collector, DataCollector
+    gc.collect()
 
 
 def Collector_Export():
@@ -30,7 +34,8 @@ def Collector_Export():
     Collector = DataCollector(skp_dwnld=True)
     Collector.xprt_data("BUS_LOC", "BUS_LOC_DB", "u_id", True)
     Collector.xprt_data("ERROR", "ERROR_DB", "timestamp", True)
-    del Collector
+    del Collector, DataCollector
+    gc.collect()
 
 
 # # --------------------------------------------------------------------------------------------------------------------
@@ -40,7 +45,7 @@ def main():
 
     # Define Constants & Next Alarm Date Scheduled Maintenance Will Be The Next Day (+1) At 0300 AM
     alrm_hr = 3
-    tm_delay = 18
+    tm_delay = 20
     td_l_dt_dsply_frmt = "%d-%m-%Y %H:%M:%S"
     td_s_dt_dsply_frmt = "%d-%m-%Y"
     alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days=1)).strftime(td_s_dt_dsply_frmt))
@@ -82,7 +87,7 @@ def main():
         # Catch Keyboard Interupt
         except KeyboardInterrupt:
             print(f"{now}: Keyboard Interrupt Error")
-            break
+            sys.exit(1)
 
         # Catch All Other Errors
         except Exception as e:
@@ -91,6 +96,7 @@ def main():
 
         # Try To Conserve Memory
         del cur_dt, cur_hr, td_dt_mx, now
+        gc.collect()
 
 
 

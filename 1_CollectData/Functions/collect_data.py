@@ -1,19 +1,18 @@
 # Name:                                            Renacin Matadeen
-# Date:                                               10/30/2024
+# Date:                                               11/02/2024
 # Title                                     Main Logic Of Data Collector
 #
 # ----------------------------------------------------------------------------------------------------------------------
-import re
-import sys
-import json
-import time
-import sqlite3
-import requests
-import pandas as pd
 from bs4 import BeautifulSoup
 from datetime import datetime
+import pandas as pd
+import requests
+import sqlite3
+import json
+import time
+import sys
+import re
 # ----------------------------------------------------------------------------------------------------------------------
-
 
 
 class DataCollector:
@@ -29,7 +28,7 @@ class DataCollector:
         self.td_s_dt_dsply_frmt = "%d-%m-%Y"
 
         # Set Debugging Value 1 = Print LOGS, 0 = Print Nothing
-        self.DEBUG_VAL = 0
+        self.DEBUG_VAL = 1
 
         # Need Socket Library Quickly
         import socket
