@@ -103,13 +103,16 @@ if __name__ == "__main__":
 
     """
     Notes:
-        + Observations as of 9:20 PM 2024-12-02
+        + Observations as of 10:05 PM 2024-12-02
         + It does look like Child Processes do work differently. In the task manager I see the following;
-            - Console Window Host       ( 7.6 MB)
-            - Python                    (41.8 MB)
+            - Console Window Host       ( 9.3 MB)
+            - Python                    ( 7.6 MB)
             - Windows Command Processor ( 0.8 MB)
-            - Python (Occassionaly)     (30.0 MB)
+            - Python (Occassionaly)     (41.5 MB)
 
         + Child processes are seperate from the main process. When called, a seperate Python process is
           spun up, work is done, and then killed - with no memory overhead (or so I currently see.)
+
+        + If we only import the DataCollector class when we need it we save a signigicant amount of data, with particular consideration
+          with usage with a child process
     """
