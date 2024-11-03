@@ -109,11 +109,11 @@ if __name__ == "__main__":
 
     """
     Notes:
-        + Observations as of 10:05 PM 2024-12-02
+        + Observations as of 1:31 PM 2024-12-02
         + It does look like Child Processes do work differently. In the task manager I see the following;
-            - Console Window Host       ( 9.3 MB)
-            - Python                    ( 7.6 MB)
-            - Windows Command Processor ( 0.8 MB)
+            - Console Window Host       ( 7.8 MB)
+            - Python                    ( 7.5 MB)
+            - Windows Command Processor ( 1.1 MB)
             - Python (Occassionaly)     (41.5 MB)
 
         + Child processes are seperate from the main process. When called, a seperate Python process is
