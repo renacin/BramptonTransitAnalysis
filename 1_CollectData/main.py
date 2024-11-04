@@ -109,7 +109,7 @@ if __name__ == "__main__":
 
     """
     Notes:
-        + Observations as of 1:31 PM 2024-12-02
+        + Observations as of 1:31 PM 2024-12-03
         + It does look like Child Processes do work differently. In the task manager I see the following;
             - Console Window Host       ( 7.8 MB)
             - Python                    ( 7.5 MB)
@@ -120,5 +120,13 @@ if __name__ == "__main__":
           spun up, work is done, and then killed - with no memory overhead (or so I currently see.)
 
         + If we only import the DataCollector class when we need it we save a signigicant amount of data, with particular consideration
-          with usage with a child process. Hello
+          with usage with a child process.
+
+        + Observations as of 10:30 AM 2024-12-04
+        + Why does Python use more data over time? Also, another possible optimization - should we delete the database,
+          and recreate it when we export data?
+            - Console Window Host       ( 7.8 MB)
+            - Python                    ( 7.8 MB)
+            - Windows Command Processor ( 1.1 MB)
+            - Python (Occassionaly)     (41.5 MB)
     """
