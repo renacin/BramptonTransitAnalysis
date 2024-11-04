@@ -28,7 +28,7 @@ of the day before's transit network.
 * [12-31-2024] - Create An Equally Efficient Data Analytics System That Determine KPIs From The Day Before's Data
 
 
-## Overview Of Data Collector Pipeline:
+## Overview Of Data Collector Pipeline (REPLACE THIS SECTION WITH CONTROL FLOW DIAGRAM!):
 ### 1. Determining All Bus Routes, And The Order Of Bus Stop Arrivals
 	Layout Of Logic & Concerns:
 	+ Navigate 2: https://www1.brampton.ca/EN/residents/transit/plan-your-trip/Pages/Schedules-andMaps.aspx. Parse all bus routes.
