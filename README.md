@@ -2,36 +2,33 @@
 
 
 ## Introduction:
-This project is ever growing, and expanding as time goes on.
-
 Originally, I wanted this project to be a test of my data acquisition, and storage skills.
 Can I parse data from a website, and store it effectively in some sort of data base? Turns out I can.
-Developing a sort-of-live database was fun, and quite cool to see it grow in size every day.
+Developing a live-ish database was fun, and quite cool. Seeing the database grow in size every day was neat.
 
-Having all of that data, it was inevitable that I would want to analyze it.
+Having all of that data, it was inevitable that I would try to analyze it.
 And so this project then turned into a data analytics attempt. Can I discern patterns from the data that I collected?
 
 The patterns I identified were quite simple. A histogram, line graph, and a few maps later I knew I could do accomplish my goal.
 
-Time went on, and I kept coming back to this project. The more I poked at it, the more I wanted to try again, but with all that I've learned.
-And so here we are. This is my 4th attempt at this project?
+Time went on, and I kept coming back to this project. The more I poked at it, the more I wanted to try again; each new attempt with
+a different set of skills, always learning something new.
+
+And so here we are, I think this is my 5th attempt at this project - and it has now morphed into a pet project where I am
+trying to create a system that not only continuously gather's data in the most efficient way possible - but also provides analytics
+of the day before's transit network.
 
 
-## Observations And Questions:
-* [12-29-2023] - Can I interpret traffic patterns from transit GTFS data?
+## Purpose Of This Project:
+* [12-29-2023] - Can I create an efficient data collector, and analytics pipeline to interpret day-before metrics from Brampton Transit GTFS data?
 
 
-## Procedure:
-1. [12-29-2023] - For All Routes In A Given Transit System, Determine Which Stops A Bus Visits
-2. [01-15-2024] - Create A System That Can Effectively Parse, And Store GTFS Data Into A Database
-3. [01-22-2024] - For A Given Period Of Time, Run System - Gather GTFS Data On A Headless Computer. Build In Contingencies!
-4. [02-27-2024] - Memory Issue Identified W/ RPI3. Need To Modify Code To Be More Memory Efficient
-4. [03-27-2024] - Having Collected Data, Can I Interpret Basic Temporal Patterns From GTFS Data Collected?
-5. [00-00-2024] - Before we move onto more difficult statistics, can we interpret system outages from the data collected?
+## Goals Of This Project:
+* [11-01-2024] - Create An Efficient Data Collection Pipeline - Have It Running On A Raspberry Pi
+* [12-31-2024] - Create An Equally Efficient Data Analytics System That Determine KPIs From The Day Before's Data
 
 
-
-## Overview Of Code:
+## Overview Of Data Collector Pipeline:
 ### 1. Determining All Bus Routes, And The Order Of Bus Stop Arrivals
 	Layout Of Logic & Concerns:
 	+ Navigate 2: https://www1.brampton.ca/EN/residents/transit/plan-your-trip/Pages/Schedules-andMaps.aspx. Parse all bus routes.
@@ -50,7 +47,6 @@ And so here we are. This is my 4th attempt at this project?
 		+ Checks The Validity Of Needed Database Tables
 		+ Pulls Needed Bus Routes, And Details Bus Stop Details, Uploads To The Database
 		+ Pulls GTFS Data From JSON API
-
 	+ Every 15 Seconds Rerun The Last Step From Above
 	+ Ensure All Data Is Valid, An Error Catching Is Present
 
@@ -66,18 +62,15 @@ And so here we are. This is my 4th attempt at this project?
 	+ Solution: Dynamic Caching Of U_IDs Stored In 10 Min Time Period
 
 
-### 4. Analyzing Test Data. How Can We Visualize The Data That We Have Collected?
-	Possible Research Questions:
-	+ How Much Data Are We Collecting, Does The Amount Of Data Vary By Time?                                                                     | Yes
-	+ If Data Collected Does Vary By Time, IE There Are No Buses Running, Can We Run Another Script In Between?                                  | Yes
-	+ Maybe A Script That Does Some Data Cleaning, And Maybe Does Some Basic Analysis? Maybe Even Makes A BackUp Of The Database, Just Incase?   | Yes
-	+ What type of analytics do I want to do?                                                                                                    | Yes
-	+ What type of data am I collecting? Does it make sense? Are there any errors preventing me from letting this run for a long period of time? | Yes
-	+ Identified an issue where the RPI3 Kernel will kill the script. I looks like a memory issue. I need to profile everything and optimize!    | Yes
-	+ Can we identify long term patterns in our data?                                                                                            | ?
-	+ Do system outages happen, if so can we exclude impacted trips from our analysis?                                                           | ?
 
 
-### 5. Can We Export Our Results (Graphics) To A Shared Folder?
-	Instead Of Logging Into RPI3, We Can Just Open A Shared Folder?
+## Possible Research Questions:
+	+ How Much Data Are We Collecting, Does The Amount Of Data Vary By Time?
+	+ If Data Collected Does Vary By Time, IE There Are No Buses Running, Can We Run Another Script In Between?
+	+ Maybe A Script That Does Some Data Cleaning, And Maybe Does Some Basic Analysis? Maybe Even Makes A BackUp Of The Database, Just Incase?
+	+ What type of analytics do I want to do?
+	+ What type of data am I collecting? Does it make sense? Are there any errors preventing me from letting this run for a long period of time?
+	+ Identified an issue where the RPI3 Kernel will kill the script. I looks like a memory issue. I need to profile everything and optimize!
+	+ Can we identify long term patterns in our data?
+	+ Do system outages happen, if so can we exclude impacted trips from our analysis?
 	+ Can We Upload To Dropbox?
