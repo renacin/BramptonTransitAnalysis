@@ -104,36 +104,3 @@ def main():
 # Entry Point Into Python Code
 if __name__ == "__main__":
     main()
-
-
-
-    """
-    Notes:
-        + Observations as of 1:31 PM 2024-11-03
-        + It does look like Child Processes do work differently. In the task manager I see the following;
-            - Console Window Host       ( 7.8 MB)
-            - Python                    ( 7.5 MB)
-            - Windows Command Processor ( 1.1 MB)
-            - Python (Occassionaly)     (41.5 MB)
-
-        + Child processes are seperate from the main process. When called, a seperate Python process is
-          spun up, work is done, and then killed - with no memory overhead (or so I currently see.)
-
-        + If we only import the DataCollector class when we need it we save a signigicant amount of data, with particular consideration
-          with usage with a child process.
-
-
-        + Observations as of 10:30 AM 2024-11-04
-        + Why does Python use more data over time? Also, another possible optimization - should we delete the database,
-          and recreate it when we export data?
-            - Console Window Host       ( 7.8 MB)
-            - Python                    ( 7.8 MB)
-            - Windows Command Processor ( 1.1 MB)
-
-
-        + Observations as of 4:50 PM 2024-11-06
-        + No observable change in memory consumption. I think we're good!
-            - Console Window Host       ( 7.8 MB)
-            - Python                    ( 7.8 MB)
-            - Windows Command Processor ( 1.1 MB)
-    """
