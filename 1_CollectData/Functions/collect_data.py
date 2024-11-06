@@ -734,3 +734,15 @@ class DataCollector:
             # For Debugging
             if self.DEBUG_VAL == 1:
                 print(f"{tm_nw}: Exported CSV & DB Table - {out_table} Cleaned")
+
+
+
+    # -------------------------- Public Function 3 -----------------------------
+    def frmt_data(self):
+        """
+        When called, this function will gather 2 weeks worth of CSV data, and will format
+        the data, to first determine the average speed per route, as well as determining relevant
+        bus updates.
+        """
+
+        print("Hello World")
