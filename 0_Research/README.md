@@ -90,6 +90,8 @@ DB Update: Methodology 3
 	+ A solution that I found helpful was to implement the use of child processes (threads/multiprocessing). When
 	  a child process is killed all related memory is released
 
+	+ After much testing it was determined this was the best way to ensure that there are no memory leaks in the code, not the cleanest - but it works
+
 
 ## 1.2 (System) Overall Program Size
 	+ Since I want this program to run continuously on a Raspberry Pi 3, it needs to be as efficient as possible.
