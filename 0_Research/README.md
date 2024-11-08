@@ -96,4 +96,8 @@ DB Update: Methodology 3
 ## 1.2 (System) Overall Program Size
 	+ Since I want this program to run continuously on a Raspberry Pi 3, it needs to be as efficient as possible.
 	+ To reduce the memory overhead at any given moment I made sure to only import certain libraries when needed, and
-	  when not needed deleted. Will this cause unintended side-effects? Maybe, only time will tell
+	  when not needed deleted. Will this cause unintended side-effects? Maybe, only time will tell.
+
+
+
+## 1.3 (Logic) Estimate Arrival At Missing Points
