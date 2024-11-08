@@ -28,7 +28,7 @@ class DataCollector:
         self.td_s_dt_dsply_frmt = "%d-%m-%Y"
 
         # Set Debugging Value 1 = Print LOGS, 0 = Print Nothing
-        self.DEBUG_VAL = 0
+        self.DEBUG_VAL = 1
 
         # Need Socket Library Quickly
         import socket
@@ -70,6 +70,16 @@ class DataCollector:
 
         # No Longer Need Socket Library
         del socket
+
+
+        # Quickly Need The OS Library
+        import os
+
+        if os.name == 'nt': self.slash = r"\\"
+        else:               self.slash = r"/"
+
+        del os
+
 
         # Internalize Needed URLs: Bus Location API, Bus Routes, Bus Stops
         self.bus_loc_url    = r"https://nextride.brampton.ca:81/API/VehiclePositions?format=json"
@@ -121,7 +131,7 @@ class DataCollector:
 
         # In The Out Directory Provided See If The Appropriate Sub Folders Exist!
         for fldr_nm in ['BUS_STP', 'BUS_LOC', 'FRMTD_DATA', 'BUS_SPEED', 'GRAPHICS', 'ERROR']:
-            dir_chk = f"{csv_out_path}/{fldr_nm}"
+            dir_chk = f"{csv_out_path}{self.slash}{fldr_nm}"
             self.out_dict[fldr_nm] = dir_chk
             if not os.path.exists(dir_chk):
                 os.makedirs(dir_chk)
@@ -679,9 +689,10 @@ class DataCollector:
         dt_nw = datetime.now().strftime(self.td_s_dt_dsply_frmt)
         tm_nw = datetime.now().strftime(self.td_l_dt_dsply_frmt)
 
+
         # Define Where The File Will Be Written
         out_path = self.out_dict[out_path]
-        db_path = out_path + f"/{out_table}_{dt_nw}.csv"
+        db_path = out_path + f"{self.slash}{out_table}_{dt_nw}.csv"
 
         # Read Data From Defined Database, Remove Duplicates
         conn = sqlite3.connect(self.db_path)
@@ -737,12 +748,84 @@ class DataCollector:
 
 
 
-    # -------------------------- Public Function 3 -----------------------------
-    def frmt_data(self):
+    # ------------------------- Private Function 6 ------------------------------
+    def __return_files_dates(self, out_path):
         """
-        When called, this function will gather 2 weeks worth of CSV data, and will format
-        the data, to first determine the average speed per route, as well as determining relevant
-        bus updates.
+        When called, this function will look at all the files in a folder and
+        return a formatted pandas dataframe for the user to query in later functions
         """
 
-        print("Hello World")
+        # We Quickly Need OS For This. Will Delete ASAP
+        import os
+
+        # Navigate To Data Folder | Get All Appropriate Files
+        out_path = self.out_dict[out_path]
+        dir_list = [x for x in os.listdir(out_path) if ".csv" in x]
+        df = pd.DataFrame(dir_list, columns=['FILE_NAME'])
+
+        # Create A Dataframe With The Time The File Was Created & Output
+        df["DATE"] = df["FILE_NAME"].str.split('_').str[-1]
+        df["DATE"] = df["DATE"].str.replace(".csv", "", regex=False)
+        df["DATE"] = pd.to_datetime(df["DATE"], format = self.td_s_dt_dsply_frmt)
+
+        del os
+        return out_path, df
+
+
+
+    # -------------------------- Public Function 3 -----------------------------
+    def frmt_speed_data(self):
+        """
+        When called, this function will read x amount days, for bus data collected.
+        Using the bus data collected, it will determine the average speed for each route.
+        """
+
+        # Find Files In Folder
+        out_path, df = self.__return_files_dates("BUS_LOC")
+
+        # Testing
+        print(df)
+
+
+        # # Format File Data For Easier Manipulation
+        # b_af["DATE"] = b_af["DATE"].astype(str)
+        # b_af["DATE"] = pd.to_datetime(b_af["DATE"], format='%Y-%m-%d')
+        # b_af = b_af.sort_values(by="DATE")
+        # b_af = b_af.reset_index()
+        # del b_af["index"]
+        #
+        # # Format td_dt_mx For Easier Manipulation
+        # new_filter_dt = pd.to_datetime(f'''{td_dt_mx.split("-")[-1]}-{td_dt_mx.split("-")[1]}-{td_dt_mx.split("-")[0]}''', format='%Y-%m-%d')
+        #
+        # # Filter Data Based On Cleaned Date
+        # b_af = b_af[b_af["DATE"] >= new_filter_dt]
+        #
+        # # # If Number Of Files Smaller Than Number Of Days Looking Back, Raise An Error
+        # # if (len(b_af) + 1) >= num_days:
+        #
+        # # Combine Files Into One
+        # needed_cols = ["trip_id", "route_id",
+        #                "latitude", "longitude", "bearing",
+        #                "speed", "current_stop_sequence", "timestamp",
+        #                "stop_id", "vehicle_id", "dt_colc"]
+        #
+        # def_d_types = {"bearing":               np.float16,
+        #                "speed":                 np.float16,
+        #                "latitude":              np.float32,
+        #                "longitude":             np.float32,
+        #                "current_stop_sequence": np.int16,
+        #                "timestamp":             np.int32,
+        #                "stop_id":               np.int16,
+        #                "vehicle_id":            np.int16}
+        #
+        # df = pd.concat([pd.read_csv(path_, usecols = needed_cols, dtype = def_d_types) for path_ in [f"{b_loc}/{x}" for x in b_af["FILE_NAME"].tolist()]])
+        # # print(df.info())
+        #
+        # # Lets Start Small, Can We Determine The Average Speed For Each Bus Route, How Many Observations?
+        # avg_spd_df = df.groupby(["route_id"], as_index=False).agg(AVG_SPEED = ("speed", "mean"),
+        #                                                           NUM_OBS   = ("speed", "count")
+        #                                                           )
+        #
+        #
+        # # For Each Group Of Observations Determine The Direction Of Travel
+        # print(avg_spd_df)

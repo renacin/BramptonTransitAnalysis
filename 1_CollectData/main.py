@@ -40,21 +40,6 @@ def Collector_Export():
 
 
 
-
-
-
-# FOR TESTING REMOVE!
-def Collector_Format_Data():
-    from Functions.collect_data import DataCollector
-    Collector = DataCollector(skp_dwnld=True)
-    Collector.frmt_data()
-    del Collector, DataCollector
-    gc.collect()
-
-
-
-
-
 # # --------------------------------------------------------------------------------------------------------------------
 
 # Define The Main Logic Of Data Collection Tool
@@ -79,9 +64,11 @@ def main():
 
 
 
-    # For Testing Please Remove!
-    with ProcessPoolExecutor(max_workers=1) as exe:
-        exe.submit(Collector_Format_Data)
+    from Functions.collect_data import DataCollector
+    Collector = DataCollector(skp_dwnld=True)
+    Collector.frmt_speed_data()
+    del Collector, DataCollector
+    gc.collect()
 
 
 
