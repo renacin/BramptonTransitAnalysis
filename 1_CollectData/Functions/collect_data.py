@@ -29,7 +29,7 @@ class DataCollector:
         self.td_s_dt_dsply_frmt = "%d-%m-%Y"
 
         # Set Debugging Value 1 = Print LOGS, 0 = Print Nothing
-        self.DEBUG_VAL = 1
+        self.DEBUG_VAL = 0
 
         # Need Socket Library Quickly
         import socket
