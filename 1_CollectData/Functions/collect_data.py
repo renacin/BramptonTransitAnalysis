@@ -6,6 +6,7 @@
 from bs4 import BeautifulSoup
 from datetime import datetime
 import pandas as pd
+import numpy as np
 import requests
 import sqlite3
 import json
@@ -478,9 +479,6 @@ class DataCollector:
             1) In some cases "&" is written as "&amp;"
         """
 
-        # Only Need Numpy For This Part
-        import numpy as np
-
         # Informed By Comparison, Make Changes
         parsed_df["STP_NM"] = parsed_df["STP_NM"].str.replace('&amp;', '&')
 
@@ -498,8 +496,7 @@ class DataCollector:
             now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
             print(f"{now}: Parsed DF Len: {len(parsed_df)}, Downloaded DF Len: {len(downld_df)}, Number Of Missing Stops: {len(misng_stps)}")
 
-        # Remove Unneeded Library
-        del np
+        # Remove Unneeded
         return parsed_df
 
 
@@ -774,58 +771,61 @@ class DataCollector:
 
 
     # -------------------------- Public Function 3 -----------------------------
-    def frmt_speed_data(self):
+    def frmt_speed_data(self, today_date):
         """
-        When called, this function will read x amount days, for bus data collected.
+        When called, this function will read 30 days worth of data from today's date.
         Using the bus data collected, it will determine the average speed for each route.
+        If no data is collected this function will not run.
         """
 
         # Find Files In Folder
-        out_path, df = self.__return_files_dates("BUS_LOC")
+        out_path, date_df = self.__return_files_dates("BUS_LOC")
 
-        # Testing
-        print(df)
+        # Format File Data For Easier Manipulation
+        date_df["DATE"] = date_df["DATE"].astype(str)
+        date_df["DATE"] = pd.to_datetime(date_df["DATE"], format='%Y-%m-%d')
+        date_df = date_df.sort_values(by="DATE")
+        date_df = date_df.reset_index()
+        del date_df["index"]
+
+        # Format td_dt_mx For Easier Manipulation
+        new_filter_dt = pd.to_datetime(f'''{today_date.split("-")[-1]}-{today_date.split("-")[1]}-{today_date.split("-")[0]}''', format='%Y-%m-%d')
+
+        # Filter Data Based On Cleaned Date
+        date_df = date_df[date_df["DATE"] >= new_filter_dt]
+
+        # Check To See If There Is Data To Use & Debuggin Mode On
+        if len(date_df) <= 0:
+            if self.DEBUG_VAL == 1:
+                print(f"{datetime.now().strftime(self.td_l_dt_dsply_frmt)}: No Data To Determine Average Speed - Skipping Run")
+                return
+
+        # If There Is Valid Data, Combine Files Into One Dataframe
+        needed_cols = ["route_id", "speed", "vehicle_id", "dt_colc"] # Read Back In "timestamp" When Ready
+        def_d_types = {
+                       "speed":                 np.float16,
+                       # "timestamp":             np.int32,
+                       "vehicle_id":            np.int16
+                       }
+
+        # Create Main Large Dataframe
+        df = pd.concat([pd.read_csv(path_, usecols = needed_cols, dtype = def_d_types) for path_ in [f"{self.out_dict['BUS_LOC']}{self.slash}{x}" for x in date_df["FILE_NAME"].tolist()]])
 
 
-        # # Format File Data For Easier Manipulation
-        # b_af["DATE"] = b_af["DATE"].astype(str)
-        # b_af["DATE"] = pd.to_datetime(b_af["DATE"], format='%Y-%m-%d')
-        # b_af = b_af.sort_values(by="DATE")
-        # b_af = b_af.reset_index()
-        # del b_af["index"]
-        #
-        # # Format td_dt_mx For Easier Manipulation
-        # new_filter_dt = pd.to_datetime(f'''{td_dt_mx.split("-")[-1]}-{td_dt_mx.split("-")[1]}-{td_dt_mx.split("-")[0]}''', format='%Y-%m-%d')
-        #
-        # # Filter Data Based On Cleaned Date
-        # b_af = b_af[b_af["DATE"] >= new_filter_dt]
-        #
-        # # # If Number Of Files Smaller Than Number Of Days Looking Back, Raise An Error
-        # # if (len(b_af) + 1) >= num_days:
-        #
-        # # Combine Files Into One
-        # needed_cols = ["trip_id", "route_id",
-        #                "latitude", "longitude", "bearing",
-        #                "speed", "current_stop_sequence", "timestamp",
-        #                "stop_id", "vehicle_id", "dt_colc"]
-        #
-        # def_d_types = {"bearing":               np.float16,
-        #                "speed":                 np.float16,
-        #                "latitude":              np.float32,
-        #                "longitude":             np.float32,
-        #                "current_stop_sequence": np.int16,
-        #                "timestamp":             np.int32,
-        #                "stop_id":               np.int16,
-        #                "vehicle_id":            np.int16}
-        #
-        # df = pd.concat([pd.read_csv(path_, usecols = needed_cols, dtype = def_d_types) for path_ in [f"{b_loc}/{x}" for x in b_af["FILE_NAME"].tolist()]])
-        # # print(df.info())
-        #
-        # # Lets Start Small, Can We Determine The Average Speed For Each Bus Route, How Many Observations?
-        # avg_spd_df = df.groupby(["route_id"], as_index=False).agg(AVG_SPEED = ("speed", "mean"),
-        #                                                           NUM_OBS   = ("speed", "count")
-        #                                                           )
-        #
-        #
-        # # For Each Group Of Observations Determine The Direction Of Travel
-        # print(avg_spd_df)
+        # Determine The Average Speed For Each Bus Route, How Many Observations?
+        avg_spd_df = df.groupby(["route_id"], as_index=False).agg(AVG_SPEED = ("speed", "mean"), NUM_OBS   = ("speed", "count"))
+        avg_spd_df = avg_spd_df.sort_values(["route_id"])
+
+
+        # For Each Group Of Observations Determine The Direction Of Travel
+        # TODO!!!!
+
+
+        # Export Data
+        out_path = self.out_dict["BUS_SPEED"]
+        db_path = out_path + f"{self.slash}AVG_BUS_SPEED_{datetime.now().strftime(self.td_s_dt_dsply_frmt)}_M30DAYS.csv"
+        avg_spd_df.to_csv(db_path, index=False)
+
+        # For Debugging
+        if self.DEBUG_VAL == 1:
+            print(f"{datetime.now().strftime(self.td_l_dt_dsply_frmt)}: Exported Bus Route Average Speed DF")
