@@ -101,3 +101,5 @@ DB Update: Methodology 3
 
 
 ## 1.3 (Logic) Estimate Arrival At Missing Points
+	+ Before we estimate the possible arrival times at bus stops between two bus stops that are not one-after the other,
+	  we must first start small and determine the average speed a bus might have been travelling during a given route.
