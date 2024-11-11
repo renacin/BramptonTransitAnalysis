@@ -63,7 +63,7 @@ def main():
 
 
     # Spin Up A Child Process, Reduce Memory Considerations - Collect Data
-    with ProcessPoolExecutor(max_workers=1) as exe:
+    with ProcessPoolExecutor(max_workers = 1) as exe:
         exe.submit(Collector_Setup)
 
 
@@ -81,7 +81,7 @@ def main():
             if (cur_hr == alrm_hr and cur_dt == alrm_dt):
 
                 # Spin Up A Child Process, Reduce Memory Considerations - Export Data
-                with ProcessPoolExecutor(max_workers=1) as exe:
+                with ProcessPoolExecutor(max_workers = 1) as exe:
                     exe.submit(Collector_Export)
 
                 td_dt_mx = str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt))
@@ -89,7 +89,7 @@ def main():
 
             else:
                 # Spin Up A Child Process, Reduce Memory Considerations - Collect Data
-                with ProcessPoolExecutor(max_workers=1) as exe:
+                with ProcessPoolExecutor(max_workers = 1) as exe:
                     exe.submit(Collector_Collect)
 
             time.sleep(tm_delay)
