@@ -4,7 +4,7 @@
 #
 # ----------------------------------------------------------------------------------------------------------------------
 from bs4 import BeautifulSoup
-from datetime import datetime
+from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
 import requests
@@ -29,7 +29,7 @@ class DataCollector:
         self.td_s_dt_dsply_frmt = "%d-%m-%Y"
 
         # Set Debugging Value 1 = Print LOGS, 0 = Print Nothing
-        self.DEBUG_VAL = 0
+        self.DEBUG_VAL = 1
 
         # Need Socket Library Quickly
         import socket
@@ -64,10 +64,10 @@ class DataCollector:
             print(f"{now}: Invalid Host Name")
             sys.exit(1)
 
-        # For Debugging
-        if self.DEBUG_VAL == 1:
-            now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-            print(f"{now}: Operating On {socket.gethostname()}")
+        # # For Debugging
+        # if self.DEBUG_VAL == 1:
+        #     now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+        #     print(f"{now}: Operating On {socket.gethostname()}")
 
         # No Longer Need Socket Library
         del socket
@@ -137,10 +137,10 @@ class DataCollector:
             if not os.path.exists(dir_chk):
                 os.makedirs(dir_chk)
 
-        # For Debugging
-        if self.DEBUG_VAL == 1:
-            now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-            print(f"{now}: Database & Folders Exist")
+        # # For Debugging
+        # if self.DEBUG_VAL == 1:
+        #     now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+        #     print(f"{now}: Database & Folders Exist")
 
         del os
 
@@ -743,6 +743,9 @@ class DataCollector:
             if self.DEBUG_VAL == 1:
                 print(f"{tm_nw}: Exported CSV & DB Table - {out_table} Cleaned")
 
+        else:
+            return
+
 
 
     # ------------------------- Private Function 6 ------------------------------
@@ -771,12 +774,15 @@ class DataCollector:
 
 
     # -------------------------- Public Function 3 -----------------------------
-    def frmt_speed_data(self, today_date):
+    def frmt_speed_data(self):
         """
         When called, this function will read 30 days worth of data from today's date.
         Using the bus data collected, it will determine the average speed for each route.
         If no data is collected this function will not run.
+        , today_date
         """
+
+        today_date = str((datetime.now() + timedelta(days=-30)).strftime(self.td_s_dt_dsply_frmt))
 
         # Find Files In Folder
         out_path, date_df = self.__return_files_dates("BUS_LOC")
@@ -794,11 +800,13 @@ class DataCollector:
         # Filter Data Based On Cleaned Date
         date_df = date_df[date_df["DATE"] >= new_filter_dt]
 
-        # Check To See If There Is Data To Use & Debuggin Mode On
-        if len(date_df) <= 0:
+
+        # Check To See If There Is Data To Use Return Also If Debugging Mode On Print Issue
+        if date_df.empty:
             if self.DEBUG_VAL == 1:
                 print(f"{datetime.now().strftime(self.td_l_dt_dsply_frmt)}: No Data To Determine Average Speed - Skipping Run")
-                return
+            return
+
 
         # If There Is Valid Data, Combine Files Into One Dataframe
         needed_cols = ["route_id", "speed", "vehicle_id", "dt_colc"] # Read Back In "timestamp" When Ready
@@ -815,10 +823,6 @@ class DataCollector:
         # Determine The Average Speed For Each Bus Route, How Many Observations?
         avg_spd_df = df.groupby(["route_id"], as_index=False).agg(AVG_SPEED = ("speed", "mean"), NUM_OBS   = ("speed", "count"))
         avg_spd_df = avg_spd_df.sort_values(["route_id"])
-
-
-        # For Each Group Of Observations Determine The Direction Of Travel
-        # TODO!!!!
 
 
         # Export Data
