@@ -27,7 +27,7 @@ def main():
 
     while True:
         # Create A New Object To Reduce Possibility Of Memory Leak & Define Needed Variables
-        Collector   = DataCollector(skp_dwnld=False)
+        Collector   =   DataCollector(skp_dwnld=True)
         cur_dt      =   str(datetime.datetime.now().strftime(td_s_dt_dsply_frmt))
         cur_hr      =   int(datetime.datetime.now().strftime('%H'))
         now         =   datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
