@@ -62,51 +62,57 @@ def main():
     td_dt_mx = str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt))
 
 
-    # Spin Up A Child Process, Reduce Memory Considerations - Collect Data
-    with ProcessPoolExecutor(max_workers = 1) as exe:
-        exe.submit(Collector_Setup)
+    # # Spin Up A Child Process, Reduce Memory Considerations - Collect Data
+    # with ProcessPoolExecutor(max_workers = 1) as exe:
+    #     exe.submit(Collector_Setup)
 
 
-    # Main Loop Of Code
-    while True:
+    Collector_Export()
+    # # Spin Up A Child Process, Reduce Memory Considerations - Export Data
+    # with ProcessPoolExecutor(max_workers = 1) as exe:
+    #     exe.submit(Collector_Export)
 
-        # Get The Current Time
-        cur_dt   =   str(datetime.datetime.now().strftime(td_s_dt_dsply_frmt))
-        cur_hr   =   int(datetime.datetime.now().strftime('%H'))
-        td_dt_mx =   str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt))
-        now      =   datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
-
-        # Enter Main Logic, Is It Time To Collect Or Export Data?
-        try:
-            if (cur_hr == alrm_hr and cur_dt == alrm_dt):
-
-                # Spin Up A Child Process, Reduce Memory Considerations - Export Data
-                with ProcessPoolExecutor(max_workers = 1) as exe:
-                    exe.submit(Collector_Export)
-
-                td_dt_mx = str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt))
-                alrm_dt  = str((datetime.datetime.now() + datetime.timedelta(days=+1)).strftime(td_s_dt_dsply_frmt))
-
-            else:
-                # Spin Up A Child Process, Reduce Memory Considerations - Collect Data
-                with ProcessPoolExecutor(max_workers = 1) as exe:
-                    exe.submit(Collector_Collect)
-
-            time.sleep(tm_delay)
-
-        # Catch Keyboard Interupt
-        except KeyboardInterrupt:
-            print(f"{now}: Keyboard Interrupt Error")
-            sys.exit(1)
-
-        # Catch All Other Errors
-        except Exception as e:
-            print(f"{now}: Logic Operation Error (Type - {e})")
-            time.sleep(tm_delay)
-
-        # Try To Conserve Memory
-        del cur_dt, cur_hr, td_dt_mx, now
-        gc.collect()
+    #
+    # # Main Loop Of Code
+    # while True:
+    #
+    #     # Get The Current Time
+    #     cur_dt   =   str(datetime.datetime.now().strftime(td_s_dt_dsply_frmt))
+    #     cur_hr   =   int(datetime.datetime.now().strftime('%H'))
+    #     td_dt_mx =   str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt))
+    #     now      =   datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
+    #
+    #     # Enter Main Logic, Is It Time To Collect Or Export Data?
+    #     try:
+    #         if (cur_hr == alrm_hr and cur_dt == alrm_dt):
+    #
+    #             # Spin Up A Child Process, Reduce Memory Considerations - Export Data
+    #             with ProcessPoolExecutor(max_workers = 1) as exe:
+    #                 exe.submit(Collector_Export)
+    #
+    #             td_dt_mx = str((datetime.datetime.now() + datetime.timedelta(days=-1)).strftime(td_s_dt_dsply_frmt))
+    #             alrm_dt  = str((datetime.datetime.now() + datetime.timedelta(days=+1)).strftime(td_s_dt_dsply_frmt))
+    #
+    #         else:
+    #             # Spin Up A Child Process, Reduce Memory Considerations - Collect Data
+    #             with ProcessPoolExecutor(max_workers = 1) as exe:
+    #                 exe.submit(Collector_Collect)
+    #
+    #         time.sleep(tm_delay)
+    #
+    #     # Catch Keyboard Interupt
+    #     except KeyboardInterrupt:
+    #         print(f"{now}: Keyboard Interrupt Error")
+    #         sys.exit(1)
+    #
+    #     # Catch All Other Errors
+    #     except Exception as e:
+    #         print(f"{now}: Logic Operation Error (Type - {e})")
+    #         time.sleep(tm_delay)
+    #
+    #     # Try To Conserve Memory
+    #     del cur_dt, cur_hr, td_dt_mx, now
+    #     gc.collect()
 
 
 
