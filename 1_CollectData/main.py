@@ -12,7 +12,6 @@ import gc
 # ----------------------------------------------------------------------------------------------------------------------
 
 
-
 # Define The Main Logic Of Data Collection Tool
 def main():
 
@@ -22,9 +21,7 @@ def main():
     td_l_dt_dsply_frmt = "%d-%m-%Y %H:%M:%S"
     td_s_dt_dsply_frmt = "%d-%m-%Y"
     alrm_dt            = str((datetime.datetime.now() + datetime.timedelta(days= 1)).strftime(td_s_dt_dsply_frmt))
-
-
-    Collector = DataCollector(skp_dwnld=True)
+    Collector          = DataCollector(skp_dwnld=True)
 
 
     while True:
@@ -41,7 +38,6 @@ def main():
                 Collector.xprt_data("BUS_LOC", "BUS_LOC_DB", "u_id", True)
                 Collector.xprt_data("ERROR", "ERROR_DB", "timestamp", True)
                 Collector.frmt_speed_data()
-
                 alrm_dt  = str((datetime.datetime.now() + datetime.timedelta(days=+1)).strftime(td_s_dt_dsply_frmt))
 
             else:
@@ -62,7 +58,6 @@ def main():
         # Try To Conserve Memory
         del cur_dt, cur_hr, td_dt_mx, now
         gc.collect()
-
 
 
 # ----------------------------------------------------------------------------------------------------------------------
