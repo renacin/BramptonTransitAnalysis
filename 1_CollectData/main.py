@@ -3,7 +3,6 @@
 # Title                                      Main Logic Of Data Collector
 #
 # ----------------------------------------------------------------------------------------------------------------------
-# from concurrent.futures     import ProcessPoolExecutor
 from Functions.collect_data import DataCollector
 import datetime
 import time
