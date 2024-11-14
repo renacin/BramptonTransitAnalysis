@@ -133,10 +133,6 @@ class DataCollector:
             if not os.path.exists(dir_chk):
                 os.makedirs(dir_chk)
 
-        # # For Debugging
-        # if self.DEBUG_VAL == 1:
-        #     now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-        #     print(f"{now}: Database & Folders Exist")
 
         del os
 
