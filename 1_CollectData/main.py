@@ -21,15 +21,16 @@ def main():
     td_l_dt_dsply_frmt = "%d-%m-%Y %H:%M:%S"
     td_s_dt_dsply_frmt = "%d-%m-%Y"
     alrm_dt            = str((datetime.datetime.now() + datetime.timedelta(days= 1)).strftime(td_s_dt_dsply_frmt))
-    Collector          = DataCollector(skp_dwnld=True)
+    Collector          = DataCollector(skp_dwnld=False)
+    del Collector
 
 
     while True:
-
-        # Get The Current Time
-        cur_dt   =   str(datetime.datetime.now().strftime(td_s_dt_dsply_frmt))
-        cur_hr   =   int(datetime.datetime.now().strftime('%H'))
-        now      =   datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
+        # Create A New Object To Reduce Possibility Of Memory Leak & Define Needed Variables
+        Collector   = DataCollector(skp_dwnld=False)
+        cur_dt      =   str(datetime.datetime.now().strftime(td_s_dt_dsply_frmt))
+        cur_hr      =   int(datetime.datetime.now().strftime('%H'))
+        now         =   datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
 
         # Enter Main Logic, Is It Time To Collect Or Export Data?
         try:
@@ -56,7 +57,7 @@ def main():
             time.sleep(tm_delay)
 
         # Try To Conserve Memory
-        del cur_dt, cur_hr, now
+        del cur_dt, cur_hr, now, Collector
         gc.collect()
 
 
