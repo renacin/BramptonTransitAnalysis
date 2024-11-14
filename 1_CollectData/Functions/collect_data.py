@@ -64,10 +64,6 @@ class DataCollector:
             print(f"{now}: Invalid Host Name")
             sys.exit(1)
 
-        # # For Debugging
-        # if self.DEBUG_VAL == 1:
-        #     now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-        #     print(f"{now}: Operating On {socket.gethostname()}")
 
         # No Longer Need Socket Library
         del socket
@@ -782,6 +778,11 @@ class DataCollector:
         , today_date
         """
 
+        # For Debugging
+        if self.DEBUG_VAL == 1:
+            print(f"{datetime.now().strftime(self.td_l_dt_dsply_frmt)}: Starting To Compute Average Bus Speed")
+
+
         today_date = str((datetime.now() + timedelta(days=-30)).strftime(self.td_s_dt_dsply_frmt))
 
         # Find Files In Folder
@@ -799,6 +800,7 @@ class DataCollector:
 
         # Filter Data Based On Cleaned Date
         date_df = date_df[date_df["DATE"] >= new_filter_dt]
+        print(date_df)
 
 
         # Check To See If There Is Data To Use Return Also If Debugging Mode On Print Issue
