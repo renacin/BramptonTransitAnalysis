@@ -98,6 +98,14 @@ DB Update: Methodology 3
 	+ To reduce the memory overhead at any given moment I made sure to only import certain libraries when needed, and
 	  when not needed deleted. Will this cause unintended side-effects? Maybe, only time will tell.
 
+	+ UPDATE [2024-11-14] There was a weird behavior where a function was never running. For now I reverted back to the
+	  non child process version just to see if the code is working as intended.
+	+ Here is what I can see so far:
+		- Python Code    -> 44.5MB - 44.8MB,
+		- Command Prompt ->  1.0MB
+
+	+ What is I first create an object to download data, delete it. The for each iteration create a new object but don't download data. But use it to collect stuff?
+
 
 
 ## 1.3 (Logic) Estimate Arrival At Missing Points
@@ -109,4 +117,4 @@ DB Update: Methodology 3
 ## 2.0 (Logic) Logging Feature
 	+ Currently the code is setup to print out information if a Class variable is set to TRUE. However I want this to change.
 	+ I want it so if that Class variable is set to true it will write information to a text file for that day. This would be
-	  an easier way of logging data, and will not clog up the console window. 
+	  an easier way of logging data, and will not clog up the console window.
