@@ -56,7 +56,7 @@ def main():
             time.sleep(tm_delay)
 
         # Try To Conserve Memory
-        del cur_dt, cur_hr, td_dt_mx, now
+        del cur_dt, cur_hr, now
         gc.collect()
 
 
