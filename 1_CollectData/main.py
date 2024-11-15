@@ -15,6 +15,7 @@ def setup_folders():
     from Functions.collect_data import DataCollector
     Collector = DataCollector(skp_dwnld=True)
     del Collector, DataCollector
+    gc.collect()
 
 
 def collect_data():
@@ -22,6 +23,7 @@ def collect_data():
     Collector = DataCollector(skp_dwnld=True)
     Collector.get_bus_loc()
     del Collector, DataCollector
+    gc.collect()
 
 
 def export_data():
@@ -31,7 +33,7 @@ def export_data():
     Collector.xprt_data("ERROR", "ERROR_DB", "timestamp", True)
     Collector.frmt_speed_data()
     del Collector, DataCollector
-
+    gc.collect()
 
 # ----------------------------------------------------------------------------------------------------------------------
 
