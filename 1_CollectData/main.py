@@ -63,7 +63,7 @@ def main():
             if (cur_hr == alrm_hr and cur_dt == alrm_dt):
                 with ProcessPoolExecutor(max_workers = 1) as exe:
                     exe.submit(export_data)
-                time.sleep(10)
+                time.sleep(15)
                 alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days = 1)).strftime(td_s_dt_dsply_frmt))
 
             # If Not Just Collect Data
