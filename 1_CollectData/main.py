@@ -48,7 +48,7 @@ def main():
 
     # Setup Folders With Worker
     with ProcessPoolExecutor(max_workers = 1) as exe:
-        exe.submit(setup_folders)
+        wait([exe.submit(setup_folders)])
 
     while True:
         # Create A New Object To Reduce Possibility Of Memory Leak & Define Needed Variables
@@ -62,14 +62,14 @@ def main():
             # Is It Time To Export Data?
             if (cur_hr == alrm_hr and cur_dt == alrm_dt):
                 with ProcessPoolExecutor(max_workers = 1) as exe:
-                    exe.submit(export_data)
+                    wait([exe.submit(export_data)])
                 time.sleep(15)
                 alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days = 1)).strftime(td_s_dt_dsply_frmt))
 
             # If Not Just Collect Data
             else:
                 with ProcessPoolExecutor(max_workers = 1) as exe:
-                    exe.submit(collect_data)
+                    wait([exe.submit(collect_data)])
                 time.sleep(20)
 
 
