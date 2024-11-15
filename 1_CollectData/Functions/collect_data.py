@@ -6,7 +6,6 @@
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 import pandas as pd
-import numpy as np
 import requests
 import sqlite3
 import json
@@ -29,7 +28,7 @@ class DataCollector:
         self.td_s_dt_dsply_frmt = "%d-%m-%Y"
 
         # Set Debugging Value 1 = Print LOGS, 0 = Print Nothing
-        self.DEBUG_VAL = 0
+        self.DEBUG_VAL = 1
 
         # Need Socket Library Quickly
         import socket
@@ -471,6 +470,8 @@ class DataCollector:
             1) In some cases "&" is written as "&amp;"
         """
 
+        import numpy as np
+
         # Informed By Comparison, Make Changes
         parsed_df["STP_NM"] = parsed_df["STP_NM"].str.replace('&amp;', '&')
 
@@ -489,6 +490,7 @@ class DataCollector:
             print(f"{now}: Parsed DF Len: {len(parsed_df)}, Downloaded DF Len: {len(downld_df)}, Number Of Missing Stops: {len(misng_stps)}")
 
         # Remove Unneeded
+        del np
         return parsed_df
 
 
@@ -774,6 +776,9 @@ class DataCollector:
         , today_date
         """
 
+        # For Now Import Numpy
+        import numpy as np
+
         # For Debugging
         if self.DEBUG_VAL == 1:
             print(f"{datetime.now().strftime(self.td_l_dt_dsply_frmt)}: Starting To Compute Average Bus Speed")
@@ -831,3 +836,5 @@ class DataCollector:
         # For Debugging
         if self.DEBUG_VAL == 1:
             print(f"{datetime.now().strftime(self.td_l_dt_dsply_frmt)}: Exported Bus Route Average Speed DF")
+
+        del np
