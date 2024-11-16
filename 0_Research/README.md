@@ -98,20 +98,12 @@ DB Update: Methodology 3
 	+ To reduce the memory overhead at any given moment I made sure to only import certain libraries when needed, and
 	  when not needed deleted. Will this cause unintended side-effects? Maybe, only time will tell.
 
-	+ UPDATE [2024-11-14] There was a weird behavior where a function was never running. For now I reverted back to the
-	  non child process version just to see if the code is working as intended.
-	+ Here is what I can see so far:
-		- Python Code    -> 44.5MB - 44.8MB,
-		- Command Prompt ->  1.0MB
-
-	+ What is I first create an object to download data, delete it. The for each iteration create a new object but don't download data. But use it to collect stuff?
-
-
+	+ It looks like any weird behavior with the child process was because I wasn't making use of the wait() function with the ProcessPoolExecuter.
+	  Everything seems to be working fine.
 
 ## 1.3 (Logic) Estimate Arrival At Missing Points
 	+ Before we estimate the possible arrival times at bus stops between two bus stops that are not one-after the other,
 	  we must first start small and determine the average speed a bus might have been travelling during a given route.
-
 
 
 ## 2.0 (Logic) Logging Feature
