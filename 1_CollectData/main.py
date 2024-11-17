@@ -55,6 +55,7 @@ def main():
         wait([exe.submit(setup_folders)])
 
     while True:
+
         # Create A New Object To Reduce Possibility Of Memory Leak & Define Needed Variables
         cur_dt         =   str(datetime.datetime.now().strftime(td_s_dt_dsply_frmt))
         cur_hr         =   int(datetime.datetime.now().strftime('%H'))
