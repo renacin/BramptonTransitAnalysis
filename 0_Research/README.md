@@ -107,7 +107,7 @@ DB Update: Methodology 3
 	  we must first start small and determine the average speed a bus might have been travelling during a given route. All data points are considered,
 	  if there are not enough data points we do not delineate between days of the week, and use a general average.
 
-	+ How do we determine arrival times between observations
+	+ How do we determine arrival times between observations.
 
 
 ## 2.0 (Logic) Logging Feature
