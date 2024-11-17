@@ -805,21 +805,33 @@ class DataCollector:
 
 
         # If There Is Valid Data, Combine Files Into One Dataframe
-        needed_cols = ["route_id", "speed", "vehicle_id", "dt_colc"] # Read Back In "timestamp" When Ready
+        # Read Back In "timestamp" When Ready & "timestamp": np.int32,
+        needed_cols = ["route_id", "speed", "vehicle_id", "dt_colc"]
         def_d_types = {
                        "speed":                 np.float16,
-                       # "timestamp":             np.int32,
                        "vehicle_id":            np.int16
                        }
 
         # Create Main Large Dataframe
         df = pd.concat([pd.read_csv(path_, usecols = needed_cols, dtype = def_d_types) for path_ in [f"{self.out_dict['BUS_LOC']}{self.slash}{x}" for x in date_df["FILE_NAME"].tolist()]])
+        df["day_name"] = pd.to_datetime(df["dt_colc"]).dt.day_name()
+        df["day_num"] = pd.to_datetime(df["dt_colc"]).dt.dayofweek
+        del df["dt_colc"]
 
+        # Determine The Average Speed For Each Bus Route Irregardless Of Day Of The Week, How Many Observations?
+        avg_spd_gen = df.groupby(["route_id"], as_index=False).agg(avg_speed = ("speed", "mean"),
+                                                                   num_obs   = ("speed", "count")
+                                                                   )
+        avg_spd_gen["day_name"] = "Average"
+        avg_spd_gen["day_num"]  = 0
 
-        # Determine The Average Speed For Each Bus Route, How Many Observations?
-        avg_spd_df = df.groupby(["route_id"], as_index=False).agg(AVG_SPEED = ("speed", "mean"), NUM_OBS   = ("speed", "count"))
-        avg_spd_df = avg_spd_df.sort_values(["route_id"])
-
+        # Determine The Average Speed For Each Bus Route Irregardless Of Day Of The Week, How Many Observations?
+        avg_spd_day = df.groupby(["route_id", "day_name", "day_num"], as_index=False).agg(avg_speed = ("speed", "mean"),
+                                                                                          num_obs   = ("speed", "count")
+                                                                                          )
+        avg_spd_df = pd.concat([avg_spd_gen, avg_spd_day])
+        avg_spd_df = avg_spd_df.sort_values(["route_id", "day_num"])
+        del avg_spd_df["day_num"]
 
         # Export Data
         out_path = self.out_dict["BUS_SPEED"]

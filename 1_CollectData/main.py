@@ -36,6 +36,8 @@ def export_data():
     del Collector, DataCollector
     gc.collect()
 
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 
 # Define The Main Logic Of Data Collection Tool
@@ -46,6 +48,7 @@ def main():
     td_l_dt_dsply_frmt = "%d-%m-%Y %H:%M:%S"
     td_s_dt_dsply_frmt = "%d-%m-%Y"
     alrm_dt            = str((datetime.datetime.now() + datetime.timedelta(days = 1)).strftime(td_s_dt_dsply_frmt))
+
 
     # Setup Folders With Worker
     with ProcessPoolExecutor(max_workers = 1) as exe:
