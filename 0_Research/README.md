@@ -101,9 +101,13 @@ DB Update: Methodology 3
 	+ It looks like any weird behavior with the child process was because I wasn't making use of the wait() function with the ProcessPoolExecuter.
 	  Everything seems to be working fine.
 
+
 ## 1.3 (Logic) Estimate Arrival At Missing Points
 	+ Before we estimate the possible arrival times at bus stops between two bus stops that are not one-after the other,
-	  we must first start small and determine the average speed a bus might have been travelling during a given route.
+	  we must first start small and determine the average speed a bus might have been travelling during a given route. All data points are considered,
+	  if there are not enough data points we do not delineate between days of the week, and use a general average.
+
+	+ How do we determine arrival times between observations
 
 
 ## 2.0 (Logic) Logging Feature
