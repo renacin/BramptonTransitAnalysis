@@ -44,60 +44,56 @@ def export_data():
 def main():
 
 
-    export_data()
+    # Define Constants & Next Alarm Date Scheduled Maintenance Will Be The Next Day (+1) At 0300 AM
+    alrm_hr            = 3
+    td_l_dt_dsply_frmt = "%d-%m-%Y %H:%M:%S"
+    td_s_dt_dsply_frmt = "%d-%m-%Y"
+    alrm_dt            = str((datetime.datetime.now() + datetime.timedelta(days = 1)).strftime(td_s_dt_dsply_frmt))
 
 
-    #
-    # # Define Constants & Next Alarm Date Scheduled Maintenance Will Be The Next Day (+1) At 0300 AM
-    # alrm_hr            = 3
-    # td_l_dt_dsply_frmt = "%d-%m-%Y %H:%M:%S"
-    # td_s_dt_dsply_frmt = "%d-%m-%Y"
-    # alrm_dt            = str((datetime.datetime.now() + datetime.timedelta(days = 1)).strftime(td_s_dt_dsply_frmt))
-    #
-    #
-    # # Setup Folders With Worker
-    # with ProcessPoolExecutor(max_workers = 1) as exe:
-    #     wait([exe.submit(setup_folders)])
-    #
-    # while True:
-    #
-    #     # Create A New Object To Reduce Possibility Of Memory Leak & Define Needed Variables
-    #     cur_dt         =   str(datetime.datetime.now().strftime(td_s_dt_dsply_frmt))
-    #     cur_hr         =   int(datetime.datetime.now().strftime('%H'))
-    #     now            =   datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
-    #
-    #     # Enter Main Logic, Is It Time To Collect Or Export Data?
-    #     try:
-    #
-    #         # Is It Time To Export Data?
-    #         if (cur_hr == alrm_hr and cur_dt == alrm_dt):
-    #             with ProcessPoolExecutor(max_workers = 1) as exe:
-    #                 wait([exe.submit(export_data)])
-    #             time.sleep(15)
-    #             alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days = 1)).strftime(td_s_dt_dsply_frmt))
-    #
-    #         # If Not Just Collect Data
-    #         else:
-    #             with ProcessPoolExecutor(max_workers = 1) as exe:
-    #                 wait([exe.submit(collect_data)])
-    #             time.sleep(20)
-    #
-    #
-    #     # Catch Keyboard Interupt
-    #     except KeyboardInterrupt:
-    #         print(f"{now}: Keyboard Interrupt Error")
-    #         sys.exit(1)
-    #
-    #
-    #     # Catch All Other Errors
-    #     except Exception as e:
-    #         print(f"{now}: Logic Operation Error (Type - {e})")
-    #         time.sleep(10)
-    #
-    #
-    #     # Try To Conserve Memory
-    #     del cur_dt, cur_hr, now
-    #     gc.collect()
+    # Setup Folders With Worker
+    with ProcessPoolExecutor(max_workers = 1) as exe:
+        wait([exe.submit(setup_folders)])
+
+    while True:
+
+        # Create A New Object To Reduce Possibility Of Memory Leak & Define Needed Variables
+        cur_dt         =   str(datetime.datetime.now().strftime(td_s_dt_dsply_frmt))
+        cur_hr         =   int(datetime.datetime.now().strftime('%H'))
+        now            =   datetime.datetime.now().strftime(td_l_dt_dsply_frmt)
+
+        # Enter Main Logic, Is It Time To Collect Or Export Data?
+        try:
+
+            # Is It Time To Export Data?
+            if (cur_hr == alrm_hr and cur_dt == alrm_dt):
+                with ProcessPoolExecutor(max_workers = 1) as exe:
+                    wait([exe.submit(export_data)])
+                time.sleep(15)
+                alrm_dt = str((datetime.datetime.now() + datetime.timedelta(days = 1)).strftime(td_s_dt_dsply_frmt))
+
+            # If Not Just Collect Data
+            else:
+                with ProcessPoolExecutor(max_workers = 1) as exe:
+                    wait([exe.submit(collect_data)])
+                time.sleep(20)
+
+
+        # Catch Keyboard Interupt
+        except KeyboardInterrupt:
+            print(f"{now}: Keyboard Interrupt Error")
+            sys.exit(1)
+
+
+        # Catch All Other Errors
+        except Exception as e:
+            print(f"{now}: Logic Operation Error (Type - {e})")
+            time.sleep(10)
+
+
+        # Try To Conserve Memory
+        del cur_dt, cur_hr, now
+        gc.collect()
 
 
 # ----------------------------------------------------------------------------------------------------------------------

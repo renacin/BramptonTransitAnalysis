@@ -715,23 +715,23 @@ class DataCollector:
             df.to_csv(db_path, index=False)
             del df
 
-            # # Delete The SQL Table, See If That Helps Drop The Database Size?
-            # conn = sqlite3.connect(self.db_path)
-            # conn.execute(f"""DROP TABLE IF EXISTS {out_table}""")
-            # conn.commit()
-            # conn.close()
-            #
-            # # Write Over DB Table So It's Now Empty
-            # conn = sqlite3.connect(self.db_path)
-            # empty_df.to_sql(f"{out_table}", conn, if_exists="replace", index=False)
-            # conn.commit()
-            # conn.close()
-            #
-            # # We Need To Make Sure We Clean Up Everything, Run The Vacuum Command To Clean Up Temp Space
-            # conn = sqlite3.connect(self.db_path)
-            # conn.execute(f"""vacuum""")
-            # conn.commit()
-            # conn.close()
+            # Delete The SQL Table, See If That Helps Drop The Database Size?
+            conn = sqlite3.connect(self.db_path)
+            conn.execute(f"""DROP TABLE IF EXISTS {out_table}""")
+            conn.commit()
+            conn.close()
+
+            # Write Over DB Table So It's Now Empty
+            conn = sqlite3.connect(self.db_path)
+            empty_df.to_sql(f"{out_table}", conn, if_exists="replace", index=False)
+            conn.commit()
+            conn.close()
+
+            # We Need To Make Sure We Clean Up Everything, Run The Vacuum Command To Clean Up Temp Space
+            conn = sqlite3.connect(self.db_path)
+            conn.execute(f"""vacuum""")
+            conn.commit()
+            conn.close()
 
             # For Debugging
             if self.DEBUG_VAL == 1:
@@ -779,167 +779,71 @@ class DataCollector:
         # For Now Import Numpy
         import numpy as np
 
-        # This Is A Temporary Step, We Need To Iterate Through Each Day Of Data Collected For Bus Locs, Begining - 30 Days To Begining, Then Begining +1 - 30 Days To Begining +1, Etc ...
-        # We Need To Determine The Averages As If We Were Collecting More And More Data Each Day For Data Vizualization Purposes. This Will Be Deleted
+        today_date = str((datetime.now() + timedelta(days=-30)).strftime(self.td_s_dt_dsply_frmt))
 
         # Find Files In Folder
         out_path, date_df = self.__return_files_dates("BUS_LOC")
 
-        # Determine The Oldest Data In The Data Collected & Determine 30 Days Before
+        # Format File Data For Easier Manipulation
         date_df["DATE"] = date_df["DATE"].astype(str)
         date_df["DATE"] = pd.to_datetime(date_df["DATE"], format='%Y-%m-%d')
-        date_df["30DAYS_BEF"] = date_df["DATE"] + pd.Timedelta(days = -30)
+        date_df = date_df.sort_values(by="DATE")
+        date_df = date_df.reset_index()
+        del date_df["index"]
 
-        # Read All Bus Loc Data Into One Giant Pandas Dataframe
-        import glob
-        import os
+        # Format td_dt_mx For Easier Manipulation
+        new_filter_dt = pd.to_datetime(f'''{today_date.split("-")[-1]}-{today_date.split("-")[1]}-{today_date.split("-")[0]}''', format='%Y-%m-%d')
 
-        path = r'E:\STORAGE\BUS_LOC'
+        # Filter Data Based On Cleaned Date
+        date_df = date_df[date_df["DATE"] >= new_filter_dt]
 
-        # Get A List Of All Files In Storage Folder
-        frames = []
-        for f_nm in date_df["FILE_NAME"].tolist():
-            df = pd.read_csv(f"{path}\{f_nm}")
-            frames.append(df)
-
-        main_df = pd.concat(frames)
-        main_df = main_df[["route_id", "speed", "vehicle_id", "dt_colc"]]
-
-        # Starting With The First Date When Data Was Collected Make A New CSV With Average, Varaince, Standard Deviation, Etc...
-        # Get A Cut Of The Data For Observations
-        data_cut = []
-        for dt_, dt_m30 in zip(date_df["DATE"].tolist(), date_df["30DAYS_BEF"].tolist()):
-
-            # Filter Data To Time Range
-            df = main_df.copy()
-            df = df[(df["dt_colc"] <= str(dt_)   ) &
-                    (df["dt_colc"] >= str(dt_m30))
-                    ]
-
-            # Create Main Large Dataframe
-            df["day_name"] = pd.to_datetime(df["dt_colc"]).dt.day_name()
-            df["day_num"] = pd.to_datetime(df["dt_colc"]).dt.dayofweek
-            del df["dt_colc"]
+        # Check To See If There Is Data To Use Return Also If Debugging Mode On Print Issue
+        if date_df.empty:
+            if self.DEBUG_VAL == 1:
+                print(f"{datetime.now().strftime(self.td_l_dt_dsply_frmt)}: No Data To Determine Average Speed - Skipping Run")
+            return
 
 
-            # Determine The Average Speed For Each Bus Route Irregardless Of Day Of The Week, How Many Observations?
-            avg_spd_gen = df.groupby(["route_id"], as_index=False).agg(avg_speed = ("speed", "mean"),
-                                                                       std_speed = ("speed", "std"),
-                                                                       var_speed = ("speed", "var"),
-                                                                       num_obs   = ("speed", "count")
-                                                                       )
-            avg_spd_gen["day_name"] = "Average"
-            avg_spd_gen["day_num"]  = 0
+        # If There Is Valid Data, Combine Files Into One Dataframe
+        # Read Back In "timestamp" When Ready & "timestamp": np.int32,
+        needed_cols = ["route_id", "speed", "vehicle_id", "dt_colc"]
+        def_d_types = {
+                       "speed":                 np.float16,
+                       "vehicle_id":            np.int16
+                       }
 
-            # Determine The Average Speed For Each Bus Route Irregardless Of Day Of The Week, How Many Observations?
-            avg_spd_day = df.groupby(["route_id", "day_name", "day_num"], as_index=False).agg(avg_speed = ("speed", "mean"),
-                                                                                              std_speed = ("speed", "std"),
-                                                                                              var_speed = ("speed", "var"),
-                                                                                              num_obs   = ("speed", "count")
-                                                                                              )
-            avg_spd_df = pd.concat([avg_spd_gen, avg_spd_day])
-            avg_spd_df = avg_spd_df.sort_values(["route_id", "day_num"])
-            avg_spd_df = avg_spd_df.round(2)
-            del avg_spd_df["day_num"]
+        # Create Main Large Dataframe
+        df = pd.concat([pd.read_csv(path_, usecols = needed_cols, dtype = def_d_types) for path_ in [f"{self.out_dict['BUS_LOC']}{self.slash}{x}" for x in date_df["FILE_NAME"].tolist()]])
+        df["day_name"] = pd.to_datetime(df["dt_colc"]).dt.day_name()
+        df["day_num"] = pd.to_datetime(df["dt_colc"]).dt.dayofweek
+        del df["dt_colc"]
 
-            # Append Data Cut
-            data_cut.append(avg_spd_df[(avg_spd_df["route_id"] == "501-349") &
-                                       (avg_spd_df["day_name"] == "Average")
-                                       ])
+        # Determine The Average Speed For Each Bus Route Irregardless Of Day Of The Week, How Many Observations?
+        avg_spd_gen = df.groupby(["route_id"], as_index=False).agg(avg_speed = ("speed", "mean"),
+                                                                   std_speed = ("speed", "std"),
+                                                                   var_speed = ("speed", "var"),
+                                                                   num_obs   = ("speed", "count")
+                                                                   )
+        avg_spd_gen["day_name"] = "Average"
+        avg_spd_gen["day_num"]  = 0
 
-            # Export Data
-            out_path = self.out_dict["BUS_SPEED"]
+        # Determine The Average Speed For Each Bus Route Irregardless Of Day Of The Week, How Many Observations?
+        avg_spd_day = df.groupby(["route_id", "day_name", "day_num"], as_index=False).agg(avg_speed = ("speed", "mean"),
+                                                                                          std_speed = ("speed", "std"),
+                                                                                          var_speed = ("speed", "var"),
+                                                                                          num_obs   = ("speed", "count")
+                                                                                          )
+        avg_spd_df = pd.concat([avg_spd_gen, avg_spd_day])
+        avg_spd_df = avg_spd_df.sort_values(["route_id", "day_num"])
+        del avg_spd_df["day_num"]
 
-            dt_list = str(dt_).split(" ")
-            dt_list = dt_list[0].split("-")
-            dt_str  = f"{dt_list[2]}-{dt_list[1]}-{dt_list[0]}"
+        # Export Data
+        out_path = self.out_dict["BUS_SPEED"]
+        db_path = out_path + f"{self.slash}AVG_BUS_SPEED_{datetime.now().strftime(self.td_s_dt_dsply_frmt)}_M30DAYS.csv"
+        avg_spd_df.to_csv(db_path, index=False)
 
-            db_path = out_path + f"{self.slash}AVG_BUS_SPEED_{dt_str}_M30DAYS.csv"
-            avg_spd_df.to_csv(db_path, index=False)
+        # For Debugging
+        if self.DEBUG_VAL == 1:
+            print(f"{datetime.now().strftime(self.td_l_dt_dsply_frmt)}: Exported Bus Route Average Speed DF")
 
-            # For Testing
-            print(f"Completed: {dt_}")
-
-        data_cut = pd.concat(data_cut)
-        data_cut.to_csv("Testing.csv", index=False)
-
-        # Route: 501-349 (Overall - With Stops) Number Of Observations Vs Average Speed
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        #
-        # today_date = str((datetime.now() + timedelta(days=-30)).strftime(self.td_s_dt_dsply_frmt))
-        #
-        # # Find Files In Folder
-        # out_path, date_df = self.__return_files_dates("BUS_LOC")
-        #
-        # # Format File Data For Easier Manipulation
-        # date_df["DATE"] = date_df["DATE"].astype(str)
-        # date_df["DATE"] = pd.to_datetime(date_df["DATE"], format='%Y-%m-%d')
-        # date_df = date_df.sort_values(by="DATE")
-        # date_df = date_df.reset_index()
-        # del date_df["index"]
-        #
-        # # Format td_dt_mx For Easier Manipulation
-        # new_filter_dt = pd.to_datetime(f'''{today_date.split("-")[-1]}-{today_date.split("-")[1]}-{today_date.split("-")[0]}''', format='%Y-%m-%d')
-        #
-        # # Filter Data Based On Cleaned Date
-        # date_df = date_df[date_df["DATE"] >= new_filter_dt]
-        #
-        # # Check To See If There Is Data To Use Return Also If Debugging Mode On Print Issue
-        # if date_df.empty:
-        #     if self.DEBUG_VAL == 1:
-        #         print(f"{datetime.now().strftime(self.td_l_dt_dsply_frmt)}: No Data To Determine Average Speed - Skipping Run")
-        #     return
-        #
-        #
-        # # If There Is Valid Data, Combine Files Into One Dataframe
-        # # Read Back In "timestamp" When Ready & "timestamp": np.int32,
-        # needed_cols = ["route_id", "speed", "vehicle_id", "dt_colc"]
-        # def_d_types = {
-        #                "speed":                 np.float16,
-        #                "vehicle_id":            np.int16
-        #                }
-        #
-        # # Create Main Large Dataframe
-        # df = pd.concat([pd.read_csv(path_, usecols = needed_cols, dtype = def_d_types) for path_ in [f"{self.out_dict['BUS_LOC']}{self.slash}{x}" for x in date_df["FILE_NAME"].tolist()]])
-        # df["day_name"] = pd.to_datetime(df["dt_colc"]).dt.day_name()
-        # df["day_num"] = pd.to_datetime(df["dt_colc"]).dt.dayofweek
-        # del df["dt_colc"]
-        #
-        # # Determine The Average Speed For Each Bus Route Irregardless Of Day Of The Week, How Many Observations?
-        # avg_spd_gen = df.groupby(["route_id"], as_index=False).agg(avg_speed = ("speed", "mean"),
-        #                                                            num_obs   = ("speed", "count")
-        #                                                            )
-        # avg_spd_gen["day_name"] = "Average"
-        # avg_spd_gen["day_num"]  = 0
-        #
-        # # Determine The Average Speed For Each Bus Route Irregardless Of Day Of The Week, How Many Observations?
-        # avg_spd_day = df.groupby(["route_id", "day_name", "day_num"], as_index=False).agg(avg_speed = ("speed", "mean"),
-        #                                                                                   num_obs   = ("speed", "count")
-        #                                                                                   )
-        # avg_spd_df = pd.concat([avg_spd_gen, avg_spd_day])
-        # avg_spd_df = avg_spd_df.sort_values(["route_id", "day_num"])
-        # del avg_spd_df["day_num"]
-        #
-        # # Export Data
-        # out_path = self.out_dict["BUS_SPEED"]
-        # db_path = out_path + f"{self.slash}AVG_BUS_SPEED_{datetime.now().strftime(self.td_s_dt_dsply_frmt)}_M30DAYS.csv"
-        # avg_spd_df.to_csv(db_path, index=False)
-        #
-        # # For Debugging
-        # if self.DEBUG_VAL == 1:
-        #     print(f"{datetime.now().strftime(self.td_l_dt_dsply_frmt)}: Exported Bus Route Average Speed DF")
-        #
-        # del np
+        del np
