@@ -44,10 +44,7 @@ def export_data():
 def main():
 
 
-    # Setup Folders With Worker
-    with ProcessPoolExecutor(max_workers = 1) as exe:
-        wait([exe.submit(export_data)])
-
+    export_data()
 
 
     #
