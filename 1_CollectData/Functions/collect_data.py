@@ -715,23 +715,23 @@ class DataCollector:
             df.to_csv(db_path, index=False)
             del df
 
-            # Delete The SQL Table, See If That Helps Drop The Database Size?
-            conn = sqlite3.connect(self.db_path)
-            conn.execute(f"""DROP TABLE IF EXISTS {out_table}""")
-            conn.commit()
-            conn.close()
-
-            # Write Over DB Table So It's Now Empty
-            conn = sqlite3.connect(self.db_path)
-            empty_df.to_sql(f"{out_table}", conn, if_exists="replace", index=False)
-            conn.commit()
-            conn.close()
-
-            # We Need To Make Sure We Clean Up Everything, Run The Vacuum Command To Clean Up Temp Space
-            conn = sqlite3.connect(self.db_path)
-            conn.execute(f"""vacuum""")
-            conn.commit()
-            conn.close()
+            # # Delete The SQL Table, See If That Helps Drop The Database Size?
+            # conn = sqlite3.connect(self.db_path)
+            # conn.execute(f"""DROP TABLE IF EXISTS {out_table}""")
+            # conn.commit()
+            # conn.close()
+            #
+            # # Write Over DB Table So It's Now Empty
+            # conn = sqlite3.connect(self.db_path)
+            # empty_df.to_sql(f"{out_table}", conn, if_exists="replace", index=False)
+            # conn.commit()
+            # conn.close()
+            #
+            # # We Need To Make Sure We Clean Up Everything, Run The Vacuum Command To Clean Up Temp Space
+            # conn = sqlite3.connect(self.db_path)
+            # conn.execute(f"""vacuum""")
+            # conn.commit()
+            # conn.close()
 
             # For Debugging
             if self.DEBUG_VAL == 1:
