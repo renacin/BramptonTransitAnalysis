@@ -107,7 +107,19 @@ DB Update: Methodology 3
 	  we must first start small and determine the average speed a bus might have been travelling during a given route. All data points are considered,
 	  if there are not enough data points we do not delineate between days of the week, and use a general average.
 
+	+ Below you can see general statistics for the 501-349 Bus Route. We can observe that all three main metrics (average speed, standard deviation, and variance)
+	  drop as we collect more data. It can be observed that around 100'000 is when we start to reach an equilibrium point. I did try to remove zeros from the data,
+	  but I didn't produce the results I expected; a lot of variance in the observations for not much confidence in the new information derived.
+	  When a bus makes a stop that's considered in it's overall speed; every data point should be considered.
+
+Bus Speed Observations: Including Zero Speed Observations
+<p align="center">
+<img src="https://github.com/renacin/BramptonTransitAnalysis/blob/master/0_Research/Images/501-349_Statistics_Overtime.PNG" width="500"/>
+</p>
+
+
 	+ How do we determine arrival times between observations.
+
 
 
 ## 2.0 (Logic) Logging Feature
