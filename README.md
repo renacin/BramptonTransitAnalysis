@@ -16,7 +16,7 @@ a different set of skills, always learning something new.
 
 And so here we are, I think this is my 5th attempt at this project - and it has now morphed into a pet project where I am
 trying to create a system that not only continuously gather's data in the most efficient way possible - but also provides analytics
-of the day before's transit network.
+of the day before transit network.
 
 
 ## Purpose Of This Project:
@@ -60,8 +60,6 @@ of the day before's transit network.
 	+ File Size Got Really Big, Really Quick. Look Into Appropriate Datatypes.
 	+ Possible: https://sqlite.org/datatype3.html
 	+ Solution: Dynamic Caching Of U_IDs Stored In 10 Min Time Period
-
-
 
 
 ## Possible Research Questions:
