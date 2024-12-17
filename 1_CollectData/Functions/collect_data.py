@@ -871,17 +871,33 @@ class DataCollector:
         import numpy as np
 
         # We Need The Most Recent Bus Speed Data (If Less Than X Days Old & Yesterday's Bus Locations)
-        today_date = str((datetime.now() + timedelta(days=-30)).strftime(self.td_s_dt_dsply_frmt))
+        day_before = str((datetime.now() + timedelta(days=-0)).strftime(self.td_s_dt_dsply_frmt))
+        day_before = datetime.strptime(day_before,'%d-%m-%Y')
 
-        # Find Files In Folder
+        # Find Files In Both Bus Loc & Bus Speed Folders
         bus_loc_out_path, bus_loc_date_df = self.__return_files_dates("BUS_LOC")
         bus_spd_out_path, bus_spd_date_df = self.__return_files_dates("BUS_SPEED")
 
+        # Format Date Column For Each Dataframe
+        bus_loc_date_df["DATE"] = bus_loc_date_df["DATE"].astype(str)
+        bus_loc_date_df["DATE"] = pd.to_datetime(bus_loc_date_df["DATE"], format='%Y-%m-%d')
+        bus_loc_date_df = bus_loc_date_df[bus_loc_date_df["DATE"] >= f"{day_before.year}-{day_before.month}-{day_before.day}"]
+
+        bus_spd_date_df["DATE"] = bus_spd_date_df["DATE"].astype(str)
+        bus_spd_date_df["DATE"] = pd.to_datetime(bus_spd_date_df["DATE"], format='%Y-%m-%d')
+        bus_spd_date_df = bus_spd_date_df[bus_spd_date_df["DATE"] >= f"{day_before.year}-{day_before.month}-{day_before.day}"]
+
+        # If A Bus Location & Speed File Wasn't Generated The Day Before Skip Today's Data Formatting
+        if len(bus_spd_date_df) == 0 | len(bus_loc_date_df) == 0:
+            if self.DEBUG_VAL == 1:
+                print(f"{datetime.now().strftime(self.td_l_dt_dsply_frmt)}: No Data To Format Bus Locations")
+                return
+
+        # Else Perform Bus Formatting
         print(bus_loc_date_df)
         print(bus_spd_date_df)
         print(bus_loc_out_path)
         print(bus_spd_out_path)
-
 
 
 
