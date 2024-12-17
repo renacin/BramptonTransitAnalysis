@@ -753,12 +753,21 @@ class DataCollector:
         import os
 
         # Navigate To Data Folder | Get All Appropriate Files
+        var_name = out_path
         out_path = self.out_dict[out_path]
         dir_list = [x for x in os.listdir(out_path) if ".csv" in x]
         df = pd.DataFrame(dir_list, columns=['FILE_NAME'])
 
+        if var_name == "BUS_LOC":
+            df["DATE"] = df["FILE_NAME"].str.split('_').str[-1]
+
+        elif var_name == "BUS_SPEED":
+            df["DATE"] = df["FILE_NAME"].str.split('_').str[3]
+
+        else:
+            raise ValueError
+
         # Create A Dataframe With The Time The File Was Created & Output
-        df["DATE"] = df["FILE_NAME"].str.split('_').str[-1]
         df["DATE"] = df["DATE"].str.replace(".csv", "", regex=False)
         df["DATE"] = pd.to_datetime(df["DATE"], format = self.td_s_dt_dsply_frmt)
 
@@ -851,12 +860,46 @@ class DataCollector:
 
 
     # -------------------------- Public Function 3 -----------------------------
-    def frmt_speed_data(self):
+    def frmt_bus_data(self):
         """
-        When called, this function will read 30 days worth of data from today's date.
-        Using the bus data collected, it will determine the average speed for each route.
-        If no data is collected this function will not run.
+        When called, this function will use the most recent bus location data, and
+        the most speed data last derived, to determine the arrival time in between
+        recorded bus locations. If no data is collected this function will not run.
         """
 
         # For Now Import Numpy
         import numpy as np
+
+        # We Need The Most Recent Bus Speed Data (If Less Than X Days Old & Yesterday's Bus Locations)
+        today_date = str((datetime.now() + timedelta(days=-30)).strftime(self.td_s_dt_dsply_frmt))
+
+        # Find Files In Folder
+        bus_loc_out_path, bus_loc_date_df = self.__return_files_dates("BUS_LOC")
+        bus_spd_out_path, bus_spd_date_df = self.__return_files_dates("BUS_SPEED")
+
+        print(bus_loc_date_df)
+        print(bus_spd_date_df)
+        print(bus_loc_out_path)
+        print(bus_spd_out_path)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        #
