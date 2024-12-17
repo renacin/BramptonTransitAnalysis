@@ -4,7 +4,7 @@
 ## Introduction:
 Originally, I wanted this project to be a test of my data acquisition, and storage skills.
 Can I parse data from a website, and store it effectively in some sort of data base? Turns out I can.
-Developing a live-ish database was fun, and quite cool. Seeing the database grow in size every day was neat.
+Developing a live database was fun, and quite cool. Seeing the database grow in size every day was neat.
 
 Having all of that data, it was inevitable that I would try to analyze it.
 And so this project then turned into a data analytics attempt. Can I discern patterns from the data that I collected?

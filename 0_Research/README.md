@@ -118,7 +118,8 @@ Bus Speed Observations: Including Zero Speed Observations
 </p>
 
 
-	+ How do we determine arrival times between observations.
+	+ How do we determine arrival times between observations. I'm going to start out small and reuse the original bus location interpretation methodology.
+	+ Hopefully, by using a more accurate metric of bus speed, we can determine more accurate arrival times for each bus.
 
 
 
