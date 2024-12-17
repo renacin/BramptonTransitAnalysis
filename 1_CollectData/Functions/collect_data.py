@@ -773,7 +773,6 @@ class DataCollector:
         When called, this function will read 30 days worth of data from today's date.
         Using the bus data collected, it will determine the average speed for each route.
         If no data is collected this function will not run.
-        , today_date
         """
 
         # For Now Import Numpy
@@ -847,3 +846,17 @@ class DataCollector:
             print(f"{datetime.now().strftime(self.td_l_dt_dsply_frmt)}: Exported Bus Route Average Speed DF")
 
         del np
+
+
+
+
+    # -------------------------- Public Function 3 -----------------------------
+    def frmt_speed_data(self):
+        """
+        When called, this function will read 30 days worth of data from today's date.
+        Using the bus data collected, it will determine the average speed for each route.
+        If no data is collected this function will not run.
+        """
+
+        # For Now Import Numpy
+        import numpy as np
