@@ -121,6 +121,7 @@ Bus Speed Observations: Including Zero Speed Observations
 	+ How do we determine arrival times between observations. I'm going to start out small and reuse the original bus location interpretation methodology.
 	+ Hopefully, by using a more accurate metric of bus speed, we can determine more accurate arrival times for each bus.
 	+ We need to collect a lot of data before we can begin to validate the process that we recreated. Do the output data make sense?
+	+ Will all of this make sense? Am I doing this right? Ughhh, the doubt is setting in. When will this project end.
 
 
 
