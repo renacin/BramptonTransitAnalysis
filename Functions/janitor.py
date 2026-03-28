@@ -12,8 +12,10 @@ import time
 import math
 import socket
 import sqlite3
-import urllib.request
+import requests
 import subprocess
+import urllib.request
+from bs4 import BeautifulSoup
 import numpy as np
 import pandas as pd
 from datetime import datetime
@@ -50,6 +52,8 @@ class Janitor:
         self.__define_paths()
         self.__create_folders()
         self.__db_check()
+        self.__get_bus_stops()
+        print(self.__get_rts())
 
 
     # -------------------- Private Function #1 ---------------------------------
@@ -193,6 +197,130 @@ class Janitor:
         except sqlite3.OperationalError as e:
             print(e)
             sys.exit(1)
+
+
+
+    # -------------------------- Private Function 3  ----------------------------
+    def __get_bus_stops(self):
+        """ On instantiation this function will be called. Using Brampton's Open
+        Data API Link, Download Bus Stop Data To SQLite3 Database. This function
+        should only be run on instantiation. """
+
+        # Find Bus Stops That Are Located At A Main Terminal, Find The Associated Main Bus Terminal
+        # Columns Needed stop_id where value is non-numeric, and parent_station where value is not null
+        # Find Main Bus Stops In Different Location Types
+        bus_stops = pd.read_csv(self.bus_stops_url)
+        
+        parent_bus_terminals = bus_stops[~bus_stops["stop_id"].str.isnumeric()]
+        stops_in_terminals = bus_stops[~bus_stops["parent_station"].isnull()]
+        stops_not_terminals = bus_stops[bus_stops["parent_station"].isnull() & bus_stops["stop_id"].str.isnumeric()]
+
+        # Created A Cleaned Station Name, If Bus Stop Located In Parent Station
+        conn = sqlite3.connect(":memory:")
+        parent_bus_terminals.to_sql("parent_bus_terminals", conn, index=False)
+        stops_in_terminals.to_sql("stops_in_terminals",     conn, index=False)
+        stops_not_terminals.to_sql("stops_not_terminals",   conn, index=False)
+
+        sql_query = f'''
+        -- Step #1: Left Join Parent Stop Information To Bus Terminals In Parent Station
+        WITH
+        S1 AS (
+        SELECT  A.*,
+        		B.STOP_NAME AS CLEANED_STOP_NAME,
+        		B.STOP_LAT AS CLEANED_STOP_LAT,
+        		B.STOP_LON AS CLEANED_STOP_LON
+
+        FROM stops_in_terminals AS A
+        LEFT JOIN parent_bus_terminals as B
+        ON (A.parent_station = B.stop_id)
+        ),
+
+        -- Step #2: Concat Other Terminals Not Found In Main Bus Stations
+        S2 AS (
+        SELECT
+        	A.*,
+        	'-'	AS CLEANED_STOP_NAME,
+        	'-'	AS CLEANED_STOP_LAT,
+        	'-'	AS CLEANED_STOP_LON
+
+        FROM stops_not_terminals AS A
+
+        UNION ALL
+
+        SELECT B.*
+        FROM S1 AS B
+        )
+
+        -- Step #3: Clean Up Table For Easier Usage Later Down The Line
+        SELECT
+        	A.*,
+
+        	CASE WHEN A.CLEANED_STOP_NAME = '-'
+        		 THEN A.STOP_NAME
+        		 ELSE A.CLEANED_STOP_NAME
+        	END AS CLEANED_STOP_NAME_,
+
+        	CASE WHEN A.CLEANED_STOP_LAT = '-'
+        		 THEN A.STOP_LAT
+        		 ELSE A.CLEANED_STOP_LAT
+        	END AS CLEANED_STOP_LAT_,
+
+        	CASE WHEN A.CLEANED_STOP_LON = '-'
+        		 THEN A.STOP_LON
+        		 ELSE A.CLEANED_STOP_LON
+        	END AS CLEANED_STOP_LON_
+
+        FROM S2 AS A
+        '''
+        bus_stops = pd.read_sql_query(sql_query, conn)
+
+        # Drop temporary columns
+        bus_stops = bus_stops.drop(columns=["CLEANED_STOP_NAME", "CLEANED_STOP_LAT", "CLEANED_STOP_LON"])
+
+        # Save to CSV
+        dt_string = datetime.now().strftime(self.td_s_dt_dsply_frmt)
+        out_path = f"{self.out_dict['BUS_STP']}/BUS_STP_DATA_{dt_string}.csv"
+        bus_stops.to_csv(out_path, index=False)
+
+        # Log export
+        now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
+        print(f"{now}: Exported Bus Stop Data")
+
+        return bus_stops
+    
+
+
+    # -------------------------- Private Function 4  ---------------------------
+    def __get_rts(self):
+        """
+        Given a URL, this function navigates to Brampton Transit's Routes & Map Page,
+        parses all hrefs related to routes, and returns a pandas dataframe with the
+        scraped data.
+        """
+
+        # Navigate To WebPage & Grab HTML Data
+        page = requests.get(self.bus_routes_url )
+        soup = BeautifulSoup(page.content, "html.parser")
+
+        # Parse All HTML Data, Find All HREF Tags
+        rt_data = []
+        for tag in soup.find_all('a', href=True):
+            str_ref = str(tag)
+            if "https://www.triplinx.ca/en/route-schedules/6/RouteSchedules/" in str_ref:
+                for var in ['<a href="', '</a>']:
+                    str_ref = str_ref.replace(var, "")
+
+                # Parse Out Route Name, Direction, Group, Link, Etc...
+                raw_link, dir = str_ref.split('">')
+                link = raw_link.split('?')[0]
+                full_data = [link + "#trips", dir] + link.split("/")[7:10]
+                rt_data.append(full_data)
+
+        # Return A Pandas Dataframe With Route Data
+        return pd.DataFrame(rt_data, columns=["RT_LINK", "RT_DIR", "RT_GRP", "RT_GRP_NUM", "RT_NAME_RAW"])
+
+
+
 
 
 
