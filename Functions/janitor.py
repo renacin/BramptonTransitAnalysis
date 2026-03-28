@@ -1,6 +1,6 @@
 # Name:                                            Renacin Matadeen
-# Date:                                               03/03/2024
-# Title                           Main Logic Of Data Collector: Version 2 Memory Optimized?
+# Date:                                               03/028/2026
+# Title                           Main Logic Of Data Janitor: Version 3 Memory Optimized?
 #
 # ----------------------------------------------------------------------------------------------------------------------
 import gc
@@ -12,10 +12,8 @@ import time
 import math
 import socket
 import sqlite3
-import requests
 import subprocess
 import urllib.request
-from bs4 import BeautifulSoup
 import numpy as np
 import pandas as pd
 from datetime import datetime
@@ -34,16 +32,13 @@ class Janitor:
     def __init__(self):
         """ This function will run when the DataCollector Class is instantiated """
 
-        # Internalize Needed URLs: Bus Location API, Bus Routes, Bus Stops
-        self.bus_routes_url = r"https://www1.brampton.ca/EN/residents/transit/plan-your-trip/Pages/Schedules-and-Maps.aspx"
-        self.bus_stops_url  = r"https://opendata.arcgis.com/api/v3/datasets/1c9869fd805e45339a9e3373fc10ce08_0/downloads/data?format=csv&spatialRefId=3857&where=1%3D1"
-        
         # Check To See If Appropriate Sub Folders Exist, Where Are We Writting Data?
         self.out_dict = {}
 
         # Datetime Variables
         self.td_l_dt_dsply_frmt = "%d-%m-%Y %H:%M:%S"
         self.td_s_dt_dsply_frmt = "%d-%m-%Y"
+        print(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Janitor Running!")
 
 
         # Find What Operating System And Create A Temp Working Space In Downloads Folder
@@ -53,7 +48,14 @@ class Janitor:
         self.__create_folders()
         self.__db_check()
         self.__get_bus_stops()
-        print(self.__get_rts())
+        self.__get_gtfs_data()
+
+
+
+
+
+
+
 
 
     # -------------------- Private Function #1 ---------------------------------
@@ -89,26 +91,21 @@ class Janitor:
     def __define_paths(self):
         """ Given The Validity Of Downloads Folder Define Needed Paths For Each Folder (OS Specific) """
 
-        # If *UNIX Based
-        if self.op_sys in ["MacOS", "Linux"]:
-            db_out_path          = fr"{self.dwnld_path}/BramptonTransitAnalysis/3_Data"
-            self.db_folder       = db_out_path
-            self.csv_out_path    = fr"{self.dwnld_path}/BramptonTransitAnalysis/4_Storage"
-            self.db_path         = db_out_path + fr"/DataStorage.db"
-            self.rfresh_tkn_path = fr"{self.dwnld_path}/DropboxInfo/GrabToken.sh"
-
-        # If Windows Based
-        elif self.op_sys in ["Windows"]:
-            db_out_path          = fr"{self.dwnld_path}\BramptonTransitAnalysis\3_Data"
-            self.db_folder       = db_out_path
-            self.csv_out_path    = fr"{self.dwnld_path}\BramptonTransitAnalysis\4_Storage"
-            self.db_path         = db_out_path + fr"\DataStorage.db"
-            self.rfresh_tkn_path = fr"{self.dwnld_path}\DropboxInfo\GrabToken.sh"
-
-        # Else Throw An Error
+        # Backslash Or Forward Slash?
+        if   self.op_sys in ["MacOS", "Linux"]: self.fldr_sep  = "/"
+        elif self.op_sys in ["Windows"]:        self.fldr_sep  = "\\"
         else:
             print(f"{datetime.now().strftime(self.td_l_dt_dsply_frmt)}: [ERROR] Can't Create Folders")
             sys.exit(1)
+
+        # Create Folders
+        sp                   = self.fldr_sep
+        db_out_path          = fr"{self.dwnld_path}{sp}BramptonTransitAnalysis{sp}3_Data"
+        self.db_folder       = db_out_path
+        self.db_path         = db_out_path + fr"{sp}DataStorage.db"
+        self.rfresh_tkn_path = fr"{self.dwnld_path}{sp}DropboxInfo/GrabToken.sh"
+        self.csv_out_path    = fr"{self.dwnld_path}{sp}BramptonTransitAnalysis{sp}4_Storage"
+        self.rfresh_tkn_path = fr"{self.dwnld_path}{sp}DropboxInfo/GrabToken.sh"
 
 
 
@@ -121,11 +118,16 @@ class Janitor:
             os.makedirs(self.db_folder)
 
         # In The Out Directory Provided See If The Appropriate Sub Folders Exist!
-        for fldr_nm in ['BUS_STP', 'BUS_LOC', 'FRMTD_DATA', 'BUS_SPEED', 'GRAPHICS', 'ERROR']:
-            dir_chk = f"{self.csv_out_path}/{fldr_nm}"
+        sp = self.fldr_sep
+        for fldr_nm in ['GTFS', 'BUS_STP', 'BUS_LOC', 'FRMTD_DATA', 'BUS_SPEED', 'GRAPHICS', 'ERROR']:
+            dir_chk = fr"{self.csv_out_path}{sp}{fldr_nm}"
             self.out_dict[fldr_nm] = dir_chk 
             if not os.path.exists(dir_chk):
                 os.makedirs(dir_chk)
+
+        # Log export
+        print(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Folders Prepared")
+
 
 
 
@@ -199,6 +201,11 @@ class Janitor:
             sys.exit(1)
 
 
+        # Log export
+        print(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Databases Ready")
+
+
+
 
     # -------------------------- Private Function 3  ----------------------------
     def __get_bus_stops(self):
@@ -209,11 +216,12 @@ class Janitor:
         # Find Bus Stops That Are Located At A Main Terminal, Find The Associated Main Bus Terminal
         # Columns Needed stop_id where value is non-numeric, and parent_station where value is not null
         # Find Main Bus Stops In Different Location Types
-        bus_stops = pd.read_csv(self.bus_stops_url)
+        self.bus_stops_url = r"https://opendata.arcgis.com/api/v3/datasets/1c9869fd805e45339a9e3373fc10ce08_0/downloads/data?format=csv&spatialRefId=3857&where=1%3D1"
+        bus_stops          = pd.read_csv(self.bus_stops_url)
         
         parent_bus_terminals = bus_stops[~bus_stops["stop_id"].str.isnumeric()]
-        stops_in_terminals = bus_stops[~bus_stops["parent_station"].isnull()]
-        stops_not_terminals = bus_stops[bus_stops["parent_station"].isnull() & bus_stops["stop_id"].str.isnumeric()]
+        stops_in_terminals   = bus_stops[~bus_stops["parent_station"].isnull()]
+        stops_not_terminals  = bus_stops[bus_stops["parent_station"].isnull() & bus_stops["stop_id"].str.isnumeric()]
 
         # Created A Cleaned Station Name, If Bus Stop Located In Parent Station
         conn = sqlite3.connect(":memory:")
@@ -278,46 +286,61 @@ class Janitor:
         bus_stops = bus_stops.drop(columns=["CLEANED_STOP_NAME", "CLEANED_STOP_LAT", "CLEANED_STOP_LON"])
 
         # Save to CSV
+        sp = self.fldr_sep
         dt_string = datetime.now().strftime(self.td_s_dt_dsply_frmt)
-        out_path = f"{self.out_dict['BUS_STP']}/BUS_STP_DATA_{dt_string}.csv"
+        out_path = f"{self.out_dict['BUS_STP']}{sp}BUS_STP_DATA_{dt_string}.csv"
         bus_stops.to_csv(out_path, index=False)
 
         # Log export
-        now = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-        print(f"{now}: Exported Bus Stop Data")
+        print(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Exported Bus Stop Data")
 
+        # Return Data
         return bus_stops
     
 
 
     # -------------------------- Private Function 4  ---------------------------
-    def __get_rts(self):
+    def __get_gtfs_data(self):
         """
-        Given a URL, this function navigates to Brampton Transit's Routes & Map Page,
-        parses all hrefs related to routes, and returns a pandas dataframe with the
-        scraped data.
+        When run this function will navigate to the City of Brampton's GTFS data repository
+        and download all needed data.
         """
 
-        # Navigate To WebPage & Grab HTML Data
-        page = requests.get(self.bus_routes_url )
-        soup = BeautifulSoup(page.content, "html.parser")
+        # Import Needed Libaries
+        import requests
+        import shutil
 
-        # Parse All HTML Data, Find All HREF Tags
-        rt_data = []
-        for tag in soup.find_all('a', href=True):
-            str_ref = str(tag)
-            if "https://www.triplinx.ca/en/route-schedules/6/RouteSchedules/" in str_ref:
-                for var in ['<a href="', '</a>']:
-                    str_ref = str_ref.replace(var, "")
+        # Internalize URL, And Use Requests To Get Data
+        self.gtfs_url = r'https://www.arcgis.com/sharing/rest/content/items/a355aabd5a8c490186bdce559c9c75fb/data'
+        response = requests.get(self.gtfs_url)
 
-                # Parse Out Route Name, Direction, Group, Link, Etc...
-                raw_link, dir = str_ref.split('">')
-                link = raw_link.split('?')[0]
-                full_data = [link + "#trips", dir] + link.split("/")[7:10]
-                rt_data.append(full_data)
+        # Define Needed Variables First
+        sp = self.fldr_sep
+        zip_path    = f"{self.csv_out_path}{sp}GTFS{sp}GTFS.zip"
+        foldr_path  = f"{self.csv_out_path}{sp}GTFS"
+        foldr2_path = f"{self.csv_out_path}{sp}GTFS{sp}GTFS"
 
-        # Return A Pandas Dataframe With Route Data
-        return pd.DataFrame(rt_data, columns=["RT_LINK", "RT_DIR", "RT_GRP", "RT_GRP_NUM", "RT_NAME_RAW"])
+        # Try To Get GTFS Zip Data
+        if response.status_code == 200:
+            with open(zip_path, 'wb') as f:
+                f.write(response.content)
+
+            try:
+                # Extract Data
+                shutil.unpack_archive(zip_path, foldr_path)
+                print(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Extracted GTFS Data")
+
+                # Remove Unneeded Files & Folders
+                try:
+                    os.remove(zip_path)
+                except OSError as e:
+                    raise Exception(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: [ERROR] Could Not Remove Zip")
+            
+            except shutil.ReadError as e:
+                raise Exception(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: [ERROR] Could Not Extract GTFS Data")
+
+        else:
+            raise Exception(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: [ERROR] Could Not Extract GTFS Data")
 
 
 
