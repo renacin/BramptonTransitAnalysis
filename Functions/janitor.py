@@ -24,12 +24,12 @@ warnings.filterwarnings("ignore")
 
 
 
-class Janitor:
+class Janitor():
     """ This class will set up databases, perform maintenance, and ensure working order of system  """
 
 
     # -------------------- Functions Run On Instantiation ----------------------
-    def __init__(self):
+    def __init__(self, log_level = 0):
         """ This function will run when the DataCollector Class is instantiated """
 
         # Check To See If Appropriate Sub Folders Exist, Where Are We Writting Data?
@@ -38,7 +38,11 @@ class Janitor:
         # Datetime Variables
         self.td_l_dt_dsply_frmt = "%d-%m-%Y %H:%M:%S"
         self.td_s_dt_dsply_frmt = "%d-%m-%Y"
-        print(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Janitor Running!")
+
+        # Print For Logging
+        self.log_level = log_level
+        if self.log_level == 1:
+            print(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Janitor Running!")
 
 
         # Find What Operating System And Create A Temp Working Space In Downloads Folder
@@ -49,12 +53,6 @@ class Janitor:
         self.__db_check()
         self.__get_bus_stops()
         self.__get_gtfs_data()
-
-
-
-
-
-
 
 
 
@@ -126,7 +124,8 @@ class Janitor:
                 os.makedirs(dir_chk)
 
         # Log export
-        print(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Folders Prepared")
+        if self.log_level == 1:
+            print(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Folders Prepared")
 
 
 
@@ -202,12 +201,13 @@ class Janitor:
 
 
         # Log export
-        print(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Databases Ready")
+        if self.log_level == 1:
+            print(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Databases Ready")
 
 
 
 
-    # -------------------------- Private Function 3  ----------------------------
+    # -------------------------- Private Function 6  ----------------------------
     def __get_bus_stops(self):
         """ On instantiation this function will be called. Using Brampton's Open
         Data API Link, Download Bus Stop Data To SQLite3 Database. This function
@@ -292,14 +292,16 @@ class Janitor:
         bus_stops.to_csv(out_path, index=False)
 
         # Log export
-        print(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Exported Bus Stop Data")
+        if self.log_level == 1:
+            print(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Exported Bus Stop Data")
 
         # Return Data
         return bus_stops
     
 
 
-    # -------------------------- Private Function 4  ---------------------------
+
+    # -------------------------- Private Function 7  ---------------------------
     def __get_gtfs_data(self):
         """
         When run this function will navigate to the City of Brampton's GTFS data repository
@@ -328,7 +330,8 @@ class Janitor:
             try:
                 # Extract Data
                 shutil.unpack_archive(zip_path, foldr_path)
-                print(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Extracted GTFS Data")
+                if self.log_level == 1:
+                    print(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Extracted GTFS Data")
 
                 # Remove Unneeded Files & Folders
                 try:
@@ -346,9 +349,16 @@ class Janitor:
 
 
 
+    # -------------------- Private Function #8 ---------------------------------
+    def __create_routes(self):
+        """ We Need To Determine The Path At Which Each Route Takes (Preferably With Next Bus Stop Name) """
+        pass
+
+
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 
 # Entry Point Into Python Code (For Testing!)
 if __name__ == "__main__":
-    janitor = Janitor()
+    janitor = Janitor(log_level = 1)
