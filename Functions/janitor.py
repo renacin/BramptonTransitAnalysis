@@ -35,8 +35,15 @@ class Janitor():
             "STOP_TIMES":     ["trip_id", "arrival_time", "departure_time", "stop_id", "stop_sequence", "pickup_type", "drop_off_type", "timepoint", "feed_version"]
         }
 
-        # Store All Output Locations
-        self.out_dict = {}
+        # Define All Needed Paths
+        self.user_path       = os.path.expanduser('~')
+        self.dwnld_path      = os.path.join(os.path.expanduser('~'), 'Downloads')
+        db_out_path          = os.path.join(self.dwnld_path, "BramptonTransitAnalysis", "3_Data")
+        self.db_folder       = db_out_path
+        self.db_path         = os.path.join(db_out_path, "DataStorage.db")
+        self.csv_out_path    = os.path.join(self.dwnld_path, "BramptonTransitAnalysis", "4_Storage")
+        self.rfresh_tkn_path = os.path.join(self.dwnld_path, "DropboxInfo", "GrabToken.sh")
+        self.out_dict        = {}
 
         # Datetime Variables
         self.td_l_dt_dsply_frmt = "%d-%m-%Y %H:%M:%S"
@@ -44,8 +51,7 @@ class Janitor():
         self.log_level          = log_level
 
         # Print For Logging
-        if self.log_level == 1:
-            print(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor | Janitor Ready")
+        self.__logger("Data Janitor | Janitor Ready")
 
 
 
@@ -62,13 +68,19 @@ class Janitor():
 
 
 
-    # -------------------- Private Function #2 ---------------------------------
-    def __find_downloads_folder(self):
+    # -------------------- Private Function #1 ---------------------------------
+    def __logger(self, message = ""):
         """ Find The Location Of The Downloads Folder """
 
-        # Get USer Path & Downloads 
-        self.user_path  = os.path.expanduser('~')
-        self.dwnld_path = os.path.join(os.path.expanduser('~'), 'Downloads')
+        # Verify That The Path Exists Raise Error!
+        if self.log_level == 1:
+            print(f"{datetime.now().strftime(self.td_l_dt_dsply_frmt)}: {message}")
+
+
+
+    # -------------------- Private Function #1 ---------------------------------
+    def __find_downloads_folder(self):
+        """ Find The Location Of The Downloads Folder """
 
         # Verify That The Path Exists Raise Error!
         if os.path.exists(self.dwnld_path) != True:
@@ -77,16 +89,9 @@ class Janitor():
 
 
 
-    # -------------------- Private Function #4 ---------------------------------
+    # -------------------- Private Function #2 ---------------------------------
     def __create_folders(self):
         """ Create Needed Folders If They Don't Exist Already """
-
-        # Define Folders
-        db_out_path          = os.path.join(self.dwnld_path, "BramptonTransitAnalysis", "3_Data")
-        self.db_folder       = db_out_path
-        self.db_path         = os.path.join(db_out_path, "DataStorage.db")
-        self.csv_out_path    = os.path.join(self.dwnld_path, "BramptonTransitAnalysis", "4_Storage")
-        self.rfresh_tkn_path = os.path.join(self.dwnld_path, "DropboxInfo", "GrabToken.sh")
 
         # First Check To See If The Main Folder Exists!
         if not os.path.isdir(self.db_folder):
@@ -100,29 +105,27 @@ class Janitor():
                 os.makedirs(dir_chk)
 
         # Log export
-        if self.log_level == 1:
-            print(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor | Folders Prepared")
+        self.__logger("Data Janitor | Folders Prepared")
 
 
 
-    # -------------------- Private Function #5 ---------------------------------
+    # -------------------- Private Function #3 ---------------------------------
     def __db_check(self):
         """ Create a database that will store bus location data; as well as basic database inter data """
 
         # Iterate Through Table Dictionary And Create Tables If They Don't Exist Already
-        for table_ in self.table_dict:
-            with sqlite3.connect(self.db_path) as conn:
+        with sqlite3.connect(self.db_path) as conn:
+            for table_ in self.table_dict:
                 sql_string = ", ".join(self.table_dict[table_])
                 conn.execute(f'''CREATE TABLE IF NOT EXISTS {table_} ({sql_string});''')
                 conn.commit()
 
         # Log export
-        if self.log_level == 1:
-            print(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor | Databases Ready")
+        self.__logger("Data Janitor | Databases Ready")
 
 
 
-    # -------------------- Private Function #6 ---------------------------------
+    # -------------------- Private Function #4 ---------------------------------
     def __get_gtfs_data(self):
         """
         When run this function will navigate to the City of Brampton's GTFS data repository
@@ -145,8 +148,7 @@ class Janitor():
             try:
                 # Extract Data
                 shutil.unpack_archive(zip_path, self.foldr_path)
-                if self.log_level == 1:
-                    print(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor | Extracted GTFS Data")
+                self.__logger("Data Janitor | Extracted GTFS Data")
 
                 # Remove Unneeded Files & Folders
                 try:
@@ -162,7 +164,7 @@ class Janitor():
 
 
 
-    # -------------------- Private Function #7 ---------------------------------
+    # -------------------- Private Function #5 ---------------------------------
     def __upld_gtfs_data(self):
         """
         Having Pulled GTFS Data, Check The Effective Date Range Of The Data, If New Upload To The Database, Else Pass
@@ -187,8 +189,7 @@ class Janitor():
                         temp_df["feed_version"] = feed_cur_version
                         temp_df                 = temp_df[self.table_dict[file_name]]
                         temp_df.to_sql(file_name, conn, if_exists="append", index=False)
-                        if self.log_level == 1:
-                            print(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor | New GTFS Data Uploaded -> {file_name}")
+                        self.__logger(f"Data Janitor | New GTFS Data Uploaded -> {file_name}")
 
 
             # Delete All .TXT Files After
