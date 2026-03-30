@@ -24,7 +24,7 @@ class Janitor():
         """ This function will run when the DataCollector Class is instantiated """
 
         # Try To Create A Table For Each Item In The Following Database
-        self.GATHER_TABLE = ["BUS_LOC_DB", "U_ID_TEMP", "ERROR_DB"]
+        self.GATHER_TABLE = {"BUS_LOC_DB", "U_ID_TEMP", "ERROR_DB"}
         self.table_dict   = {
             "BUS_LOC_DB":     ["u_id", "id", "is_deleted", "trip_update", "alert", "trip_id", "start_time", "start_date", "schedule_relationship", "route_id", "latitude", "longitude", "bearing", "odometer", "speed", "current_stop_sequence", "current_status", "timestamp", "congestion_level", "stop_id", "vehicle_id", "label", "license_plate", "dt_colc"],
             "U_ID_TEMP":      ["u_id", "timestamp"],
@@ -44,6 +44,8 @@ class Janitor():
         self.db_path         = os.path.join(db_out_path, "DataStorage.db")
         self.csv_out_path    = os.path.join(self.dwnld_path, "BramptonTransitAnalysis", "4_Storage")
         self.rfresh_tkn_path = os.path.join(self.dwnld_path, "DropboxInfo", "GrabToken.sh")
+        self.zip_path        = os.path.join(self.csv_out_path, "GTFS", "GTFS.zip")
+        self.foldr_path      = os.path.join(self.csv_out_path, "GTFS")
         self.out_dict        = {}
 
         # Datetime Variables
@@ -137,23 +139,19 @@ class Janitor():
         self.gtfs_url = r'https://www.arcgis.com/sharing/rest/content/items/a355aabd5a8c490186bdce559c9c75fb/data'
         response = requests.get(self.gtfs_url)
 
-        # Define Needed Variables First
-        zip_path        = os.path.join(self.csv_out_path, "GTFS", "GTFS.zip")
-        self.foldr_path = os.path.join(self.csv_out_path, "GTFS")
-
         # Try To Get GTFS Zip Data
         if response.status_code == 200:
-            with open(zip_path, 'wb') as f:
+            with open(self.zip_path, 'wb') as f:
                 f.write(response.content)
 
             try:
                 # Extract Data
-                shutil.unpack_archive(zip_path, self.foldr_path)
+                shutil.unpack_archive(self.zip_path, self.foldr_path)
                 self.__logger("Data Janitor | Extracted GTFS Data")
 
                 # Remove Unneeded Files & Folders
                 try:
-                    os.remove(zip_path)
+                    os.remove(self.zip_path)
                 except OSError as e:
                     raise Exception(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor | [ERROR] Could Not Remove Zip")
             
@@ -181,7 +179,7 @@ class Janitor():
             del feed_df
         
             # If The Current Edit Is Not In The Database Add All Data
-            if feed_cur_version not in all_gtfs_ver["feed_version"].to_list():
+            if feed_cur_version not in all_gtfs_ver["feed_version"].values:
 
                 # Upload The Rest Of The Data | Only Update GTFS Files
                 for file_name in self.table_dict:
