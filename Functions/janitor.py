@@ -6,8 +6,11 @@
 import os
 import sys
 import sqlite3
+import requests
+import shutil
 import pandas as pd
 from datetime import datetime
+
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -20,7 +23,19 @@ class Janitor():
     def __init__(self, log_level = 0):
         """ This function will run when the DataCollector Class is instantiated """
 
-        # Check To See If Appropriate Sub Folders Exist, Where Are We Writting Data?
+        # Try To Create A Table For Each Item In The Following Database
+        self.table_dict = {
+            "BUS_LOC_DB":     ["u_id", "id", "is_deleted", "trip_update", "alert", "trip_id", "start_time", "start_date", "schedule_relationship", "route_id", "latitude", "longitude", "bearing", "odometer", "speed", "current_stop_sequence", "current_status", "timestamp", "congestion_level", "stop_id", "vehicle_id", "label", "license_plate", "dt_colc"],
+            "U_ID_TEMP":      ["u_id", "timestamp"],
+            "ERROR_DB":       ["timestamp", "e_type", "delay"],
+            "FEED_INFO":      ["feed_publisher_name", "feed_lang", "feed_start_date", "feed_end_date", "feed_version"],
+            "ROUTES":         ["route_id", "route_short_name", "route_long_name", "feed_version"],
+            "TRIPS":          ["route_id", "service_id", "trip_id", "trip_headsign", "direction_id", "block_id", "shape_id", "feed_version"],
+            "STOPS":          ["stop_id", "stop_code", "stop_name", "stop_lat", "stop_lon", "zone_id", "stop_url", "parent_station", "feed_version"],
+            "STOP_TIMES":     ["trip_id", "arrival_time", "departure_time", "stop_id", "stop_sequence", "pickup_type", "drop_off_type", "timepoint", "feed_version"]
+        }
+
+        # Store All Output Locations
         self.out_dict = {}
 
         # Datetime Variables
@@ -43,7 +58,7 @@ class Janitor():
         self.__create_folders()
         self.__db_check()
         self.__get_gtfs_data()
-        # self.__upld_gtfs_data()
+        self.__upld_gtfs_data()
 
 
 
@@ -94,25 +109,12 @@ class Janitor():
     def __db_check(self):
         """ Create a database that will store bus location data; as well as basic database inter data """
 
-        # Try To Create A Table For Each Item In The Following Database
-        table_dict = {
-            "BUS_LOC_DB":     ["u_id", "id", "is_deleted", "trip_update", "alert", "trip_id", "start_time", "start_date", "schedule_relationship", "route_id", "latitude", "longitude", "bearing", "odometer", "speed", "current_stop_sequence", "current_status", "timestamp", "congestion_level", "stop_id", "vehicle_id", "label", "license_plate", "dt_colc"],
-            "U_ID_TEMP":      ["u_id", "timestamp"],
-            "ERROR_DB":       ["timestamp", "e_type", "delay"],
-            "GTFS_FEED":      ["feed_publisher_name", "feed_lang", "feed_start_date", "feed_end_date", "feed_version"],
-            "ROUTES":         ["route_id", "route_short_name", "route_long_name", "feed_version"],
-            "TRIPS":          ["route_id", "service_id", "trip_id", "trip_headsign", "direction_id", "block_id", "shape_id", "feed_version"],
-            "STOPS":          ["stop_id", "stop_code", "stop_name", "stop_lat", "stop_lon", "zone_id", "stop_url", "parent_station", "feed_version"],
-            "STOP_TIMES":     ["trip_id", "arrival_time", "departure_time", "stop_id", "stop_sequence", "pickup_type", "drop_off_type", "timepoint", "feed_version"]}
-
-
         # Iterate Through Table Dictionary And Create Tables If They Don't Exist Already
-        for table_ in table_dict:
+        for table_ in self.table_dict:
             with sqlite3.connect(self.db_path) as conn:
-                sql_string = ", ".join(table_dict[table_])
+                sql_string = ", ".join(self.table_dict[table_])
                 conn.execute(f'''CREATE TABLE IF NOT EXISTS {table_} ({sql_string});''')
                 conn.commit()
-
 
         # Log export
         if self.log_level == 1:
@@ -126,10 +128,6 @@ class Janitor():
         When run this function will navigate to the City of Brampton's GTFS data repository
         and download all needed data. With Respects To Effective Range, Upload GTFS Data To A Database.
         """
-
-        # Import Needed Libaries
-        import requests
-        import shutil
 
         # Internalize URL, And Use Requests To Get Data
         self.gtfs_url = r'https://www.arcgis.com/sharing/rest/content/items/a355aabd5a8c490186bdce559c9c75fb/data'
@@ -170,51 +168,38 @@ class Janitor():
         Having Pulled GTFS Data, Check The Effective Date Range Of The Data, If New Upload To The Database, Else Pass
         """
 
-        # First Find The GTFS Feed_Info.txt File
-        sp              = self.fldr_sep
-        feed_df         = pd.read_csv(f"{self.csv_out_path}{sp}GTFS{sp}feed_info.txt")[["feed_publisher_name", "feed_lang", "feed_start_date", "feed_end_date", "feed_version"]]
-
-        # Pull All GTFS Version
+        # Make A Connection To The Database
         with sqlite3.connect(self.db_path) as conn:
-            all_gtfs_ver = pd.read_sql_query("SELECT DISTINCT feed_version FROM GTFS_FEED", conn)
 
-        # If The Current Edit Is Not In The Database Add All Data
-        if str(feed_df['feed_version'].iloc[0]) not in all_gtfs_ver["feed_version"].to_list():
-
-            # Upload [GTFS Feed Information]
-            with sqlite3.connect(self.db_path) as conn:
-                feed_df.to_sql("GTFS_FEED", conn, if_exists="append", index=False)
-                if self.log_level == 1:
-                    print(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor | New GTFS Data Uploaded -> FEEDS")
+            # First Find The GTFS Feed_Info.txt File
+            feed_df          = pd.read_csv(os.path.join(self.csv_out_path, "GTFS", "feed_info.txt"), usecols=["feed_version"])
+            feed_cur_version = str(feed_df['feed_version'].iloc[0])
+            all_gtfs_ver     = pd.read_sql_query("SELECT DISTINCT feed_version FROM FEED_INFO", conn)
+            del feed_df
         
-            # Create A Dictionary That Will Store The Columns We Want To Keep With The name of The File
-            file_dict = {"routes":      ["route_id", "route_short_name", "route_long_name"],
-                         "trips":       ['route_id', 'service_id', 'trip_id', 'trip_headsign', 'direction_id', 'block_id', 'shape_id'],
-                         "stops":       ['stop_id', 'stop_code', 'stop_name', 'stop_lat', 'stop_lon', 'zone_id', 'stop_url', 'parent_station'],
-                         "stop_times":  ['trip_id', 'arrival_time', 'departure_time', 'stop_id', 'stop_sequence', 'pickup_type', 'drop_off_type', 'timepoint']}
+            # If The Current Edit Is Not In The Database Add All Data
+            if feed_cur_version not in all_gtfs_ver["feed_version"].to_list():
 
-            # Upload The Rest Of The Data
-            for file_name in file_dict:
-                with sqlite3.connect(self.db_path) as conn:
-                    temp_df                 = pd.read_csv(f"{self.csv_out_path}{sp}GTFS{sp}{file_name}.txt")
-                    temp_df                 = temp_df[file_dict[file_name]]
-                    temp_df["feed_version"] = str(feed_df['feed_version'].iloc[0])
-
-                    temp_df.to_sql(file_name.upper(), conn, if_exists="append", index=False)
-                    if self.log_level == 1:
-                        print(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor | New GTFS Data Uploaded -> {file_name.upper()}")
+                # Upload The Rest Of The Data | Only Update GTFS Files
+                for file_name in self.table_dict:
+                    if file_name in ["FEED_INFO", "ROUTES", "TRIPS", "STOPS", "STOP_TIMES"]:
+                        temp_df                 = pd.read_csv(os.path.join(self.csv_out_path, "GTFS", f"{file_name.lower()}.txt"))
+                        temp_df["feed_version"] = feed_cur_version
+                        temp_df                 = temp_df[self.table_dict[file_name]]
+                        temp_df.to_sql(file_name, conn, if_exists="append", index=False)
+                        if self.log_level == 1:
+                            print(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor | New GTFS Data Uploaded -> {file_name}")
 
 
-        # Delete All .TXT Files After
-        for file_ in os.listdir(self.foldr_path):
-            full_path = os.path.join(self.foldr_path, file_)
-            if file_.endswith('.txt'):
-                try:
-                    os.remove(full_path)
-
-                except OSError as e:
-                    print(e)
-                    sys.exit(1)
+            # Delete All .TXT Files After
+            for file_ in os.listdir(self.foldr_path):
+                full_path = os.path.join(self.foldr_path, file_)
+                if file_.endswith('.txt'):
+                    try:
+                        os.remove(full_path)
+                    except OSError as e:
+                        print(e)
+                        sys.exit(1)
 
 
 
