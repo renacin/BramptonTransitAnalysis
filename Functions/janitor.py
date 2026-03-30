@@ -89,6 +89,7 @@ class Janitor():
             print(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor | Folders Prepared")
 
 
+
     # -------------------- Private Function #5 ---------------------------------
     def __db_check(self):
         """ Create a database that will store bus location data; as well as basic database inter data """
@@ -102,8 +103,7 @@ class Janitor():
             "ROUTES":         ["route_id", "route_short_name", "route_long_name", "feed_version"],
             "TRIPS":          ["route_id", "service_id", "trip_id", "trip_headsign", "direction_id", "block_id", "shape_id", "feed_version"],
             "STOPS":          ["stop_id", "stop_code", "stop_name", "stop_lat", "stop_lon", "zone_id", "stop_url", "parent_station", "feed_version"],
-            "STOP_TIMES":     ["trip_id", "arrival_time", "departure_time", "stop_id", "stop_sequence", "pickup_type", "drop_off_type", "timepoint", "feed_version"]
-        }
+            "STOP_TIMES":     ["trip_id", "arrival_time", "departure_time", "stop_id", "stop_sequence", "pickup_type", "drop_off_type", "timepoint", "feed_version"]}
 
 
         # Iterate Through Table Dictionary And Create Tables If They Don't Exist Already
@@ -117,6 +117,7 @@ class Janitor():
         # Log export
         if self.log_level == 1:
             print(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor | Databases Ready")
+
 
 
     # -------------------- Private Function #6 ---------------------------------
@@ -162,12 +163,12 @@ class Janitor():
             raise Exception(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor | [ERROR] Could Not Extract GTFS Data")
 
 
+
     # -------------------- Private Function #7 ---------------------------------
     def __upld_gtfs_data(self):
         """
         Having Pulled GTFS Data, Check The Effective Date Range Of The Data, If New Upload To The Database, Else Pass
         """
-
 
         # First Find The GTFS Feed_Info.txt File
         sp              = self.fldr_sep
