@@ -3,16 +3,11 @@
 # Title                           Main Logic Of Data Janitor: Version 3 Memory Optimized?
 #
 # ----------------------------------------------------------------------------------------------------------------------
-import gc
 import os
-import re
 import sys
-import time
-import socket
 import sqlite3
+import pandas as pd
 from datetime import datetime
-import warnings
-warnings.filterwarnings("ignore")
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -31,40 +26,30 @@ class Janitor():
         # Datetime Variables
         self.td_l_dt_dsply_frmt = "%d-%m-%Y %H:%M:%S"
         self.td_s_dt_dsply_frmt = "%d-%m-%Y"
+        self.log_level          = log_level
 
         # Print For Logging
-        self.log_level = log_level
         if self.log_level == 1:
             print(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor | Janitor Ready")
 
 
+
+    # ~~~~~~~~~~~~~~~~~~~~~ Public Function #1 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    def setup(self):
+        """ Find The Hostname & The Operating System On Where This Code Is Running, Paths Will Be Different For Each Op-Sys"""
+
         # Find What Operating System And Create A Temp Working Space In Downloads Folder
-        self.__find_op_sys()
         self.__find_downloads_folder()
-        self.__define_paths()
         self.__create_folders()
         self.__db_check()
         self.__get_gtfs_data()
-        self.__upld_gtfs_data()
+        # self.__upld_gtfs_data()
 
-
-
-    # -------------------- Private Function #1 ---------------------------------
-    def __find_op_sys(self):
-        """ Find The Hostname & The Operating System On Where This Code Is Running, Paths Will Be Different For Each Op-Sys"""
-
-        # Get Host Name
-        host_name = socket.gethostname()
-
-        # Get Operating System
-        if   sys.platform == 'win32': self.op_sys = 'Windows'
-        elif sys.platform == 'darwin': self.op_sys = 'MacOS'
-        elif sys.platform.startswith('linux'): self.op_sys = 'Linux'
 
 
     # -------------------- Private Function #2 ---------------------------------
     def __find_downloads_folder(self):
-        """ Find The Hostname & The Operating System On Where This Code Is Running, Paths Will Be Different For Each Op-Sys"""
+        """ Find The Location Of The Downloads Folder """
 
         # Get USer Path & Downloads 
         self.user_path  = os.path.expanduser('~')
@@ -76,39 +61,25 @@ class Janitor():
             sys.exit(1)
 
 
-    # -------------------- Private Function #3 ---------------------------------
-    def __define_paths(self):
-        """ Given The Validity Of Downloads Folder Define Needed Paths For Each Folder (OS Specific) """
-
-        # Backslash Or Forward Slash?
-        if   self.op_sys in ["MacOS", "Linux"]: self.fldr_sep  = "/"
-        elif self.op_sys in ["Windows"]:        self.fldr_sep  = "\\"
-        else:
-            print(f"{datetime.now().strftime(self.td_l_dt_dsply_frmt)}: Data Janitor |[ERROR] Can't Create Folders")
-            sys.exit(1)
-
-        # Create Folders
-        sp                   = self.fldr_sep
-        db_out_path          = fr"{self.dwnld_path}{sp}BramptonTransitAnalysis{sp}3_Data"
-        self.db_folder       = db_out_path
-        self.db_path         = db_out_path + fr"{sp}DataStorage.db"
-        self.rfresh_tkn_path = fr"{self.dwnld_path}{sp}DropboxInfo/GrabToken.sh"
-        self.csv_out_path    = fr"{self.dwnld_path}{sp}BramptonTransitAnalysis{sp}4_Storage"
-        self.rfresh_tkn_path = fr"{self.dwnld_path}{sp}DropboxInfo/GrabToken.sh"
-
 
     # -------------------- Private Function #4 ---------------------------------
     def __create_folders(self):
         """ Create Needed Folders If They Don't Exist Already """
+
+        # Define Folders
+        db_out_path          = os.path.join(self.dwnld_path, "BramptonTransitAnalysis", "3_Data")
+        self.db_folder       = db_out_path
+        self.db_path         = os.path.join(db_out_path, "DataStorage.db")
+        self.csv_out_path    = os.path.join(self.dwnld_path, "BramptonTransitAnalysis", "4_Storage")
+        self.rfresh_tkn_path = os.path.join(self.dwnld_path, "DropboxInfo", "GrabToken.sh")
 
         # First Check To See If The Main Folder Exists!
         if not os.path.isdir(self.db_folder):
             os.makedirs(self.db_folder)
 
         # In The Out Directory Provided See If The Appropriate Sub Folders Exist!
-        sp = self.fldr_sep
         for fldr_nm in ['GTFS', 'BUS_STP', 'BUS_LOC', 'FRMTD_DATA', 'BUS_SPEED', 'GRAPHICS', 'ERROR']:
-            dir_chk = fr"{self.csv_out_path}{sp}{fldr_nm}"
+            dir_chk = os.path.join(self.csv_out_path, fldr_nm)
             self.out_dict[fldr_nm] = dir_chk 
             if not os.path.exists(dir_chk):
                 os.makedirs(dir_chk)
@@ -124,8 +95,7 @@ class Janitor():
 
         # Try To Create A Table For Each Item In The Following Database
         table_dict = {
-            "BUS_LOC_DB":     ["u_id", "id", "is_deleted", "trip_update", "alert", "trip_id", "start_time", "start_date", "schedule_relationship", "route_id", "latitude", "longitude", 
-                               "bearing", "odometer", "speed", "current_stop_sequence", "current_status", "timestamp", "congestion_level", "stop_id", "vehicle_id", "label", "license_plate", "dt_colc"],
+            "BUS_LOC_DB":     ["u_id", "id", "is_deleted", "trip_update", "alert", "trip_id", "start_time", "start_date", "schedule_relationship", "route_id", "latitude", "longitude", "bearing", "odometer", "speed", "current_stop_sequence", "current_status", "timestamp", "congestion_level", "stop_id", "vehicle_id", "label", "license_plate", "dt_colc"],
             "U_ID_TEMP":      ["u_id", "timestamp"],
             "ERROR_DB":       ["timestamp", "e_type", "delay"],
             "GTFS_FEED":      ["feed_publisher_name", "feed_lang", "feed_start_date", "feed_end_date", "feed_version"],
@@ -165,9 +135,8 @@ class Janitor():
         response = requests.get(self.gtfs_url)
 
         # Define Needed Variables First
-        sp = self.fldr_sep
-        zip_path        = f"{self.csv_out_path}{sp}GTFS{sp}GTFS.zip"
-        self.foldr_path = f"{self.csv_out_path}{sp}GTFS"
+        zip_path        = os.path.join(self.csv_out_path, "GTFS", "GTFS.zip")
+        self.foldr_path = os.path.join(self.csv_out_path, "GTFS")
 
         # Try To Get GTFS Zip Data
         if response.status_code == 200:
@@ -199,8 +168,6 @@ class Janitor():
         Having Pulled GTFS Data, Check The Effective Date Range Of The Data, If New Upload To The Database, Else Pass
         """
 
-        # Import Needed Libaries
-        import pandas as pd
 
         # First Find The GTFS Feed_Info.txt File
         sp              = self.fldr_sep
@@ -255,6 +222,7 @@ class Janitor():
 # Entry Point Into Python Code (For Testing!)
 if __name__ == "__main__":
     janitor = Janitor(log_level = 1)
+    janitor.setup()
 
 
 
