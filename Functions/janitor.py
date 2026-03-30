@@ -24,7 +24,8 @@ class Janitor():
         """ This function will run when the DataCollector Class is instantiated """
 
         # Try To Create A Table For Each Item In The Following Database
-        self.table_dict = {
+        self.GATHER_TABLE = ["BUS_LOC_DB", "U_ID_TEMP", "ERROR_DB"]
+        self.table_dict   = {
             "BUS_LOC_DB":     ["u_id", "id", "is_deleted", "trip_update", "alert", "trip_id", "start_time", "start_date", "schedule_relationship", "route_id", "latitude", "longitude", "bearing", "odometer", "speed", "current_stop_sequence", "current_status", "timestamp", "congestion_level", "stop_id", "vehicle_id", "label", "license_plate", "dt_colc"],
             "U_ID_TEMP":      ["u_id", "timestamp"],
             "ERROR_DB":       ["timestamp", "e_type", "delay"],
@@ -184,7 +185,7 @@ class Janitor():
 
                 # Upload The Rest Of The Data | Only Update GTFS Files
                 for file_name in self.table_dict:
-                    if file_name in ["FEED_INFO", "ROUTES", "TRIPS", "STOPS", "STOP_TIMES"]:
+                    if file_name not in self.GATHER_TABLE:
                         temp_df                 = pd.read_csv(os.path.join(self.csv_out_path, "GTFS", f"{file_name.lower()}.txt"))
                         temp_df["feed_version"] = feed_cur_version
                         temp_df                 = temp_df[self.table_dict[file_name]]
