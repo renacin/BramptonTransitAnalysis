@@ -82,13 +82,27 @@ class Janitor():
 
 
     # -------------------- Private Function #1 ---------------------------------
+    def __delete_files(self, file_ext = "", path = ""):
+        """ Delete All Files In Path """
+
+        # Verify That The Path Exists Raise Error!
+        for file_ in os.listdir():
+            full_path = os.path.join(path, file_)
+            if file_.endswith(file_ext):
+                try:
+                    os.remove(full_path)
+                except OSError as e:
+                    raise Exception(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor | [ERROR] Could Not Remove {file_ext} Files")
+
+
+
+    # -------------------- Private Function #1 ---------------------------------
     def __find_downloads_folder(self):
         """ Find The Location Of The Downloads Folder """
 
         # Verify That The Path Exists Raise Error!
         if os.path.exists(self.dwnld_path) != True:
-            print(f"{datetime.now().strftime(self.td_l_dt_dsply_frmt)}: Data Janitor | [ERROR] Download Folder Does Not Exist")
-            sys.exit(1)
+            raise Exception(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor | [ERROR] Download Folder Does Not Exist")
 
 
 
@@ -159,7 +173,7 @@ class Janitor():
                 raise Exception(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor | [ERROR] Could Not Extract GTFS Data")
 
         else:
-            raise Exception(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor | [ERROR] Could Not Extract GTFS Data")
+            raise Exception(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor | [ERROR] Bad Response")
 
 
 
@@ -190,16 +204,8 @@ class Janitor():
                         temp_df.to_sql(file_name, conn, if_exists="append", index=False)
                         self.__logger(f"Data Janitor | New GTFS Data Uploaded -> {file_name}")
 
-
-            # Delete All .TXT Files After
-            for file_ in os.listdir(self.foldr_path):
-                full_path = os.path.join(self.foldr_path, file_)
-                if file_.endswith('.txt'):
-                    try:
-                        os.remove(full_path)
-                    except OSError as e:
-                        print(e)
-                        sys.exit(1)
+            # Delete All Text Files In Folder
+            self.__delete_files(".txt", self.foldr_path)
 
 
 
