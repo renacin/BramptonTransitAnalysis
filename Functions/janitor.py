@@ -86,7 +86,7 @@ class Janitor():
         """ Delete All Files In Path """
 
         # Verify That The Path Exists Raise Error!
-        for file_ in os.listdir():
+        for file_ in os.listdir(path):
             full_path = os.path.join(path, file_)
             if file_.endswith(file_ext):
                 try:
