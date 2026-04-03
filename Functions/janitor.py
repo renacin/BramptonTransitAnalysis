@@ -25,7 +25,7 @@ class Janitor():
 
         # Try To Create A Table For Each Item In The Following Database
         self.GTFS_URL     = r'https://www.arcgis.com/sharing/rest/content/items/a355aabd5a8c490186bdce559c9c75fb/data'
-        self.GATHER_TABLE = {"BUS_LOC_DB", "U_ID_TEMP", "ERROR_DB"}
+        self.GATHER_TABLE = {"BUS_LOC_DB", "U_ID_TEMP", "ERROR_DB", "ROUTE_SPEED"}
         self.table_dict   = {
             "BUS_LOC_DB":     ["u_id", "id", "is_deleted", "trip_update", "alert", "trip_id", "start_time", "start_date", "schedule_relationship", "route_id", "latitude", "longitude", "bearing", "odometer", "speed", "current_stop_sequence", "current_status", "timestamp", "congestion_level", "stop_id", "vehicle_id", "label", "license_plate", "dt_colc"],
             "U_ID_TEMP":      ["u_id", "timestamp"],
@@ -34,7 +34,8 @@ class Janitor():
             "ROUTES":         ["route_id", "route_short_name", "route_long_name", "feed_version"],
             "TRIPS":          ["route_id", "service_id", "trip_id", "trip_headsign", "direction_id", "block_id", "shape_id", "feed_version"],
             "STOPS":          ["stop_id", "stop_code", "stop_name", "stop_lat", "stop_lon", "zone_id", "stop_url", "parent_station", "feed_version"],
-            "STOP_TIMES":     ["trip_id", "arrival_time", "departure_time", "stop_id", "stop_sequence", "pickup_type", "drop_off_type", "timepoint", "feed_version"]
+            "STOP_TIMES":     ["trip_id", "arrival_time", "departure_time", "stop_id", "stop_sequence", "pickup_type", "drop_off_type", "timepoint", "feed_version"],
+            "ROUTE_SPEED":    ["route_id", "route_short_name", "route_long_name", "speed", "feed_version"]
         }
 
         # Define All Needed Paths
@@ -69,6 +70,7 @@ class Janitor():
         self.__db_check()
         self.__get_gtfs_data()
         self.__upld_gtfs_data()
+        self.__calc_trip_avg_speed()
 
 
 
@@ -209,12 +211,59 @@ class Janitor():
 
 
 
+    # -------------------- Private Function #6 ---------------------------------
+    def __calc_trip_avg_speed(self):
+        """
+        This function will look at the GTFS Data pulled, if the feed version is new it will pull all stop locations and determine the 
+        lenght of the trip, and the average speed. The results will then be uploaded into a corresponding table in the database.
+        """
+
+        # Create A Helper Function
+        def rem_ldng_0(val):
+            try:
+                return str(int(val))
+            except (ValueError, TypeError):
+                return val
+
+
+
+        # Start Small Read In GTFS Data - STOPS & STOP_TIMES
+        with sqlite3.connect(self.db_path) as conn:
+            stops           = pd.read_sql_query(f""" SELECT B.stop_id,
+                                                            B.stop_code,
+                                                            B.stop_name,
+                                                            B.stop_lat,
+                                                            B.stop_lon,
+                                                            B.feed_version
+                                                     FROM STOPS AS B 
+                                                     WHERE 1=1""", conn)
+            
+            stops_times     = pd.read_sql_query(f""" SELECT A.trip_id, 
+                                                            A.stop_sequence, 
+                                                            A.stop_id, 
+                                                            A.arrival_time, 
+                                                            A.departure_time, 
+                                                            A.feed_version 
+                                                     FROM STOP_TIMES AS A 
+                                                     WHERE 1=1""", conn)
+
+            # Cast Columns As Int
+            stops_times["stop_id"]      = stops_times["stop_id"].apply(rem_ldng_0)
+            stops["stop_id"]            = stops["stop_id"].apply(rem_ldng_0)
+            stops_times["feed_version"] = stops_times["feed_version"].astype(int)
+            stops["feed_version"]       = stops["feed_version"].astype(int)
+
+            # Merge Data
+            stops_times = stops_times.merge(stops[["stop_id", "feed_version", "stop_code", "stop_name", "stop_lat", "stop_lon"]], on=["stop_id", "feed_version"], how="left").sort_values(["trip_id", "stop_sequence"])
+            del stops
+
+            # Group Data Find Lag Columns
+
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 
 # Entry Point Into Python Code (For Testing!)
 if __name__ == "__main__":
     janitor = Janitor(log_level = 1)
     janitor.setup()
-
-
-
