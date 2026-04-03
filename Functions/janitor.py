@@ -24,6 +24,7 @@ class Janitor():
         """ This function will run when the DataCollector Class is instantiated """
 
         # Try To Create A Table For Each Item In The Following Database
+        self.GTFS_URL     = r'https://www.arcgis.com/sharing/rest/content/items/a355aabd5a8c490186bdce559c9c75fb/data'
         self.GATHER_TABLE = {"BUS_LOC_DB", "U_ID_TEMP", "ERROR_DB"}
         self.table_dict   = {
             "BUS_LOC_DB":     ["u_id", "id", "is_deleted", "trip_update", "alert", "trip_id", "start_time", "start_date", "schedule_relationship", "route_id", "latitude", "longitude", "bearing", "odometer", "speed", "current_stop_sequence", "current_status", "timestamp", "congestion_level", "stop_id", "vehicle_id", "label", "license_plate", "dt_colc"],
@@ -150,8 +151,7 @@ class Janitor():
         """
 
         # Internalize URL, And Use Requests To Get Data
-        self.gtfs_url = r'https://www.arcgis.com/sharing/rest/content/items/a355aabd5a8c490186bdce559c9c75fb/data'
-        response = requests.get(self.gtfs_url)
+        response = requests.get(self.GTFS_URL)
 
         # Try To Get GTFS Zip Data
         if response.status_code == 200:
