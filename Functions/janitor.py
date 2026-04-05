@@ -8,6 +8,7 @@ import sys
 import sqlite3
 import requests
 import shutil
+import numpy as np
 import pandas as pd
 from datetime import datetime
 
@@ -218,12 +219,51 @@ class Janitor():
         lenght of the trip, and the average speed. The results will then be uploaded into a corresponding table in the database.
         """
 
+        # There are some time stamps that can't be recognized (24:00:00) breaks for somereason
+        def parse_transit_time(time_str):
+            time_str = str(time_str)
+            h, m, s = map(int, time_str.split(':'))
+            total_seconds = h * 3600 + m * 60 + s
+            return pd.Timedelta(seconds = total_seconds)
+
+
         # Create A Helper Function
         def rem_ldng_0(val):
             try:
                 return str(int(val))
             except (ValueError, TypeError):
                 return val
+            
+
+        # Define Function That Will Determine The Distance Between Two Points
+        def hvrsn_dist(coord1, coord2):
+            """
+            coord1 = first location reported
+            coord2 = current location reported
+
+            This function will calculate the distance between bus location and bus stop; returns distance in km
+            Taken from: https://datascience.blog.wzb.eu/2018/02/02/vectorization-and-parallelization-in-python-with-numpy-and-pandas/
+            """
+            b_lat, b_lng = coord1[0], coord1[1]
+            a_lat, a_lng = coord2[0], coord2[1]
+
+            R = 6371  # earth radius in km
+
+            a_lat = np.radians(a_lat)
+            a_lng = np.radians(a_lng)
+            b_lat = np.radians(b_lat)
+            b_lng = np.radians(b_lng)
+
+            d_lat = b_lat - a_lat
+            d_lng = b_lng - a_lng
+
+            d_lat_sq = np.sin(d_lat / 2) ** 2
+            d_lng_sq = np.sin(d_lng / 2) ** 2
+
+            a = d_lat_sq + np.cos(a_lat) * np.cos(b_lat) * d_lng_sq
+            c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1-a))
+
+            return R * c  # Returns Distance In KM
 
 
 
@@ -257,9 +297,47 @@ class Janitor():
             stops_times = stops_times.merge(stops[["stop_id", "feed_version", "stop_code", "stop_name", "stop_lat", "stop_lon"]], on=["stop_id", "feed_version"], how="left").sort_values(["trip_id", "stop_sequence"])
             del stops
 
-            # Group Data Find Lag Columns
+            # Order Data
+            stops_times = stops_times.sort_values(by=["trip_id", "stop_sequence"])
+
+            # Create Lagged Columns
+            stops_times['nxt_stop_id']         = stops_times.groupby('trip_id')['stop_id'].shift(-1)
+            stops_times['nxt_stop_name']       = stops_times.groupby('trip_id')['stop_name'].shift(-1)
+            stops_times['nxt_stop_lat']        = stops_times.groupby('trip_id')['stop_lat'].shift(-1)
+            stops_times['nxt_stop_lon']        = stops_times.groupby('trip_id')['stop_lon'].shift(-1)
+            stops_times['nxt_arrival_time']    = stops_times.groupby('trip_id')['arrival_time'].shift(-1)
+            stops_times['nxt_departure_time']  = stops_times.groupby('trip_id')['departure_time'].shift(-1)
+
+            # Sort Columns For Readability
+            stops_times = stops_times[['trip_id', 'stop_sequence', 'stop_id', 'arrival_time', 
+                                       'departure_time', 'stop_code', 'stop_name', 'stop_lat', 
+                                       'stop_lon', 'nxt_stop_id', 'nxt_stop_name', 'nxt_stop_lat', 
+                                       'nxt_stop_lon', 'nxt_arrival_time', 'nxt_departure_time', 
+                                       'feed_version']]
+
+            # Determine As The Crows Fly Distance Between Bus Stops
+            stops_times['km2nxtstp'] = hvrsn_dist((stops_times['stop_lat'].values, stops_times['stop_lon'].values), (stops_times['nxt_stop_lat'].values, stops_times['nxt_stop_lon'].values))
+
+            # Deal With The Missing Data At The End Of A Trip
+            for col in ["stop_lat", "stop_lon", "stop_name", "arrival_time", "departure_time"]:
+                stops_times[f"nxt_{col}"] = stops_times[f"nxt_{col}"].fillna(stops_times[f"{col}"])
+            stops_times["km2nxtstp"] = stops_times["km2nxtstp"].fillna(0)
+
+            # Convert Time To Operable Time Stamp
+            for col in ["arrival_time", "departure_time", "nxt_arrival_time", "nxt_departure_time"]:
+                stops_times[col] = stops_times[col].apply(parse_transit_time)
+
+            # Determine Time Between Arrival & Departure & Time To Next Stop
+            stops_times["idle_time"] = (stops_times["departure_time"] - stops_times["arrival_time"]).dt.total_seconds()
+            stops_times["trvl_time"] = (stops_times["nxt_arrival_time"] - stops_times["departure_time"]).dt.total_seconds()
 
 
+            # Test Data
+            test = stops_times[stops_times["trip_id"] == 24914446]
+            test.to_csv(r'C:\Users\renac\Desktop\TestData.csv')
+
+            # Logger
+            self.__logger(f"Data Janitor | Speed Data Calculated")
 
 # ----------------------------------------------------------------------------------------------------------------------
 
