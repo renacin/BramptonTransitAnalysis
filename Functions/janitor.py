@@ -320,10 +320,17 @@ class Janitor():
         # Determine As The Crows Fly Distance Between Bus Stops
         stops_times['km2nxtstp'] = hvrsn_dist((stops_times['stop_lat'].values, stops_times['stop_lon'].values), (stops_times['nxt_stop_lat'].values, stops_times['nxt_stop_lon'].values))
 
+        self.__logger(f"TESTING | CALCULATED DISTANCE BETWEEN")
+
+
         # Deal With The Missing Data At The End Of A Trip
         for col in ["stop_lat", "stop_lon", "stop_name", "arrival_time", "departure_time"]:
             stops_times[f"nxt_{col}"] = stops_times[f"nxt_{col}"].fillna(stops_times[f"{col}"])
         stops_times["km2nxtstp"] = stops_times["km2nxtstp"].fillna(0)
+
+
+        self.__logger(f"TESTING | FILLED NA VALUES")
+
 
         # Convert Time To Operable Time Stamp
         for col in ["arrival_time", "departure_time", "nxt_arrival_time", "nxt_departure_time"]:
@@ -332,6 +339,8 @@ class Janitor():
         # Determine Time Between Arrival & Departure & Time To Next Stop
         stops_times["idle_time"] = (stops_times["departure_time"] - stops_times["arrival_time"]).dt.total_seconds()
         stops_times["trvl_time"] = (stops_times["nxt_arrival_time"] - stops_times["departure_time"]).dt.total_seconds()
+
+        self.__logger(f"TESTING | PARSED TRANSIT TIMES")
 
 
         # Test Data
