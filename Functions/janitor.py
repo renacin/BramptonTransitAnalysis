@@ -219,14 +219,8 @@ class Janitor():
         lenght of the trip, and the average speed. The results will then be uploaded into a corresponding table in the database.
         """
 
-        # There are some time stamps that can't be recognized (24:00:00) breaks for somereason
-        def parse_transit_time(time_str):
-            time_str = str(time_str)
-            h, m, s = map(int, time_str.split(':'))
-            total_seconds = h * 3600 + m * 60 + s
-            return pd.Timedelta(seconds = total_seconds)
-            
 
+        # ----------------------------------------------------------------------
         # Define Function That Will Determine The Distance Between Two Points
         def hvrsn_dist(coord1, coord2):
             """
@@ -258,9 +252,7 @@ class Janitor():
             return R * c  # Returns Distance In KM
         
 
-        self.__logger(f"TESTING | EVERYTHING IMPORTED")
-
-
+        # ------------------------------------------------------------------------
         # Start Small Read In GTFS Data - STOPS & STOP_TIMES
         with sqlite3.connect(self.db_path) as conn:
             stops           = pd.read_sql_query(f""" SELECT B.stop_id,
@@ -281,47 +273,33 @@ class Janitor():
                                                      FROM STOP_TIMES AS A 
                                                      WHERE 1=1""", conn)
             
-        self.__logger(f"TESTING | READ TABLES")
 
-        # Cast Columns As Int
+        # Make Sure Joining Columns Are The Same Data Types Before Merge
         stops_times["stop_id"]      = stops_times["stop_id"].astype(str).str.lstrip("0")
         stops["stop_id"]            = stops["stop_id"].astype(str).str.lstrip("0")
         stops_times["feed_version"] = stops_times["feed_version"].astype(int)
         stops["feed_version"]       = stops["feed_version"].astype(int)
 
-        self.__logger(f"TESTING | CONVERTED TABLES")
-
-        # Merge Data
+        # Merge Data & Sort Values
         stops_times = stops_times.merge(stops[["stop_id", "feed_version", "stop_code", "stop_name", "stop_lat", "stop_lon"]], on=["stop_id", "feed_version"], how="left").sort_values(["trip_id", "stop_sequence"])
         del stops
 
-        self.__logger(f"TESTING | MERGE TABLES")
-
-        # Order Data
-        stops_times = stops_times.sort_values(by=["trip_id", "stop_sequence"])
 
         # Create Lagged Columns
-        stops_times['nxt_stop_id']         = stops_times.groupby('trip_id')['stop_id'].shift(-1)
-        stops_times['nxt_stop_name']       = stops_times.groupby('trip_id')['stop_name'].shift(-1)
-        stops_times['nxt_stop_lat']        = stops_times.groupby('trip_id')['stop_lat'].shift(-1)
-        stops_times['nxt_stop_lon']        = stops_times.groupby('trip_id')['stop_lon'].shift(-1)
-        stops_times['nxt_arrival_time']    = stops_times.groupby('trip_id')['arrival_time'].shift(-1)
-        stops_times['nxt_departure_time']  = stops_times.groupby('trip_id')['departure_time'].shift(-1)
+        shift_cols = ["stop_id", "stop_name", "stop_lat", "stop_lon", "arrival_time", "departure_time"]
+        shifted = stops_times.groupby("trip_id")[shift_cols] \
+                             .shift(-1)\
+                             .rename(columns={c: f"nxt_{c}" for c in shift_cols})
+        
+        stops_times = pd.concat([stops_times, shifted], axis=1)[['trip_id', 'stop_sequence', 'stop_id', 'arrival_time', 
+                                                                 'departure_time', 'stop_code', 'stop_name', 'stop_lat', 
+                                                                 'stop_lon', 'nxt_stop_id', 'nxt_stop_name', 'nxt_stop_lat', 
+                                                                 'nxt_stop_lon', 'nxt_arrival_time', 'nxt_departure_time', 
+                                                                 'feed_version']]
 
-        self.__logger(f"TESTING | GROUPED TABLES")
-
-        # Sort Columns For Readability
-        stops_times = stops_times[['trip_id', 'stop_sequence', 'stop_id', 'arrival_time', 
-                                    'departure_time', 'stop_code', 'stop_name', 'stop_lat', 
-                                    'stop_lon', 'nxt_stop_id', 'nxt_stop_name', 'nxt_stop_lat', 
-                                    'nxt_stop_lon', 'nxt_arrival_time', 'nxt_departure_time', 
-                                    'feed_version']]
 
         # Determine As The Crows Fly Distance Between Bus Stops
         stops_times['km2nxtstp'] = hvrsn_dist((stops_times['stop_lat'].values, stops_times['stop_lon'].values), (stops_times['nxt_stop_lat'].values, stops_times['nxt_stop_lon'].values))
-
-        self.__logger(f"TESTING | CALCULATED DISTANCE BETWEEN")
-
 
         # Deal With The Missing Data At The End Of A Trip
         for col in ["stop_lat", "stop_lon", "stop_name", "arrival_time", "departure_time"]:
@@ -329,18 +307,18 @@ class Janitor():
         stops_times["km2nxtstp"] = stops_times["km2nxtstp"].fillna(0)
 
 
-        self.__logger(f"TESTING | FILLED NA VALUES")
-
-
         # Convert Time To Operable Time Stamp
         for col in ["arrival_time", "departure_time", "nxt_arrival_time", "nxt_departure_time"]:
-            stops_times[col] = stops_times[col].apply(parse_transit_time)
+            stops_times[['h', 'm', 's']] = stops_times[col].str.split(':', expand=True)
+            stops_times[['h', 'm', 's']] = stops_times[['h', 'm', 's']].astype(int)
+            stops_times[f"{col}_sec"]  = (stops_times['h'] * 3600) + (stops_times['m'] * 60) + stops_times['s']
+            stops_times.drop(columns=['h', 'm', 's'], inplace=True)
+
 
         # Determine Time Between Arrival & Departure & Time To Next Stop
-        stops_times["idle_time"] = (stops_times["departure_time"] - stops_times["arrival_time"]).dt.total_seconds()
-        stops_times["trvl_time"] = (stops_times["nxt_arrival_time"] - stops_times["departure_time"]).dt.total_seconds()
-
-        self.__logger(f"TESTING | PARSED TRANSIT TIMES")
+        stops_times["idle_time"] = (stops_times["departure_time_sec"]   - stops_times["arrival_time_sec"])
+        stops_times["trvl_time"] = (stops_times["nxt_arrival_time_sec"] - stops_times["departure_time_sec"])
+        stops_times.drop(columns=["arrival_time_sec", "departure_time_sec", "nxt_arrival_time_sec", "nxt_departure_time_sec"], inplace=True)
 
 
         # Test Data
@@ -349,9 +327,6 @@ class Janitor():
 
         # Logger
         self.__logger(f"Data Janitor | Speed Data Calculated")
-
-
-
 
 
 
