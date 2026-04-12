@@ -1,16 +1,16 @@
 # Name:                                            Renacin Matadeen
-# Date:                                               03/028/2026
+# Date:                                               03/28/2026
 # Title                           Main Logic Of Data Janitor: Version 3 Memory Optimized?
 #
 # ----------------------------------------------------------------------------------------------------------------------
 import os
-import sys
 import sqlite3
 import requests
 import shutil
-import numpy as np
 import pandas as pd
 from datetime import datetime
+
+from helperfuncs import *
 
 # ----------------------------------------------------------------------------------------------------------------------
 
@@ -219,86 +219,27 @@ class Janitor():
         lenght of the trip, and the average speed. The results will then be uploaded into a corresponding table in the database.
         """
 
-
-        # ----------------------------------------------------------------------
-        # Define Function That Will Determine The Distance Between Two Points
-        def hvrsn_dist(coord1, coord2):
-            """
-            coord1 = first location reported
-            coord2 = current location reported
-
-            This function will calculate the distance between bus location and bus stop; returns distance in km
-            Taken from: https://datascience.blog.wzb.eu/2018/02/02/vectorization-and-parallelization-in-python-with-numpy-and-pandas/
-            """
-            b_lat, b_lng = coord1[0], coord1[1]
-            a_lat, a_lng = coord2[0], coord2[1]
-
-            R = 6371  # earth radius in km
-
-            a_lat = np.radians(a_lat)
-            a_lng = np.radians(a_lng)
-            b_lat = np.radians(b_lat)
-            b_lng = np.radians(b_lng)
-
-            d_lat = b_lat - a_lat
-            d_lng = b_lng - a_lng
-
-            d_lat_sq = np.sin(d_lat / 2) ** 2
-            d_lng_sq = np.sin(d_lng / 2) ** 2
-
-            a = d_lat_sq + np.cos(a_lat) * np.cos(b_lat) * d_lng_sq
-            c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1-a))
-
-            return R * c  # Returns Distance In KM
-        
-
-        # ------------------------------------------------------------------------
-        # Start Small Read In GTFS Data - STOPS & STOP_TIMES
+        # Start Small Read In GTFS Data - STOPS & STOP_TIMES & Make All Columns The Same Type & Merge
         with sqlite3.connect(self.db_path) as conn:
-            stops           = pd.read_sql_query(f""" SELECT B.stop_id,
-                                                            B.stop_code,
-                                                            B.stop_name,
-                                                            B.stop_lat,
-                                                            B.stop_lon,
-                                                            B.feed_version
-                                                     FROM STOPS AS B 
-                                                     WHERE 1=1""", conn)
-            
-            stops_times     = pd.read_sql_query(f""" SELECT A.trip_id, 
-                                                            A.stop_sequence, 
-                                                            A.stop_id, 
-                                                            A.arrival_time, 
-                                                            A.departure_time, 
-                                                            A.feed_version 
-                                                     FROM STOP_TIMES AS A 
-                                                     WHERE 1=1""", conn)
-            
+            stops                       = pd.read_sql_query(f""" SELECT B.stop_id, B.stop_code, B.stop_name, B.stop_lat, B.stop_lon,  B.feed_version             FROM STOPS AS B WHERE 1=1""", conn)
+            stops_times                 = pd.read_sql_query(f""" SELECT A.trip_id, A.stop_sequence, A.stop_id, A.arrival_time,  A.departure_time, A.feed_version FROM STOP_TIMES AS A  WHERE 1=1""", conn)
 
-        # Make Sure Joining Columns Are The Same Data Types Before Merge
-        stops_times["stop_id"]      = stops_times["stop_id"].astype(str).str.lstrip("0")
-        stops["stop_id"]            = stops["stop_id"].astype(str).str.lstrip("0")
-        stops_times["feed_version"] = stops_times["feed_version"].astype(int)
-        stops["feed_version"]       = stops["feed_version"].astype(int)
-
-        # Merge Data & Sort Values
-        stops_times = stops_times.merge(stops[["stop_id", "feed_version", "stop_code", "stop_name", "stop_lat", "stop_lon"]], on=["stop_id", "feed_version"], how="left").sort_values(["trip_id", "stop_sequence"])
+        stops_times["stop_id"]          = stops_times["stop_id"].astype(str).str.lstrip("0")
+        stops["stop_id"]                = stops["stop_id"].astype(str).str.lstrip("0")
+        stops_times["feed_version"]     = stops_times["feed_version"].astype(int)
+        stops["feed_version"]           = stops["feed_version"].astype(int)
+        stops_times                     = stops_times.merge(stops[["stop_id", "feed_version", "stop_code", "stop_name", "stop_lat", "stop_lon"]], 
+                                                            on=["stop_id", "feed_version"], 
+                                                            how="left").sort_values(["trip_id", "stop_sequence"])
         del stops
 
 
-        # Create Lagged Columns
+        # Create Lagged Columns & Determine Distance Between
         shift_cols = ["stop_id", "stop_name", "stop_lat", "stop_lon", "arrival_time", "departure_time"]
         shifted = stops_times.groupby("trip_id")[shift_cols] \
                              .shift(-1)\
                              .rename(columns={c: f"nxt_{c}" for c in shift_cols})
-        
-        stops_times = pd.concat([stops_times, shifted], axis=1)[['trip_id', 'stop_sequence', 'stop_id', 'arrival_time', 
-                                                                 'departure_time', 'stop_code', 'stop_name', 'stop_lat', 
-                                                                 'stop_lon', 'nxt_stop_id', 'nxt_stop_name', 'nxt_stop_lat', 
-                                                                 'nxt_stop_lon', 'nxt_arrival_time', 'nxt_departure_time', 
-                                                                 'feed_version']]
-
-
-        # Determine As The Crows Fly Distance Between Bus Stops
+        stops_times              = pd.concat([stops_times, shifted], axis=1)[['trip_id', 'stop_sequence', 'stop_id', 'arrival_time', 'departure_time', 'stop_code', 'stop_name', 'stop_lat', 'stop_lon', 'nxt_stop_id', 'nxt_stop_name', 'nxt_stop_lat', 'nxt_stop_lon', 'nxt_arrival_time', 'nxt_departure_time', 'feed_version']]
         stops_times['km2nxtstp'] = hvrsn_dist((stops_times['stop_lat'].values, stops_times['stop_lon'].values), (stops_times['nxt_stop_lat'].values, stops_times['nxt_stop_lon'].values))
 
         # Deal With The Missing Data At The End Of A Trip
@@ -320,10 +261,16 @@ class Janitor():
         stops_times["trvl_time"] = (stops_times["nxt_arrival_time_sec"] - stops_times["departure_time_sec"])
         stops_times.drop(columns=["arrival_time_sec", "departure_time_sec", "nxt_arrival_time_sec", "nxt_departure_time_sec"], inplace=True)
 
+        # Determine Total Travel Time, Idle Time, Average Speed For Trip, Average Speed For Section
+        avg_spd_df = stops_times.groupby(["trip_id"], as_index=False).agg(tot_dist        = ("km2nxtstp", "sum"),
+                                                                          tot_idle_time   = ("idle_time", "sum"),
+                                                                          tot_trvl_time   = ("trvl_time", "sum"))
+        avg_spd_df["tot_trip_time"]    = avg_spd_df["tot_idle_time"] + avg_spd_df["tot_trvl_time"]
+        avg_spd_df["avg_trip_speed"]   = avg_spd_df["tot_dist"] / (avg_spd_df["tot_trip_time"] / 3600)
+        avg_spd_df["avg_trvl_speed"]   = avg_spd_df["tot_dist"] / (avg_spd_df["tot_trvl_time"] / 3600)
 
         # Test Data
-        test = stops_times[stops_times["trip_id"] == 24914446]
-        test.to_csv(r'C:\Users\renac\Desktop\TestData.csv')
+        avg_spd_df.to_csv(r'C:\Users\renac\Desktop\TestData.csv')
 
         # Logger
         self.__logger(f"Data Janitor | Speed Data Calculated")
