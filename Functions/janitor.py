@@ -265,9 +265,14 @@ class Janitor():
         avg_spd_df = stops_times.groupby(["trip_id"], as_index=False).agg(tot_dist        = ("km2nxtstp", "sum"),
                                                                           tot_idle_time   = ("idle_time", "sum"),
                                                                           tot_trvl_time   = ("trvl_time", "sum"))
-        avg_spd_df["tot_trip_time"]    = avg_spd_df["tot_idle_time"] + avg_spd_df["tot_trvl_time"]
-        avg_spd_df["avg_trip_speed"]   = avg_spd_df["tot_dist"] / (avg_spd_df["tot_trip_time"] / 3600)
-        avg_spd_df["avg_trvl_speed"]   = avg_spd_df["tot_dist"] / (avg_spd_df["tot_trvl_time"] / 3600)
+        
+        avg_spd_df["tot_trip_time"]    = avg_spd_df["tot_idle_time"] +  avg_spd_df["tot_trvl_time"]
+        avg_spd_df["avg_trip_speed"]   = avg_spd_df["tot_dist"]      / (avg_spd_df["tot_trip_time"] / 3600)
+        avg_spd_df["avg_trvl_speed"]   = avg_spd_df["tot_dist"]      / (avg_spd_df["tot_trvl_time"] / 3600)
+
+
+        # Round The Following Columns, tot_dist, avg_trip_speed, avg_trvl_speed
+
 
         # Test Data
         avg_spd_df.to_csv(r'C:\Users\renac\Desktop\TestData.csv')
