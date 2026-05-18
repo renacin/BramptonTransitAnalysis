@@ -82,7 +82,6 @@ class Collector():
             r = requests.get(self.BUS_LOC_URL, headers = {'User-Agent': 'Mozilla/5.0'}, timeout = self.timeout_time)
             r.raise_for_status()
             data = r.json()
-            resp_tsmp = data["header"]["timestamp"]
             df = pd.json_normalize(data['entity'])
             
         except requests.exceptions.Timeout:                 
@@ -136,10 +135,10 @@ class Collector():
                                             vehicle_label, dt_colc)
                         
                         SELECT id, u_id, trip_trip_id, 
-                            trip_schedule_relationship, trip_route_id, position_latitude, 
-                            position_longitude, position_bearing, position_speed, 
-                            current_status, timestamp, stop_id, 
-                            vehicle_id, vehicle_label, dt_colc
+                               trip_schedule_relationship, trip_route_id, position_latitude, 
+                               position_longitude, position_bearing, position_speed, 
+                               current_status, timestamp, stop_id, 
+                               vehicle_id, vehicle_label, dt_colc
                                 
                         FROM LOC_TEMP
                         WHERE NOT EXISTS (SELECT 1 FROM U_ID_TEMP WHERE U_ID_TEMP.u_id = LOC_TEMP.u_id)
@@ -161,7 +160,7 @@ class Collector():
                     max_timestamp = all_uids["timestamp"].max() - (self.cache_time_limit * 60)
                     all_uids = all_uids[all_uids["timestamp"] >= max_timestamp]
 
-                    # Now That We Have
+                    # Update the U_ID cache with filtered data
                     all_uids.to_sql('U_ID_TEMP', conn, if_exists='replace', index=False)
 
                     # Save All Changes To The Database
@@ -170,11 +169,25 @@ class Collector():
                     # Update User
                     self.__logger(f"Data Collector | New Bus Locations Processed --> {new_rows_inserted:04}")
 
-                # If Something Happens Rollback To Begin, Inform User, And Wait 30 Seconds
-                except Exception as db_error:
+
+                # If Something Happens Rollback To Begin, Inform User, And Wait
+                except sqlite3.IntegrityError as e:
                     conn.rollback()
-                    self.__logger(f"Data Collector | Database Error: {db_error}")
-                    time.sleep(self.timeout_time * 3)
+                    self.__logger(f"Data Collector | Duplicate Key Error: {e}")
+                    time.sleep(self.timeout_time * 2)
+
+                except sqlite3.OperationalError as e:
+                    conn.rollback()
+                    self.__logger(f"Data Collector | Database Operational Error: {e}")
+                    time.sleep(self.timeout_time * 2)
+
+                except Exception as e:
+                    conn.rollback()
+                    self.__logger(f"Data Collector | Unexpected Error: {e}")
+                    time.sleep(self.timeout_time * 2)
+
+
+
 
 
 # ----------------------------------------------------------------------------------------------------------------------
