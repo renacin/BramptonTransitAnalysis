@@ -1,6 +1,6 @@
 # Name:                                            Renacin Matadeen
 # Date:                                               03/28/2026
-# Title                           Main Logic Of Data Janitor: Version 3 Memory Optimized?
+# Title                                       Main Logic Of Data Setup
 #
 # ----------------------------------------------------------------------------------------------------------------------
 import os
@@ -9,19 +9,19 @@ import requests
 import shutil
 import pandas as pd
 from datetime import datetime
-from helperfuncs import *
+from helper import *
 
 # ----------------------------------------------------------------------------------------------------------------------
 
 
 
-class Janitor():
+class Setup():
     """ This class will set up databases, perform maintenance, and ensure working order of system  """
 
 
     # -------------------- Functions Run On Instantiation ----------------------
     def __init__(self, log_level = 0):
-        """ This function will run when the DataCollector Class is instantiated """
+        """ This function will run when the Setup Class Is Instantiated """
 
         # Try To Create A Table For Each Item In The Following Database
         self.GTFS_URL     = r'https://www.arcgis.com/sharing/rest/content/items/a355aabd5a8c490186bdce559c9c75fb/data'
@@ -239,7 +239,7 @@ class Janitor():
 
             # If No New Data Back Out
             if int(max_colctd_feed_id) <= int(max_routes_feed_id):
-                self.__logger(f"Data Janitor | Route Speed Table Is Current")
+                self.__logger(f"Data Janitor | Speed Table Is Current")
                 return
 
 
@@ -326,5 +326,5 @@ class Janitor():
 
 # Entry Point Into Python Code (For Testing!)
 if __name__ == "__main__":
-    janitor = Janitor(log_level = 1)
-    janitor.setup()
+    env_setup = Setup(log_level = 1)
+    env_setup.setup()
