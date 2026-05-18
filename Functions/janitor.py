@@ -220,14 +220,44 @@ class Janitor():
 
         # Are There Different Feed Versions In The Data That We're Pulling?
         with sqlite3.connect(self.db_path) as conn:
-            max_colctd_feed_id     = pd.read_sql_query(f""" SELECT DISTINCT MAX(feed_version) AS MAX_FEED_VER FROM FEED_INFO """,   conn)['MAX_FEED_VER'].fillna(0).iloc[0]
-            max_routes_feed_id     = pd.read_sql_query(f""" SELECT DISTINCT MAX(feed_version) AS MAX_FEED_VER FROM ROUTE_SPEED """, conn)['MAX_FEED_VER'].fillna(0).iloc[0]
+            max_colctd_feed_id     = pd.read_sql_query(""" SELECT DISTINCT 
+                                                                MAX(feed_version) AS MAX_FEED_VER 
+                                                            FROM FEED_INFO """,   conn)['MAX_FEED_VER'].fillna(0).iloc[0]
+            
+            max_routes_feed_id     = pd.read_sql_query(""" SELECT DISTINCT 
+                                                                MAX(feed_version) AS MAX_FEED_VER 
+                                                            FROM ROUTE_SPEED """, conn)['MAX_FEED_VER'].fillna(0).iloc[0]
 
 
-        # If The Feed Version Isn't In The Routes Speed Database
-        if int(max_colctd_feed_id) > int(max_routes_feed_id):
-            stops                           = pd.read_sql_query(f""" SELECT B.stop_id, B.stop_code, B.stop_name, B.stop_lat, B.stop_lon,  B.feed_version             FROM STOPS      AS B """, conn)
-            stops_times                     = pd.read_sql_query(f""" SELECT A.trip_id, A.stop_sequence, A.stop_id, A.arrival_time,  A.departure_time, A.feed_version FROM STOP_TIMES AS A """, conn)
+            # If No New Data Back Out
+            if int(max_colctd_feed_id) <= int(max_routes_feed_id):
+                self.__logger(f"Data Janitor | Route Speed Table Is Current")
+                return
+
+
+            # If New Data Present Calculate New Data Given New Feed Version
+            stops                           = pd.read_sql_query(f""" 
+                                                                    SELECT 
+                                                                        B.stop_id, 
+                                                                        B.stop_code, 
+                                                                        B.stop_name, 
+                                                                        B.stop_lat, 
+                                                                        B.stop_lon,  
+                                                                        B.feed_version
+                                                                    FROM STOPS      AS B  
+                                                                    WHERE B.feed_version = ? """, conn, params=(max_colctd_feed_id,))
+            
+            stops_times                     = pd.read_sql_query(f""" 
+                                                                    SELECT 
+                                                                        A.trip_id, 
+                                                                        A.stop_sequence, 
+                                                                        A.stop_id, 
+                                                                        A.arrival_time,  
+                                                                        A.departure_time, 
+                                                                        A.feed_version 
+                                                                    FROM STOP_TIMES AS A  
+                                                                    WHERE A.feed_version = ? """, conn, params=(max_colctd_feed_id,))
+            
             stops_times["stop_id"]          = stops_times["stop_id"].astype(str).str.lstrip("0")
             stops["stop_id"]                = stops["stop_id"].astype(str).str.lstrip("0")
             stops_times["feed_version"]     = stops_times["feed_version"].astype(int)
@@ -266,17 +296,17 @@ class Janitor():
             # Determine Total Travel Time, Idle Time, Average Speed For Trip, Average Speed For Section
             avg_spd_df                     = stops_times.groupby(["trip_id", "feed_version"], as_index=False).agg(tot_dist = ("km2nxtstp", "sum"), tot_idle_time = ("idle_time", "sum"), tot_trvl_time = ("trvl_time", "sum"))
             avg_spd_df["tot_trip_time"]    = avg_spd_df["tot_idle_time"] +  avg_spd_df["tot_trvl_time"]
-            avg_spd_df["avg_trip_speed"]   = avg_spd_df["tot_dist"]      / (avg_spd_df["tot_trip_time"] / 3600)
-            avg_spd_df["avg_trvl_speed"]   = avg_spd_df["tot_dist"]      / (avg_spd_df["tot_trvl_time"] / 3600)
+            avg_spd_df["avg_trip_speed"]   = (avg_spd_df["tot_dist"] / (avg_spd_df["tot_trip_time"] / 3600).replace(0, float("nan")))
+            avg_spd_df["avg_trvl_speed"]   = (avg_spd_df["tot_dist"] / (avg_spd_df["tot_trvl_time"] / 3600).replace(0, float("nan")))
 
 
             # Round The Following Columns & Return Data
             avg_spd_df[["tot_dist", "avg_trip_speed", "avg_trvl_speed"]] = avg_spd_df[["tot_dist", "avg_trip_speed", "avg_trvl_speed"]].round(2)
         
+
             # Upload The Speed Dataframe Data To Respective Table
-            with sqlite3.connect(self.db_path) as conn:
-                avg_spd_df.to_sql("ROUTE_SPEED", conn, if_exists="append", index=False)
-                self.__logger(f"Data Janitor | New Route Speed Data Uploaded")
+            avg_spd_df.to_sql("ROUTE_SPEED", conn, if_exists="append", index=False)
+            self.__logger(f"Data Janitor | New Route Speed Data Uploaded")
 
 
 
