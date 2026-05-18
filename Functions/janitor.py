@@ -15,7 +15,7 @@ from helper import *
 
 
 
-class Setup():
+class Janitor():
     """ This class will set up databases, perform maintenance, and ensure working order of system  """
 
 
@@ -27,7 +27,7 @@ class Setup():
         self.GTFS_URL     = r'https://www.arcgis.com/sharing/rest/content/items/a355aabd5a8c490186bdce559c9c75fb/data'
         self.GATHER_TABLE = {"BUS_LOC_DB", "U_ID_TEMP", "ERROR_DB", "ROUTE_SPEED"}
         self.table_dict   = {
-            "BUS_LOC_DB":     ["u_id", "id", "is_deleted", "trip_update", "alert", "trip_id", "start_time", "start_date", "schedule_relationship", "route_id", "latitude", "longitude", "bearing", "odometer", "speed", "current_stop_sequence", "current_status", "timestamp", "congestion_level", "stop_id", "vehicle_id", "label", "license_plate", "dt_colc"],
+            "BUS_LOC_DB":     ['u_id', 'id', 'trip_trip_id', 'trip_schedule_relationship', 'trip_route_id','position_latitude', 'position_longitude', 'position_bearing','position_speed', 'current_status', 'timestamp', 'stop_id','vehicle_id', 'vehicle_label', 'dt_colc'],
             "U_ID_TEMP":      ["u_id", "timestamp"],
             "ERROR_DB":       ["timestamp", "e_type", "delay"],
             "FEED_INFO":      ["feed_publisher_name", "feed_lang", "feed_start_date", "feed_end_date", "feed_version"],
@@ -55,8 +55,6 @@ class Setup():
         self.td_s_dt_dsply_frmt = "%d-%m-%Y"
         self.log_level          = log_level
 
-        # Print For Logging
-        self.__logger("Data Janitor | Janitor Ready")
 
 
 
@@ -129,7 +127,7 @@ class Setup():
                 os.makedirs(dir_chk)
 
         # Log export
-        self.__logger("Data Janitor | Folders Prepared")
+        self.__logger("Data Janitor   | Folders Prepared")
 
 
 
@@ -146,7 +144,7 @@ class Setup():
                 conn.commit()
 
         # Log export
-        self.__logger("Data Janitor | Databases Ready")
+        self.__logger("Data Janitor   | Databases Ready")
 
 
 
@@ -169,19 +167,19 @@ class Setup():
             try:
                 # Extract Data
                 shutil.unpack_archive(self.zip_path, self.foldr_path)
-                self.__logger("Data Janitor | Extracted GTFS Data")
+                self.__logger("Data Janitor   | Extracted GTFS Data")
 
                 # Remove Unneeded Files & Folders
                 try:
                     os.remove(self.zip_path)
                 except OSError as e:
-                    raise Exception(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor | [ERROR] Could Not Remove Zip")
+                    raise Exception(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor   | [ERROR] Could Not Remove Zip")
             
             except shutil.ReadError as e:
-                raise Exception(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor | [ERROR] Could Not Extract GTFS Data")
+                raise Exception(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor   | [ERROR] Could Not Extract GTFS Data")
 
         else:
-            raise Exception(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor | [ERROR] Bad Response")
+            raise Exception(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor   | [ERROR] Bad Response")
 
 
 
@@ -211,7 +209,7 @@ class Setup():
                         temp_df["feed_version"] = feed_cur_version
                         temp_df                 = temp_df[self.table_dict[file_name]]
                         temp_df.to_sql(file_name, conn, if_exists="append", index=False)
-                        self.__logger(f"Data Janitor | New GTFS Data Uploaded -> {file_name}")
+                        self.__logger(f"Data Janitor   | New GTFS Data Uploaded -> {file_name}")
 
             # Delete All Text Files In Folder
             self.__delete_files(".txt", self.foldr_path)
@@ -239,7 +237,7 @@ class Setup():
 
             # If No New Data Back Out
             if int(max_colctd_feed_id) <= int(max_routes_feed_id):
-                self.__logger(f"Data Janitor | Speed Table Is Current")
+                self.__logger(f"Data Janitor   | Speed Table Is Current")
                 return
 
 
@@ -314,7 +312,7 @@ class Setup():
 
             # Upload The Speed Dataframe Data To Respective Table
             avg_spd_df.to_sql("ROUTE_SPEED", conn, if_exists="append", index=False)
-            self.__logger(f"Data Janitor | New Route Speed Data Uploaded")
+            self.__logger(f"Data Janitor   | New Route Speed Data Uploaded")
 
 
 
@@ -326,5 +324,5 @@ class Setup():
 
 # Entry Point Into Python Code (For Testing!)
 if __name__ == "__main__":
-    env_setup = Setup(log_level = 1)
+    env_setup = Janitor(log_level = 1)
     env_setup.setup()

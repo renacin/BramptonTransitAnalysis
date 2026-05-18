@@ -38,17 +38,18 @@ class Collector():
         }
 
         # Define All Needed Paths
-        self.timeout_time    = 10
-        self.user_path       = os.path.expanduser('~')
-        self.dwnld_path      = os.path.join(os.path.expanduser('~'), "Downloads")
-        db_out_path          = os.path.join(self.dwnld_path,         "BramptonTransitAnalysis", "3_Data")
-        self.db_folder       = db_out_path
-        self.db_path         = os.path.join(db_out_path,             "DataStorage.db")
-        self.csv_out_path    = os.path.join(self.dwnld_path,         "BramptonTransitAnalysis", "4_Storage")
-        self.rfresh_tkn_path = os.path.join(self.dwnld_path,         "DropboxInfo", "GrabToken.sh")
-        self.zip_path        = os.path.join(self.csv_out_path,       "GTFS", "GTFS.zip")
-        self.foldr_path      = os.path.join(self.csv_out_path,       "GTFS")
-        self.out_dict        = {}
+        self.cache_time_limit    = 5
+        self.timeout_time        = 10
+        self.user_path           = os.path.expanduser('~')
+        self.dwnld_path          = os.path.join(os.path.expanduser('~'), "Downloads")
+        db_out_path              = os.path.join(self.dwnld_path,         "BramptonTransitAnalysis", "3_Data")
+        self.db_folder           = db_out_path
+        self.db_path             = os.path.join(db_out_path,             "DataStorage.db")
+        self.csv_out_path        = os.path.join(self.dwnld_path,         "BramptonTransitAnalysis", "4_Storage")
+        self.rfresh_tkn_path     = os.path.join(self.dwnld_path,         "DropboxInfo", "GrabToken.sh")
+        self.zip_path            = os.path.join(self.csv_out_path,       "GTFS", "GTFS.zip")
+        self.foldr_path          = os.path.join(self.csv_out_path,       "GTFS")
+        self.out_dict            = {}
 
         # Datetime Variables
         self.td_l_dt_dsply_frmt = "%d-%m-%Y %H:%M:%S"
@@ -101,6 +102,7 @@ class Collector():
         if len(df) == 0:
             self.__logger(f"Data Collector | ^^^ Skipping Data Collection For {self.timeout_time}s")
             time.sleep(self.timeout_time)
+            return
 
         # If The Dataframe Isn't Empty Format It And Get It Reeady For Injesting Into Database Table
         else:
@@ -116,60 +118,63 @@ class Collector():
 
             # Upload New Data To An Intermediary Temp Table, Check If The U_IDs Are In A Cache From 10 Min Ago, If Not Add To Database
             with sqlite3.connect(self.db_path) as conn:
-                df.to_sql('bus_temp', conn, if_exists='replace', index=False)
-            
-                # conn.execute("""
-                #     INSERT INTO BUS_LOC_DB(u_id, id, is_deleted, trip_update, alert, trip_id, start_time,
-                #                             start_date, schedule_relationship, route_id, latitude, longitude, bearing,
-                #                             odometer, speed, current_stop_sequence, current_status, timestamp, congestion_level,
-                #                             stop_id, vehicle_id, label, license_plate, dt_colc)
-                #     SELECT
-                #         A.u_id,                  A.id,             A.is_deleted,
-                #         A.trip_update,           A.alert,          A.trip_id,
-                #         A.start_time,            A.start_date,     A.schedule_relationship,
-                #         A.route_id,              A.latitude,       A.longitude,
-                #         A.bearing,               A.odometer,       A.speed,
-                #         A.current_stop_sequence, A.current_status, A.timestamp,
-                #         A.congestion_level,      A.stop_id,        A.vehicle_id,
-                #         A.label,                 A.license_plate,  A.dt_colc
 
-                #     FROM
-                #         bus_temp AS A
+                # Wrap With Error Handling Just In Case
+                try: 
 
-                #     WHERE NOT EXISTS (
-                #         SELECT u_id FROM U_ID_TEMP AS B
-                #         WHERE B.u_id = A.u_id)
-                # """)
-                # conn.execute('DROP TABLE IF EXISTS bus_temp')
-                # conn.commit()
-                # conn.close()
+                    # Create A Temporary Space To Store Data Pulled
+                    df.to_sql('LOC_TEMP', conn, if_exists='replace', index=False)
+                
+                    # Compare Data U_IDs From New Data Pulled To U_ID Cache Of X Minutes Ago, Only Look For New Data
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        INSERT INTO BUS_LOC_DB(id, u_id, trip_trip_id, 
+                                            trip_schedule_relationship, 
+                                            trip_route_id, position_latitude, position_longitude, 
+                                            position_bearing, position_speed, current_status, 
+                                            timestamp, stop_id, vehicle_id, 
+                                            vehicle_label, dt_colc)
+                        
+                        SELECT id, u_id, trip_trip_id, 
+                            trip_schedule_relationship, trip_route_id, position_latitude, 
+                            position_longitude, position_bearing, position_speed, 
+                            current_status, timestamp, stop_id, 
+                            vehicle_id, vehicle_label, dt_colc
+                                
+                        FROM LOC_TEMP
+                        WHERE NOT EXISTS (SELECT 1 FROM U_ID_TEMP WHERE U_ID_TEMP.u_id = LOC_TEMP.u_id)
+                    """)
 
-                # # Combine U_IDs From New Data & U_IDs In Most Recent Cache
-                # conn = sqlite3.connect(self.db_path)
-                # all_uids = pd.concat([pd.read_sql_query("SELECT * FROM U_ID_TEMP", conn), bus_loc_df[["u_id", "timestamp"]]])
-                # conn.commit()
-                # conn.close()
+                    # Drop The Temporary Table Where We Stored The Newly Collected Data & Capture Rows Added
+                    new_rows_inserted = cursor.rowcount
+                    conn.execute('DROP TABLE IF EXISTS LOC_TEMP')
 
-                # # Sort, Where The Most Recent U_IDs Are At The Top, Remove Duplicates
-                # all_uids["timestamp"] = all_uids["timestamp"].astype('int')
-                # all_uids = all_uids.sort_values(by="timestamp", ascending=False)
-                # all_uids = all_uids.drop_duplicates()
+                    # Update The U_ID Cache - Combine U_IDs From New Data & U_IDs In Most Recent Cache
+                    all_uids = pd.concat([pd.read_sql_query("SELECT * FROM U_ID_TEMP", conn), df[["u_id", "timestamp"]]])
 
-                # # Find The Max Time Stamp, And Only Keep Rows A Couple Of Min Back From That Value
-                # min_back = 8
-                # max_timestamp = all_uids["timestamp"].max() - (min_back * 60)
-                # all_uids = all_uids[all_uids["timestamp"] >= max_timestamp]
+                    # Sort, Where The Most Recent U_IDs Are At The Top, Remove Duplicates
+                    all_uids["timestamp"] = all_uids["timestamp"].astype('int')
+                    all_uids = all_uids.sort_values(by="timestamp", ascending=False)
+                    all_uids = all_uids.drop_duplicates()
 
-                # # Now That We Have
-                # conn = sqlite3.connect(self.db_path)
-                # all_uids.to_sql('U_ID_TEMP', conn, if_exists='replace', index=False)
-                # conn.commit()
-                # conn.close()
+                    # Find The Max Time Stamp, And Only Keep Rows A Couple Of Min Back From That Value
+                    max_timestamp = all_uids["timestamp"].max() - (self.cache_time_limit * 60)
+                    all_uids = all_uids[all_uids["timestamp"] >= max_timestamp]
 
+                    # Now That We Have
+                    all_uids.to_sql('U_ID_TEMP', conn, if_exists='replace', index=False)
 
+                    # Save All Changes To The Database
+                    conn.commit()
 
+                    # Update User
+                    self.__logger(f"Data Collector | New Bus Locations Processed --> {new_rows_inserted:04}")
 
-
+                # If Something Happens Rollback To Begin, Inform User, And Wait 30 Seconds
+                except Exception as db_error:
+                    conn.rollback()
+                    self.__logger(f"Data Collector | Database Error: {db_error}")
+                    time.sleep(self.timeout_time * 3)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -177,4 +182,7 @@ class Collector():
 # Entry Point Into Python Code (For Testing!)
 if __name__ == "__main__":
     collector = Collector(log_level = 1)
-    collector.get_bus_loc()
+
+    for x in range(1000):
+        collector.get_bus_loc()
+        time.sleep(10)
