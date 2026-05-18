@@ -74,6 +74,7 @@ class Janitor():
 
 
 
+
     # -------------------- Private Function #1 ---------------------------------
     def __logger(self, message = ""):
         """ Find The Location Of The Downloads Folder """
@@ -81,6 +82,7 @@ class Janitor():
         # Verify That The Path Exists Raise Error!
         if self.log_level == 1:
             print(f"{datetime.now().strftime(self.td_l_dt_dsply_frmt)}: {message}")
+
 
 
 
@@ -99,6 +101,7 @@ class Janitor():
 
 
 
+
     # -------------------- Private Function #3 ---------------------------------
     def __find_downloads_folder(self):
         """ Find The Location Of The Downloads Folder """
@@ -106,6 +109,7 @@ class Janitor():
         # Verify That The Path Exists Raise Error!
         if os.path.exists(self.dwnld_path) != True:
             raise Exception(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor | [ERROR] Download Folder Does Not Exist")
+
 
 
 
@@ -129,6 +133,7 @@ class Janitor():
 
 
 
+
     # -------------------- Private Function #5 ---------------------------------
     def __db_check(self):
         """ Create a database that will store bus location data; as well as basic database inter data """
@@ -142,6 +147,7 @@ class Janitor():
 
         # Log export
         self.__logger("Data Janitor | Databases Ready")
+
 
 
 
@@ -179,6 +185,7 @@ class Janitor():
 
 
 
+
     # -------------------- Private Function #7 ---------------------------------
     def __upld_gtfs_data(self):
         """
@@ -208,6 +215,7 @@ class Janitor():
 
             # Delete All Text Files In Folder
             self.__delete_files(".txt", self.foldr_path)
+
 
 
 
@@ -307,6 +315,7 @@ class Janitor():
             # Upload The Speed Dataframe Data To Respective Table
             avg_spd_df.to_sql("ROUTE_SPEED", conn, if_exists="append", index=False)
             self.__logger(f"Data Janitor | New Route Speed Data Uploaded")
+
 
 
 
