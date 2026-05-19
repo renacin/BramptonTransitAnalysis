@@ -80,11 +80,20 @@ class Collector():
 
         # Try To Pull GTFS Data From Transit URL, Be Careful Of Request Errors
         try:
-            r = requests.get(self.BUS_LOC_URL, headers = {'User-Agent': 'Mozilla/5.0'}, timeout = self.timeout_time)
-            r.raise_for_status()
-            data = r.json()
-            df = pd.json_normalize(data['entity'])
-            
+            r = requests.get(self.BUS_LOC_URL, headers={'User-Agent': 'Mozilla/5.0'}, timeout=self.timeout_time)
+
+            # Handle Rate Limiting
+            if r.status_code == 429:
+                self.__logger("Data Collector | Rate Limit Exceeded (HTTP 429)")
+                df = pd.DataFrame()
+
+            else:
+                r.raise_for_status()
+                data = r.json()
+                df = pd.json_normalize(data['entity'])
+
+
+        # Catch All Errors
         except requests.exceptions.Timeout:                 
             self.__logger(f"Data Collector | Connection Timed Out After {self.timeout_time}s")
             df = pd.DataFrame()
