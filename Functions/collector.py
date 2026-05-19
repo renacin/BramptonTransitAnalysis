@@ -4,6 +4,7 @@
 #
 # ----------------------------------------------------------------------------------------------------------------------
 import os
+import sys
 import sqlite3
 import requests
 import pandas as pd
@@ -96,12 +97,18 @@ class Collector():
             self.__logger(f"Data Collector | HTTP Error {e}")
             df = pd.DataFrame()
 
+        except KeyboardInterrupt:
+            conn.rollback()
+            self.__logger(f"Data Collector | Keyboard Interrupt")
+            sys.exit()
 
+
+        # ----------------------------------------------------------------------------------------
         # Check To See If GTFS Data Is Empty. If It Is Rate Limit Code Here So We Don't Get Banned
         if len(df) == 0:
             self.__logger(f"Data Collector | ^^^ Skipping Data Collection For {self.timeout_time}s")
             time.sleep(self.timeout_time)
-            return
+
 
         # If The Dataframe Isn't Empty Format It And Get It Reeady For Injesting Into Database Table
         else:
@@ -168,6 +175,7 @@ class Collector():
 
                     # Update User
                     self.__logger(f"Data Collector | New Bus Locations Processed --> {new_rows_inserted:04}")
+                    time.sleep(self.timeout_time)
 
 
                 # If Something Happens Rollback To Begin, Inform User, And Wait
@@ -185,6 +193,11 @@ class Collector():
                     conn.rollback()
                     self.__logger(f"Data Collector | Unexpected Error: {e}")
                     time.sleep(self.timeout_time * 2)
+
+                except KeyboardInterrupt:
+                    conn.rollback()
+                    self.__logger(f"Data Collector | Keyboard Interrupt")
+                    sys.exit()
 
 
 
