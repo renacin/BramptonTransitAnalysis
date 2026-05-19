@@ -209,6 +209,9 @@ class Collector():
 if __name__ == "__main__":
     collector = Collector(log_level = 1)
 
-    for x in range(1000):
-        collector.get_bus_loc()
-        time.sleep(10)
+    while True:
+        try:
+            collector.get_bus_loc()
+
+        except KeyboardInterrupt:
+            sys.exit()
