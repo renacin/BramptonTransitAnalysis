@@ -10,9 +10,9 @@ import requests
 import pandas as pd
 import time as time
 from datetime import datetime
+from env_config import Config
 
 # ----------------------------------------------------------------------------------------------------------------------
-
 
 
 class Collector():
@@ -20,43 +20,10 @@ class Collector():
 
 
     # -------------------- Functions Run On Instantiation ----------------------
-    def __init__(self, log_level = 0):
-        """ This function will run when the DataCollector Class is instantiated """
-
-        # Try To Create A Table For Each Item In The Following Database
-        self.BUS_LOC_URL     = r'https://gtfs-rt-merge.prod.bt-cadavl.com/BramptonTransit/GTFS/merged_VehiclePosition.json'
-        self.GATHER_TABLE    = {"BUS_LOC_DB", "U_ID_TEMP", "ERROR_DB", "ROUTE_SPEED"}
-        self.table_dict      = {
-            "BUS_LOC_DB":     ["u_id", "id", "is_deleted", "trip_update", "alert", "trip_id", "start_time", "start_date", "schedule_relationship", "route_id", "latitude", "longitude", "bearing", "odometer", "speed", "current_stop_sequence", "current_status", "timestamp", "congestion_level", "stop_id", "vehicle_id", "label", "license_plate", "dt_colc"],
-            "U_ID_TEMP":      ["u_id", "timestamp"],
-            "ERROR_DB":       ["timestamp", "e_type", "delay"],
-            "FEED_INFO":      ["feed_publisher_name", "feed_lang", "feed_start_date", "feed_end_date", "feed_version"],
-            "ROUTES":         ["route_id", "route_short_name", "route_long_name", "feed_version"],
-            "TRIPS":          ["route_id", "service_id", "trip_id", "trip_headsign", "direction_id", "block_id", "shape_id", "feed_version"],
-            "STOPS":          ["stop_id", "stop_code", "stop_name", "stop_lat", "stop_lon", "zone_id", "stop_url", "parent_station", "feed_version"],
-            "STOP_TIMES":     ["trip_id", "arrival_time", "departure_time", "stop_id", "stop_sequence", "pickup_type", "drop_off_type", "timepoint", "feed_version"],
-            "ROUTE_SPEED":    ['trip_id', 'tot_dist', 'tot_idle_time', 'tot_trvl_time', 'tot_trip_time', 'avg_trip_speed', 'avg_trvl_speed', "feed_version"]
-        }
-
-        # Define All Needed Paths
-        self.cache_time_limit    = 5
-        self.timeout_time        = 10
-        self.user_path           = os.path.expanduser('~')
-        self.dwnld_path          = os.path.join(os.path.expanduser('~'), "Downloads")
-        db_out_path              = os.path.join(self.dwnld_path,         "BramptonTransitAnalysis", "3_Data")
-        self.db_folder           = db_out_path
-        self.db_path             = os.path.join(db_out_path,             "DataStorage.db")
-        self.csv_out_path        = os.path.join(self.dwnld_path,         "BramptonTransitAnalysis", "4_Storage")
-        self.rfresh_tkn_path     = os.path.join(self.dwnld_path,         "DropboxInfo", "GrabToken.sh")
-        self.zip_path            = os.path.join(self.csv_out_path,       "GTFS", "GTFS.zip")
-        self.foldr_path          = os.path.join(self.csv_out_path,       "GTFS")
-        self.out_dict            = {}
-
-        # Datetime Variables
-        self.td_l_dt_dsply_frmt = "%d-%m-%Y %H:%M:%S"
-        self.td_s_dt_dsply_frmt = "%d-%m-%Y"
-        self.log_level          = log_level
-
+    def __init__(self):
+        """ On Instantiation Pull Config Settings """
+        # Grab Config Files
+        self.cfg = Config()
 
 
 
@@ -65,9 +32,7 @@ class Collector():
         """ Find The Location Of The Downloads Folder """
 
         # Verify That The Path Exists Raise Error!
-        if self.log_level == 1:
-            print(f"{datetime.now().strftime(self.td_l_dt_dsply_frmt)}: {message}")
-
+        print(f"{datetime.now().strftime(self.cfg.td_l_dt_dsply_frmt)}: {message}")
 
 
 
@@ -80,7 +45,7 @@ class Collector():
 
         # Try To Pull GTFS Data From Transit URL, Be Careful Of Request Errors
         try:
-            r = requests.get(self.BUS_LOC_URL, headers={'User-Agent': 'Mozilla/5.0'}, timeout=self.timeout_time)
+            r = requests.get(self.cfg.BUS_LOC_URL, headers={'User-Agent': 'Mozilla/5.0'}, timeout=self.cfg.timeout_time)
 
             # Handle Rate Limiting
             if r.status_code == 429:
@@ -95,7 +60,7 @@ class Collector():
 
         # Catch All Errors
         except requests.exceptions.Timeout:                 
-            self.__logger(f"Data Collector | Connection Timed Out After {self.timeout_time}s")
+            self.__logger(f"Data Collector | Connection Timed Out After {self.cfg.timeout_time}s")
             df = pd.DataFrame()
             
         except requests.exceptions.ConnectionError:
@@ -115,8 +80,8 @@ class Collector():
         # ----------------------------------------------------------------------------------------
         # Check To See If GTFS Data Is Empty. If It Is Rate Limit Code Here So We Don't Get Banned
         if len(df) == 0:
-            self.__logger(f"Data Collector | ^^^ Skipping Data Collection For {self.timeout_time}s")
-            time.sleep(self.timeout_time)
+            self.__logger(f"Data Collector | ^^^ Skipping Data Collection For {self.cfg.timeout_time}s")
+            time.sleep(self.cfg.timeout_time)
 
 
         # If The Dataframe Isn't Empty Format It And Get It Reeady For Injesting Into Database Table
@@ -132,7 +97,7 @@ class Collector():
 
 
             # Upload New Data To An Intermediary Temp Table, Check If The U_IDs Are In A Cache From 10 Min Ago, If Not Add To Database
-            with sqlite3.connect(self.db_path) as conn:
+            with sqlite3.connect(self.cfg.db_path) as conn:
 
                 # Wrap With Error Handling Just In Case
                 try: 
@@ -173,7 +138,7 @@ class Collector():
                     all_uids = all_uids.drop_duplicates()
 
                     # Find The Max Time Stamp, And Only Keep Rows A Couple Of Min Back From That Value
-                    max_timestamp = all_uids["timestamp"].max() - (self.cache_time_limit * 60)
+                    max_timestamp = all_uids["timestamp"].max() - (self.cfg.cache_time_limit * 60)
                     all_uids = all_uids[all_uids["timestamp"] >= max_timestamp]
 
                     # Update the U_ID cache with filtered data
@@ -184,24 +149,24 @@ class Collector():
 
                     # Update User
                     self.__logger(f"Data Collector | New Bus Locations Processed --> {new_rows_inserted:04}")
-                    time.sleep(self.timeout_time)
+                    time.sleep(self.cfg.timeout_time)
 
 
                 # If Something Happens Rollback To Begin, Inform User, And Wait
                 except sqlite3.IntegrityError as e:
                     conn.rollback()
                     self.__logger(f"Data Collector | Duplicate Key Error: {e}")
-                    time.sleep(self.timeout_time * 2)
+                    time.sleep(self.cfg.timeout_time * 2)
 
                 except sqlite3.OperationalError as e:
                     conn.rollback()
                     self.__logger(f"Data Collector | Database Operational Error: {e}")
-                    time.sleep(self.timeout_time * 2)
+                    time.sleep(self.cfg.timeout_time * 2)
 
                 except Exception as e:
                     conn.rollback()
                     self.__logger(f"Data Collector | Unexpected Error: {e}")
-                    time.sleep(self.timeout_time * 2)
+                    time.sleep(self.cfg.timeout_time * 2)
 
                 except KeyboardInterrupt:
                     conn.rollback()
@@ -216,7 +181,7 @@ class Collector():
 
 # Entry Point Into Python Code (For Testing!)
 if __name__ == "__main__":
-    collector = Collector(log_level = 1)
+    collector = Collector()
 
     while True:
         try:

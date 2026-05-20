@@ -9,53 +9,20 @@ import requests
 import shutil
 import pandas as pd
 from datetime import datetime
-from helper import *
+from helper     import *
+from env_config import *
 
 # ----------------------------------------------------------------------------------------------------------------------
-
 
 
 class Janitor():
     """ This class will set up databases, perform maintenance, and ensure working order of system  """
 
-
     # -------------------- Functions Run On Instantiation ----------------------
-    def __init__(self, log_level = 0):
-        """ This function will run when the Setup Class Is Instantiated """
-
-        # Try To Create A Table For Each Item In The Following Database
-        self.GTFS_URL     = r'https://www.arcgis.com/sharing/rest/content/items/a355aabd5a8c490186bdce559c9c75fb/data'
-        self.GATHER_TABLE = {"BUS_LOC_DB", "U_ID_TEMP", "ERROR_DB", "ROUTE_SPEED"}
-        self.table_dict   = {
-            "BUS_LOC_DB":     ['u_id', 'id', 'trip_trip_id', 'trip_schedule_relationship', 'trip_route_id','position_latitude', 'position_longitude', 'position_bearing','position_speed', 'current_status', 'timestamp', 'stop_id','vehicle_id', 'vehicle_label', 'dt_colc'],
-            "U_ID_TEMP":      ["u_id", "timestamp"],
-            "ERROR_DB":       ["timestamp", "e_type", "delay"],
-            "FEED_INFO":      ["feed_publisher_name", "feed_lang", "feed_start_date", "feed_end_date", "feed_version"],
-            "ROUTES":         ["route_id", "route_short_name", "route_long_name", "feed_version"],
-            "TRIPS":          ["route_id", "service_id", "trip_id", "trip_headsign", "direction_id", "block_id", "shape_id", "feed_version"],
-            "STOPS":          ["stop_id", "stop_code", "stop_name", "stop_lat", "stop_lon", "zone_id", "stop_url", "parent_station", "feed_version"],
-            "STOP_TIMES":     ["trip_id", "arrival_time", "departure_time", "stop_id", "stop_sequence", "pickup_type", "drop_off_type", "timepoint", "feed_version"],
-            "ROUTE_SPEED":    ['trip_id', 'tot_dist', 'tot_idle_time', 'tot_trvl_time', 'tot_trip_time', 'avg_trip_speed', 'avg_trvl_speed', "feed_version"]
-        }
-
-        # Define All Needed Paths
-        self.user_path       = os.path.expanduser('~')
-        self.dwnld_path      = os.path.join(os.path.expanduser('~'), "Downloads")
-        db_out_path          = os.path.join(self.dwnld_path,         "BramptonTransitAnalysis", "3_Data")
-        self.db_folder       = db_out_path
-        self.db_path         = os.path.join(db_out_path,             "DataStorage.db")
-        self.csv_out_path    = os.path.join(self.dwnld_path,         "BramptonTransitAnalysis", "4_Storage")
-        self.rfresh_tkn_path = os.path.join(self.dwnld_path,         "DropboxInfo", "GrabToken.sh")
-        self.zip_path        = os.path.join(self.csv_out_path,       "GTFS", "GTFS.zip")
-        self.foldr_path      = os.path.join(self.csv_out_path,       "GTFS")
-        self.out_dict        = {}
-
-        # Datetime Variables
-        self.td_l_dt_dsply_frmt = "%d-%m-%Y %H:%M:%S"
-        self.td_s_dt_dsply_frmt = "%d-%m-%Y"
-        self.log_level          = log_level
-
-
+    def __init__(self):
+        """ On Instantiation Pull Config Settings """
+        # Grab Config Files
+        self.cfg = Config()
 
 
     # ~~~~~~~~~~~~~~~~~~~~~ Public Function #1 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -71,17 +38,12 @@ class Janitor():
         self.__upld_trip_avg_speed()
 
 
-
-
     # -------------------- Private Function #1 ---------------------------------
     def __logger(self, message = ""):
         """ Find The Location Of The Downloads Folder """
 
         # Verify That The Path Exists Raise Error!
-        if self.log_level == 1:
-            print(f"{datetime.now().strftime(self.td_l_dt_dsply_frmt)}: {message}")
-
-
+        print(f"{datetime.now().strftime(self.td_l_dt_dsply_frmt)}: {message}")
 
 
     # -------------------- Private Function #2 ---------------------------------
@@ -98,8 +60,6 @@ class Janitor():
                     raise Exception(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor | [ERROR] Could Not Remove {file_ext} Files")
 
 
-
-
     # -------------------- Private Function #3 ---------------------------------
     def __find_downloads_folder(self):
         """ Find The Location Of The Downloads Folder """
@@ -107,8 +67,6 @@ class Janitor():
         # Verify That The Path Exists Raise Error!
         if os.path.exists(self.dwnld_path) != True:
             raise Exception(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor | [ERROR] Download Folder Does Not Exist")
-
-
 
 
     # -------------------- Private Function #4 ---------------------------------
@@ -130,8 +88,6 @@ class Janitor():
         self.__logger("Data Janitor   | Folders Prepared")
 
 
-
-
     # -------------------- Private Function #5 ---------------------------------
     def __db_check(self):
         """ Create a database that will store bus location data; as well as basic database inter data """
@@ -145,8 +101,6 @@ class Janitor():
 
         # Log export
         self.__logger("Data Janitor   | Databases Ready")
-
-
 
 
     # -------------------- Private Function #6 ---------------------------------
@@ -182,8 +136,6 @@ class Janitor():
             raise Exception(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor   | [ERROR] Bad Response")
 
 
-
-
     # -------------------- Private Function #7 ---------------------------------
     def __upld_gtfs_data(self):
         """
@@ -213,8 +165,6 @@ class Janitor():
 
             # Delete All Text Files In Folder
             self.__delete_files(".txt", self.foldr_path)
-
-
 
 
     # -------------------- Private Function #8 ---------------------------------
@@ -316,13 +266,9 @@ class Janitor():
 
 
 
-
-
-
-
 # ----------------------------------------------------------------------------------------------------------------------
 
 # Entry Point Into Python Code (For Testing!)
 if __name__ == "__main__":
-    env_setup = Janitor(log_level = 1)
+    env_setup = Janitor()
     env_setup.setup()
