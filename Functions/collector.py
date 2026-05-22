@@ -11,29 +11,17 @@ import pandas as pd
 import time as time
 from datetime import datetime
 from env_config import Config
-
 # ----------------------------------------------------------------------------------------------------------------------
 
 
 class Collector():
     """ This class will collect data from GTFS Live Feed  """
 
-
     # -------------------- Functions Run On Instantiation ----------------------
     def __init__(self):
         """ On Instantiation Pull Config Settings """
         # Grab Config Files
         self.cfg = Config()
-
-
-
-    # -------------------- Private Function #1 ---------------------------------
-    def __logger(self, message = ""):
-        """ Find The Location Of The Downloads Folder """
-
-        # Verify That The Path Exists Raise Error!
-        print(f"{datetime.now().strftime(self.cfg.td_l_dt_dsply_frmt)}: {message}")
-
 
 
     # -------------------- Private Function #2 ---------------------------------
@@ -49,7 +37,7 @@ class Collector():
 
             # Handle Rate Limiting
             if r.status_code == 429:
-                self.__logger("Data Collector | Rate Limit Exceeded (HTTP 429)")
+                # self.__logger("Data Collector | Rate Limit Exceeded (HTTP 429)")
                 df = pd.DataFrame()
 
             else:
@@ -60,20 +48,20 @@ class Collector():
 
         # Catch All Errors
         except requests.exceptions.Timeout:                 
-            self.__logger(f"Data Collector | Connection Timed Out After {self.cfg.timeout_time}s")
+            # self.__logger(f"Data Collector | Connection Timed Out After {self.cfg.timeout_time}s")
             df = pd.DataFrame()
             
         except requests.exceptions.ConnectionError:
-            self.__logger(f"Data Collector | Endpoint Connection Failed")
+            # self.__logger(f"Data Collector | Endpoint Connection Failed")
             df = pd.DataFrame()
             
         except requests.exceptions.HTTPError as e:
-            self.__logger(f"Data Collector | HTTP Error {e}")
+            # self.__logger(f"Data Collector | HTTP Error {e}")
             df = pd.DataFrame()
 
         except KeyboardInterrupt:
             conn.rollback()
-            self.__logger(f"Data Collector | Keyboard Interrupt")
+            # self.__logger(f"Data Collector | Keyboard Interrupt")
             sys.exit()
 
 
@@ -148,32 +136,31 @@ class Collector():
                     conn.commit()
 
                     # Update User
-                    self.__logger(f"Data Collector | New Bus Locations Processed --> {new_rows_inserted:04}")
+                    # self.__logger(f"Data Collector | New Bus Locations Processed --> {new_rows_inserted:04}")
+                    print(f"{new_rows_inserted:04}")
                     time.sleep(self.cfg.timeout_time)
 
 
                 # If Something Happens Rollback To Begin, Inform User, And Wait
                 except sqlite3.IntegrityError as e:
                     conn.rollback()
-                    self.__logger(f"Data Collector | Duplicate Key Error: {e}")
+                    # self.__logger(f"Data Collector | Duplicate Key Error: {e}")
                     time.sleep(self.cfg.timeout_time * 2)
 
                 except sqlite3.OperationalError as e:
                     conn.rollback()
-                    self.__logger(f"Data Collector | Database Operational Error: {e}")
+                    # self.__logger(f"Data Collector | Database Operational Error: {e}")
                     time.sleep(self.cfg.timeout_time * 2)
 
                 except Exception as e:
                     conn.rollback()
-                    self.__logger(f"Data Collector | Unexpected Error: {e}")
+                    # self.__logger(f"Data Collector | Unexpected Error: {e}")
                     time.sleep(self.cfg.timeout_time * 2)
 
                 except KeyboardInterrupt:
                     conn.rollback()
-                    self.__logger(f"Data Collector | Keyboard Interrupt")
+                    # self.__logger(f"Data Collector | Keyboard Interrupt")
                     sys.exit()
-
-
 
 
 
