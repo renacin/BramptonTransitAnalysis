@@ -76,15 +76,4 @@ def shared_logger(logger_name="", message_txt="", func_level=1, log_location="")
 
 # Entry Point Into Python Code (For Testing!)
 if __name__ == "__main__":
-    log_loc  = fr"C:\Users\renac\Documents\Programming\BramptonTransitAnalysis"
-    shared_logger("Data Collector", "Shit is fucked?", 1, log_loc)
-    shared_logger("Data Collector", "Shit is fucked?", 2, log_loc)
-    shared_logger("Data Collector", "Shit is fucked?", 3, log_loc)
-    shared_logger("Data Collector", "Shit is fucked?", 4, log_loc)
-    shared_logger("Data Collector", "Shit is fucked?", 1, log_loc)
-    shared_logger("Data Collector", "Shit is fucked?", 2, log_loc)
-    shared_logger("Data Collector", "Shit is fucked?", 3, log_loc)
-
-    
-    
-    
+    pass

@@ -10,7 +10,9 @@ import requests
 import pandas as pd
 import time as time
 from datetime import datetime
+
 from env_config import Config
+from helper import *
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -137,6 +139,8 @@ class Collector():
 
                     # Update User
                     # self.__logger(f"Data Collector | New Bus Locations Processed --> {new_rows_inserted:04}")
+                    log_loc = os.path.join(self.cfg.csv_out_path, "LOGS")
+                    shared_logger("Data Collector", f"New Bus Locations Processed --> {new_rows_inserted:04}", 1, log_loc)
                     print(f"{new_rows_inserted:04}")
                     time.sleep(self.cfg.timeout_time)
 
