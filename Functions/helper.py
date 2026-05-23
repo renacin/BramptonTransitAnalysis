@@ -42,11 +42,29 @@ def hvrsn_dist(coord1, coord2):
 
 
 # ---------------------- Function #2 ---------------------------------
-def logger(self, message = ""):
-    """ Find The Location Of The Downloads Folder """
+def shared_logger(logger_name="", message_txt="", func_level=1):
+
+    # Where Are We Writting To?
 
 
+    # Define Logger Name & Basic Level Of Logging Tool
+    logger = logging.getLogger(logger_name)
+    logger.setLevel(logging.INFO)
 
+    # Remove Any Other Loggers, Stream To The Console, And Define Format
+    if not logger.handlers:
+        handler = logging.StreamHandler()
+        handler.setFormatter(logging.Formatter(
+            '|-- %(asctime)s | %(name)-12s | %(levelname)-8s : %(message)s --|',
+            datefmt='%Y-%m-%d %H:%M:%S'
+        ))
+        logger.addHandler(handler)
+
+    # Depending On The Output Choose Level
+    if   func_level == 1: logger.info(message_txt)
+    elif func_level == 2: logger.warning(message_txt)
+    elif func_level == 3: logger.error(message_txt)
+    elif func_level == 4: logger.critical(message_txt)
 
 
 
@@ -54,13 +72,13 @@ def logger(self, message = ""):
 
 # Entry Point Into Python Code (For Testing!)
 if __name__ == "__main__":
-    logging.basicConfig(
-        level   = logging.INFO, # minimum level to show
-        format  = '%(asctime)s | Data Collector | %(levelname)-8s --> %(message)s',
-        datefmt = '%Y-%m-%d %H:%M:%S'
-        )
-
-    logging.info('Hello, this is a log message')
-    logging.warning('Something looks weird')
-    logging.error('Something broke')
-    logging.critical('Shit is fucked')
+    shared_logger("Data Collector", "Shit is fucked?", 1)
+    shared_logger("Data Collector", "Shit is fucked?", 2)
+    shared_logger("Data Collector", "Shit is fucked?", 3)
+    shared_logger("Data Collector", "Shit is fucked?", 4)
+    shared_logger("Data Collector", "Shit is fucked?", 1)
+    shared_logger("Data Collector", "Shit is fucked?", 1)
+    
+    
+    
+    
