@@ -9,14 +9,14 @@ import requests
 import shutil
 import pandas as pd
 from datetime import datetime
-from helper     import *
-from env_config import *
 
+from helper     import *
+from env_config import Config
 # ----------------------------------------------------------------------------------------------------------------------
 
 
-class Janitor():
-    """ This class will set up databases, perform maintenance, and ensure working order of system  """
+class EnvConfig():
+    """ This class will set up databases  """
 
     # -------------------- Functions Run On Instantiation ----------------------
     def __init__(self):
@@ -38,12 +38,12 @@ class Janitor():
         self.__upld_trip_avg_speed()
 
 
-    # -------------------- Private Function #1 ---------------------------------
-    def __logger(self, message = ""):
-        """ Find The Location Of The Downloads Folder """
+    # # -------------------- Private Function #1 ---------------------------------
+    # def __logger(self, message = ""):
+    #     """ Find The Location Of The Downloads Folder """
 
-        # Verify That The Path Exists Raise Error!
-        print(f"{datetime.now().strftime(self.td_l_dt_dsply_frmt)}: {message}")
+    #     # Verify That The Path Exists Raise Error!
+    #     print(f"{datetime.now().strftime(self.cfg.td_l_dt_dsply_frmt)}: {message}")
 
 
     # -------------------- Private Function #2 ---------------------------------
@@ -57,7 +57,7 @@ class Janitor():
                 try:
                     os.remove(full_path)
                 except OSError as e:
-                    raise Exception(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor | [ERROR] Could Not Remove {file_ext} Files")
+                    raise Exception(f"[{datetime.now().strftime(self.cfg.td_l_dt_dsply_frmt)}]: Data Janitor | [ERROR] Could Not Remove {file_ext} Files")
 
 
     # -------------------- Private Function #3 ---------------------------------
@@ -65,8 +65,8 @@ class Janitor():
         """ Find The Location Of The Downloads Folder """
 
         # Verify That The Path Exists Raise Error!
-        if os.path.exists(self.dwnld_path) != True:
-            raise Exception(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor | [ERROR] Download Folder Does Not Exist")
+        if os.path.exists(self.cfg.dwnld_path) != True:
+            raise Exception(f"[{datetime.now().strftime(self.cfg.td_l_dt_dsply_frmt)}]: Data Janitor | [ERROR] Download Folder Does Not Exist")
 
 
     # -------------------- Private Function #4 ---------------------------------
@@ -74,13 +74,13 @@ class Janitor():
         """ Create Needed Folders If They Don't Exist Already """
 
         # First Check To See If The Main Folder Exists!
-        if not os.path.isdir(self.db_folder):
-            os.makedirs(self.db_folder)
+        if not os.path.isdir(self.cfg.db_folder):
+            os.makedirs(self.cfg.db_folder)
 
         # In The Out Directory Provided See If The Appropriate Sub Folders Exist!
         for fldr_nm in ['GTFS', 'BUS_STP', 'BUS_LOC', 'FRMTD_DATA', 'BUS_SPEED', 'GRAPHICS', 'ERROR']:
-            dir_chk = os.path.join(self.csv_out_path, fldr_nm)
-            self.out_dict[fldr_nm] = dir_chk 
+            dir_chk = os.path.join(self.cfg.csv_out_path, fldr_nm)
+            self.cfg.out_dict[fldr_nm] = dir_chk 
             if not os.path.exists(dir_chk):
                 os.makedirs(dir_chk)
 
@@ -93,9 +93,9 @@ class Janitor():
         """ Create a database that will store bus location data; as well as basic database inter data """
 
         # Iterate Through Table Dictionary And Create Tables If They Don't Exist Already
-        with sqlite3.connect(self.db_path) as conn:
-            for table_ in self.table_dict:
-                sql_string = ", ".join(self.table_dict[table_])
+        with sqlite3.connect(self.cfg.db_path) as conn:
+            for table_ in self.cfg.table_dict:
+                sql_string = ", ".join(self.cfg.table_dict[table_])
                 conn.execute(f'''CREATE TABLE IF NOT EXISTS {table_} ({sql_string});''')
                 conn.commit()
 
@@ -111,29 +111,29 @@ class Janitor():
         """
 
         # Internalize URL, And Use Requests To Get Data
-        response = requests.get(self.GTFS_URL)
+        response = requests.get(self.cfg.GTFS_URL)
 
         # Try To Get GTFS Zip Data
         if response.status_code == 200:
-            with open(self.zip_path, 'wb') as f:
+            with open(self.cfg.zip_path, 'wb') as f:
                 f.write(response.content)
 
             try:
                 # Extract Data
-                shutil.unpack_archive(self.zip_path, self.foldr_path)
+                shutil.unpack_archive(self.cfg.zip_path, self.cfg.foldr_path)
                 self.__logger("Data Janitor   | Extracted GTFS Data")
 
                 # Remove Unneeded Files & Folders
                 try:
-                    os.remove(self.zip_path)
+                    os.remove(self.cfg.zip_path)
                 except OSError as e:
-                    raise Exception(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor   | [ERROR] Could Not Remove Zip")
+                    raise Exception(f"[{datetime.now().strftime(self.cfg.td_l_dt_dsply_frmt)}]: Data Janitor   | [ERROR] Could Not Remove Zip")
             
             except shutil.ReadError as e:
-                raise Exception(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor   | [ERROR] Could Not Extract GTFS Data")
+                raise Exception(f"[{datetime.now().strftime(self.cfg.td_l_dt_dsply_frmt)}]: Data Janitor   | [ERROR] Could Not Extract GTFS Data")
 
         else:
-            raise Exception(f"[{datetime.now().strftime(self.td_l_dt_dsply_frmt)}]: Data Janitor   | [ERROR] Bad Response")
+            raise Exception(f"[{datetime.now().strftime(self.cfg.td_l_dt_dsply_frmt)}]: Data Janitor   | [ERROR] Bad Response")
 
 
     # -------------------- Private Function #7 ---------------------------------
@@ -143,10 +143,10 @@ class Janitor():
         """
 
         # Make A Connection To The Database
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite3.connect(self.cfg.db_path) as conn:
 
             # First Find The GTFS Feed_Info.txt File
-            feed_df          = pd.read_csv(os.path.join(self.csv_out_path, "GTFS", "feed_info.txt"), usecols=["feed_version"])
+            feed_df          = pd.read_csv(os.path.join(self.cfg.csv_out_path, "GTFS", "feed_info.txt"), usecols=["feed_version"])
             feed_cur_version = str(feed_df['feed_version'].iloc[0])
             all_gtfs_ver     = pd.read_sql_query("SELECT DISTINCT feed_version FROM FEED_INFO", conn)
             del feed_df
@@ -155,16 +155,16 @@ class Janitor():
             if feed_cur_version not in all_gtfs_ver["feed_version"].values:
 
                 # Upload The Rest Of The Data | Only Update GTFS Files
-                for file_name in self.table_dict:
-                    if file_name not in self.GATHER_TABLE:
-                        temp_df                 = pd.read_csv(os.path.join(self.csv_out_path, "GTFS", f"{file_name.lower()}.txt"))
+                for file_name in self.cfg.table_dict:
+                    if file_name not in self.cfg.GATHER_TABLE:
+                        temp_df                 = pd.read_csv(os.path.join(self.cfg.csv_out_path, "GTFS", f"{file_name.lower()}.txt"))
                         temp_df["feed_version"] = feed_cur_version
-                        temp_df                 = temp_df[self.table_dict[file_name]]
+                        temp_df                 = temp_df[self.cfg.table_dict[file_name]]
                         temp_df.to_sql(file_name, conn, if_exists="append", index=False)
                         self.__logger(f"Data Janitor   | New GTFS Data Uploaded -> {file_name}")
 
             # Delete All Text Files In Folder
-            self.__delete_files(".txt", self.foldr_path)
+            self.__delete_files(".txt", self.cfg.foldr_path)
 
 
     # -------------------- Private Function #8 ---------------------------------
@@ -175,7 +175,7 @@ class Janitor():
         """
 
         # Are There Different Feed Versions In The Data That We're Pulling?
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite3.connect(self.cfg.db_path) as conn:
             max_colctd_feed_id     = pd.read_sql_query(""" SELECT DISTINCT 
                                                                 MAX(feed_version) AS MAX_FEED_VER 
                                                             FROM FEED_INFO """,   conn)['MAX_FEED_VER'].fillna(0).iloc[0]
@@ -270,5 +270,5 @@ class Janitor():
 
 # Entry Point Into Python Code (For Testing!)
 if __name__ == "__main__":
-    env_setup = Janitor()
+    env_setup = EnvConfig()
     env_setup.setup()

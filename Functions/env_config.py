@@ -1,6 +1,6 @@
 # Name:                                            Renacin Matadeen
 # Date:                                               05/19/2026
-# Title                                       Main Configurator Of Program
+# Title                                       Main Configuration Of Script
 #
 # ----------------------------------------------------------------------------------------------------------------------
 import os
