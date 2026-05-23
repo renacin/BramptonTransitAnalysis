@@ -3,8 +3,10 @@
 # Title                                   Helper Functions Needed For Main Logic
 #
 # ----------------------------------------------------------------------------------------------------------------------
+from datetime import datetime
 import numpy as np
 import logging
+import os
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -42,10 +44,12 @@ def hvrsn_dist(coord1, coord2):
 
 
 # ---------------------- Function #2 ---------------------------------
-def shared_logger(logger_name="", message_txt="", func_level=1):
+def shared_logger(logger_name="", message_txt="", func_level=1, log_location=""):
 
-    # Where Are We Writting To?
-
+    # Create A Log File Date Name
+    today_dt = datetime.now().strftime("%Y_%m_%d")
+    log_name = f"LOG_FILE_{today_dt}.log"
+    log_path = os.path.join(log_location, log_name)
 
     # Define Logger Name & Basic Level Of Logging Tool
     logger = logging.getLogger(logger_name)
@@ -53,7 +57,7 @@ def shared_logger(logger_name="", message_txt="", func_level=1):
 
     # Remove Any Other Loggers, Stream To The Console, And Define Format
     if not logger.handlers:
-        handler = logging.StreamHandler()
+        handler = logging.FileHandler(log_path, mode='a', encoding='utf-8')
         handler.setFormatter(logging.Formatter(
             '|-- %(asctime)s | %(name)-12s | %(levelname)-8s : %(message)s --|',
             datefmt='%Y-%m-%d %H:%M:%S'
@@ -72,13 +76,15 @@ def shared_logger(logger_name="", message_txt="", func_level=1):
 
 # Entry Point Into Python Code (For Testing!)
 if __name__ == "__main__":
-    shared_logger("Data Collector", "Shit is fucked?", 1)
-    shared_logger("Data Collector", "Shit is fucked?", 2)
-    shared_logger("Data Collector", "Shit is fucked?", 3)
-    shared_logger("Data Collector", "Shit is fucked?", 4)
-    shared_logger("Data Collector", "Shit is fucked?", 1)
-    shared_logger("Data Collector", "Shit is fucked?", 1)
-    
+    log_loc  = fr"C:\Users\renac\Documents\Programming\BramptonTransitAnalysis"
+    shared_logger("Data Collector", "Shit is fucked?", 1, log_loc)
+    shared_logger("Data Collector", "Shit is fucked?", 2, log_loc)
+    shared_logger("Data Collector", "Shit is fucked?", 3, log_loc)
+    shared_logger("Data Collector", "Shit is fucked?", 4, log_loc)
+    shared_logger("Data Collector", "Shit is fucked?", 1, log_loc)
+    shared_logger("Data Collector", "Shit is fucked?", 2, log_loc)
+    shared_logger("Data Collector", "Shit is fucked?", 3, log_loc)
+
     
     
     
