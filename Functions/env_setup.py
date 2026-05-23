@@ -1,6 +1,6 @@
 # Name:                                            Renacin Matadeen
 # Date:                                               03/28/2026
-# Title                                       Main Logic Of Data Setup
+# Title                                       Main Logic Of Database Setup
 #
 # ----------------------------------------------------------------------------------------------------------------------
 import os
@@ -38,12 +38,12 @@ class EnvConfig():
         self.__upld_trip_avg_speed()
 
 
-    # # -------------------- Private Function #1 ---------------------------------
-    # def __logger(self, message = ""):
-    #     """ Find The Location Of The Downloads Folder """
+    # -------------------- Private Function #1 ---------------------------------
+    def __logger(self, message = ""):
+        """ Find The Location Of The Downloads Folder """
 
-    #     # Verify That The Path Exists Raise Error!
-    #     print(f"{datetime.now().strftime(self.cfg.td_l_dt_dsply_frmt)}: {message}")
+        # Verify That The Path Exists Raise Error!
+        print(f"{datetime.now().strftime(self.cfg.td_l_dt_dsply_frmt)}: {message}")
 
 
     # -------------------- Private Function #2 ---------------------------------
@@ -78,7 +78,7 @@ class EnvConfig():
             os.makedirs(self.cfg.db_folder)
 
         # In The Out Directory Provided See If The Appropriate Sub Folders Exist!
-        for fldr_nm in ['GTFS', 'BUS_STP', 'BUS_LOC', 'FRMTD_DATA', 'BUS_SPEED', 'GRAPHICS', 'ERROR']:
+        for fldr_nm in self.cfg.FOLDERs:
             dir_chk = os.path.join(self.cfg.csv_out_path, fldr_nm)
             self.cfg.out_dict[fldr_nm] = dir_chk 
             if not os.path.exists(dir_chk):

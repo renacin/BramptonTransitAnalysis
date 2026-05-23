@@ -4,9 +4,12 @@
 #
 # ----------------------------------------------------------------------------------------------------------------------
 import numpy as np
+import logging
 # ----------------------------------------------------------------------------------------------------------------------
 
 
+
+# ---------------------- Function #1 ---------------------------------
 # Define Function That Will Determine The Distance Between Two Points
 def hvrsn_dist(coord1, coord2):
     """
@@ -36,3 +39,28 @@ def hvrsn_dist(coord1, coord2):
     c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1-a))
 
     return R * c  # Returns Distance In KM
+
+
+# ---------------------- Function #2 ---------------------------------
+def logger(self, message = ""):
+    """ Find The Location Of The Downloads Folder """
+
+
+
+
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+
+# Entry Point Into Python Code (For Testing!)
+if __name__ == "__main__":
+    logging.basicConfig(
+        level   = logging.INFO, # minimum level to show
+        format  = '%(asctime)s | Data Collector | %(levelname)-8s --> %(message)s',
+        datefmt = '%Y-%m-%d %H:%M:%S'
+        )
+
+    logging.info('Hello, this is a log message')
+    logging.warning('Something looks weird')
+    logging.error('Something broke')
+    logging.critical('Shit is fucked')
