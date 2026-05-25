@@ -65,10 +65,11 @@ def shared_logger(logger_name="", message_txt="", func_level=1, log_location="")
         logger.addHandler(handler)
 
     # Depending On The Output Choose Level
-    if   func_level == 1: logger.info(message_txt)
-    elif func_level == 2: logger.warning(message_txt)
-    elif func_level == 3: logger.error(message_txt)
-    elif func_level == 4: logger.critical(message_txt)
+    if    func_level == 1: logger.info(message_txt)
+    elif  func_level == 2: logger.warning(message_txt)
+    elif  func_level == 3: logger.error(message_txt)
+    elif  func_level == 4: logger.critical(message_txt)
+    else: print("Logging Error!")
 
 
 

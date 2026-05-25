@@ -38,13 +38,6 @@ class EnvConfig():
         self.__upld_trip_avg_speed()
 
 
-    # -------------------- Private Function #1 ---------------------------------
-    def __logger(self, message = ""):
-        """ Find The Location Of The Downloads Folder """
-
-        # Verify That The Path Exists Raise Error!
-        print(f"{datetime.now().strftime(self.cfg.td_l_dt_dsply_frmt)}: {message}")
-
 
     # -------------------- Private Function #2 ---------------------------------
     def __delete_files(self, file_ext = "", path = ""):
@@ -57,7 +50,8 @@ class EnvConfig():
                 try:
                     os.remove(full_path)
                 except OSError as e:
-                    raise Exception(f"[{datetime.now().strftime(self.cfg.td_l_dt_dsply_frmt)}]: Data Janitor | [ERROR] Could Not Remove {file_ext} Files")
+                    shared_logger("Data Janitor  ", f"[ERROR] Could Not Remove {file_ext} Files", 3, self.cfg.LOG_PATH)
+                    raise f"[ERROR] Could Not Remove {file_ext} Files"
 
 
     # -------------------- Private Function #3 ---------------------------------
@@ -66,7 +60,8 @@ class EnvConfig():
 
         # Verify That The Path Exists Raise Error!
         if os.path.exists(self.cfg.dwnld_path) != True:
-            raise Exception(f"[{datetime.now().strftime(self.cfg.td_l_dt_dsply_frmt)}]: Data Janitor | [ERROR] Download Folder Does Not Exist")
+            shared_logger("Data Janitor  ", f"[ERROR] Download Folder Does Not Exist", 3, self.cfg.LOG_PATH)
+            raise f"[ERROR] Download Folder Does Not Exist"
 
 
     # -------------------- Private Function #4 ---------------------------------
@@ -85,7 +80,7 @@ class EnvConfig():
                 os.makedirs(dir_chk)
 
         # Log export
-        self.__logger("Data Janitor   | Folders Prepared")
+        shared_logger("Data Janitor  ", f"Folders Prepared", 1, self.cfg.LOG_PATH)
 
 
     # -------------------- Private Function #5 ---------------------------------
@@ -100,7 +95,7 @@ class EnvConfig():
                 conn.commit()
 
         # Log export
-        self.__logger("Data Janitor   | Databases Ready")
+        shared_logger("Data Janitor  ", f"Databases Ready", 1, self.cfg.LOG_PATH)
 
 
     # -------------------- Private Function #6 ---------------------------------
@@ -121,19 +116,22 @@ class EnvConfig():
             try:
                 # Extract Data
                 shutil.unpack_archive(self.cfg.zip_path, self.cfg.foldr_path)
-                self.__logger("Data Janitor   | Extracted GTFS Data")
+                shared_logger("Data Janitor  ", f"Extracted GTFS Data", 1, self.cfg.LOG_PATH)
 
                 # Remove Unneeded Files & Folders
                 try:
                     os.remove(self.cfg.zip_path)
                 except OSError as e:
-                    raise Exception(f"[{datetime.now().strftime(self.cfg.td_l_dt_dsply_frmt)}]: Data Janitor   | [ERROR] Could Not Remove Zip")
+                    shared_logger("Data Janitor  ", f"[ERROR] Could Not Remove Zip", 3, self.cfg.LOG_PATH)
+                    raise e
             
             except shutil.ReadError as e:
-                raise Exception(f"[{datetime.now().strftime(self.cfg.td_l_dt_dsply_frmt)}]: Data Janitor   | [ERROR] Could Not Extract GTFS Data")
+                shared_logger("Data Janitor  ", f"[ERROR] Could Not Extract GTFS Data", 3, self.cfg.LOG_PATH)
+                raise e
 
         else:
-            raise Exception(f"[{datetime.now().strftime(self.cfg.td_l_dt_dsply_frmt)}]: Data Janitor   | [ERROR] Bad Response")
+            shared_logger("Data Janitor  ", f"[ERROR] Bad Response", 3, self.cfg.LOG_PATH)
+            raise e
 
 
     # -------------------- Private Function #7 ---------------------------------
@@ -161,7 +159,8 @@ class EnvConfig():
                         temp_df["feed_version"] = feed_cur_version
                         temp_df                 = temp_df[self.cfg.table_dict[file_name]]
                         temp_df.to_sql(file_name, conn, if_exists="append", index=False)
-                        self.__logger(f"Data Janitor   | New GTFS Data Uploaded -> {file_name}")
+                        shared_logger("Data Janitor  ", f"New GTFS Data Uploaded -> {file_name}", 1, self.cfg.LOG_PATH)
+
 
             # Delete All Text Files In Folder
             self.__delete_files(".txt", self.cfg.foldr_path)
@@ -187,7 +186,7 @@ class EnvConfig():
 
             # If No New Data Back Out
             if int(max_colctd_feed_id) <= int(max_routes_feed_id):
-                self.__logger(f"Data Janitor   | Speed Table Is Current")
+                shared_logger("Data Janitor  ", f"Speed Table Is Current", 1, self.cfg.LOG_PATH)
                 return
 
 
@@ -262,7 +261,7 @@ class EnvConfig():
 
             # Upload The Speed Dataframe Data To Respective Table
             avg_spd_df.to_sql("ROUTE_SPEED", conn, if_exists="append", index=False)
-            self.__logger(f"Data Janitor   | New Route Speed Data Uploaded")
+            shared_logger("Data Janitor  ", f"New Route Speed Data Uploaded", 1, self.cfg.LOG_PATH)
 
 
 

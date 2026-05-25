@@ -12,7 +12,7 @@ import time as time
 from datetime import datetime
 
 from env_config import Config
-from helper import *
+from helper import shared_logger
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -39,7 +39,7 @@ class Collector():
 
             # Handle Rate Limiting
             if r.status_code == 429:
-                # self.__logger("Data Collector | Rate Limit Exceeded (HTTP 429)")
+                shared_logger("Data Collector", f"Rate Limit Exceeded (HTTP 429)", 2, self.cfg.LOG_PATH)
                 df = pd.DataFrame()
 
             else:
@@ -50,27 +50,26 @@ class Collector():
 
         # Catch All Errors
         except requests.exceptions.Timeout:                 
-            # self.__logger(f"Data Collector | Connection Timed Out After {self.cfg.timeout_time}s")
+            shared_logger("Data Collector", f"Connection Timed Out After {self.cfg.timeout_time}s", 2, self.cfg.LOG_PATH)
             df = pd.DataFrame()
             
         except requests.exceptions.ConnectionError:
-            # self.__logger(f"Data Collector | Endpoint Connection Failed")
+            shared_logger("Data Collector", f"Endpoint Connection Failed", 2, self.cfg.LOG_PATH)
             df = pd.DataFrame()
             
         except requests.exceptions.HTTPError as e:
-            # self.__logger(f"Data Collector | HTTP Error {e}")
+            shared_logger("Data Collector", f"HTTP Error {e}", 2, self.cfg.LOG_PATH)
             df = pd.DataFrame()
 
         except KeyboardInterrupt:
-            conn.rollback()
-            # self.__logger(f"Data Collector | Keyboard Interrupt")
+            shared_logger("Data Collector", f"Keyboard Interrupt", 3, self.cfg.LOG_PATH)
             sys.exit()
 
 
         # ----------------------------------------------------------------------------------------
         # Check To See If GTFS Data Is Empty. If It Is Rate Limit Code Here So We Don't Get Banned
         if len(df) == 0:
-            self.__logger(f"Data Collector | ^^^ Skipping Data Collection For {self.cfg.timeout_time}s")
+            shared_logger("Data Collector", f" ^^^ Skipping Data Collection For {self.cfg.timeout_time}s", 2, self.cfg.LOG_PATH)
             time.sleep(self.cfg.timeout_time)
 
 
@@ -138,33 +137,30 @@ class Collector():
                     conn.commit()
 
                     # Update User
-                    # self.__logger(f"Data Collector | New Bus Locations Processed --> {new_rows_inserted:04}")
-                    log_loc = os.path.join(self.cfg.csv_out_path, "LOGS")
-                    shared_logger("Data Collector", f"New Bus Locations Processed --> {new_rows_inserted:04}", 1, log_loc)
-                    print(f"{new_rows_inserted:04}")
+                    shared_logger("Data Collector", f"New Bus Locations Processed --> {new_rows_inserted:04}", 1, self.cfg.LOG_PATH)
                     time.sleep(self.cfg.timeout_time)
 
 
                 # If Something Happens Rollback To Begin, Inform User, And Wait
                 except sqlite3.IntegrityError as e:
                     conn.rollback()
-                    # self.__logger(f"Data Collector | Duplicate Key Error: {e}")
+                    shared_logger("Data Collector", f"Duplicate Key Error: {e}", 2, self.cfg.LOG_PATH)
                     time.sleep(self.cfg.timeout_time * 2)
 
                 except sqlite3.OperationalError as e:
                     conn.rollback()
-                    # self.__logger(f"Data Collector | Database Operational Error: {e}")
-                    time.sleep(self.cfg.timeout_time * 2)
-
-                except Exception as e:
-                    conn.rollback()
-                    # self.__logger(f"Data Collector | Unexpected Error: {e}")
+                    shared_logger("Data Collector", f"Database Operational Error: {e}", 2, self.cfg.LOG_PATH)
                     time.sleep(self.cfg.timeout_time * 2)
 
                 except KeyboardInterrupt:
                     conn.rollback()
-                    # self.__logger(f"Data Collector | Keyboard Interrupt")
+                    shared_logger("Data Collector", f"Keyboard Interrupt", 3, self.cfg.LOG_PATH)
                     sys.exit()
+
+                except Exception as e:
+                    conn.rollback()
+                    shared_logger("Data Collector", f"Unexpected Error: {e}", 2, self.cfg.LOG_PATH)
+                    time.sleep(self.cfg.timeout_time * 2)
 
 
 
