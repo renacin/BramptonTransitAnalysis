@@ -54,6 +54,10 @@ class Collector():
 
 
         # Catch All Errors
+        except requests.exceptions.JSONDecodeError:
+            shared_logger("Data Collector", f"Invalid JSON Response From Feed", 2, self.cfg.LOG_PATH)
+            df = pd.DataFrame()
+
         except requests.exceptions.Timeout:                 
             shared_logger("Data Collector", f"Connection Timed Out After {self.cfg.timeout_time}s", 2, self.cfg.LOG_PATH)
             df = pd.DataFrame()
