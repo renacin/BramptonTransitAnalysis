@@ -45,7 +45,12 @@ class Collector():
             else:
                 r.raise_for_status()
                 data = r.json()
-                df = pd.json_normalize(data['entity'])
+                
+                if 'entity' not in data:
+                    shared_logger("Data Collector", f"Unexpected Response Format: {list(data.keys())}", 2, self.cfg.LOG_PATH)
+                    df = pd.DataFrame()
+                else:
+                    df = pd.json_normalize(data['entity'])
 
 
         # Catch All Errors
@@ -64,6 +69,7 @@ class Collector():
         except KeyboardInterrupt:
             shared_logger("Data Collector", f"Keyboard Interrupt", 3, self.cfg.LOG_PATH)
             sys.exit()
+
 
 
         # ----------------------------------------------------------------------------------------

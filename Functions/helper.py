@@ -56,13 +56,10 @@ def shared_logger(logger_name="", message_txt="", func_level=1, log_location="")
     logger.setLevel(logging.INFO)
 
     # Remove Any Other Loggers, Stream To The Console, And Define Format
-    if not logger.handlers:
-        handler = logging.FileHandler(log_path, mode='a', encoding='utf-8')
-        handler.setFormatter(logging.Formatter(
-            '|-- %(asctime)s | %(name)-12s | %(levelname)-8s : %(message)s --|',
-            datefmt='%Y-%m-%d %H:%M:%S'
-        ))
-        logger.addHandler(handler)
+    logger.handlers.clear()
+    handler = logging.FileHandler(log_path, mode='a', encoding='utf-8')
+    handler.setFormatter(logging.Formatter('|-- %(asctime)s | %(name)-12s | %(levelname)-8s : %(message)s --|',datefmt='%Y-%m-%d %H:%M:%S'))
+    logger.addHandler(handler)
 
     # Depending On The Output Choose Level
     if    func_level == 1: logger.info(message_txt)
