@@ -45,6 +45,17 @@ def hvrsn_dist(coord1, coord2):
 
 # ---------------------- Function #2 ---------------------------------
 def shared_logger(logger_name="", message_txt="", func_level=1, log_location=""):
+    """ 
+    When called this function will write the information passed to a table within the main dataase that will store logs. 
+    This allows for multiple concurrent users to read/write to the database.
+
+    This function will require:
+        logger_name  --> "Data Collector", "Data Exporter", "Data Janitor" (Where Is This Log Coming From)
+        message_txt  --> "Hello this is a log message"
+        func_level   --> 1: INFO, 2:WARNING, 3:ERROR, 4:CRITICAL,
+        log_location --> Database & Table Location
+        
+    """
 
     # Create A Log File Date Name
     today_dt = datetime.now().strftime("%Y_%m_%d")
@@ -69,7 +80,7 @@ def shared_logger(logger_name="", message_txt="", func_level=1, log_location="")
     else: print("Logging Error!")
 
 
-    
+
 
 
 
