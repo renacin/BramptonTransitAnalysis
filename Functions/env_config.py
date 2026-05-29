@@ -16,7 +16,7 @@ class Config():
         self.BUS_LOC_URL  = r'https://gtfs-rt-merge.prod.bt-cadavl.com/BramptonTransit/GTFS/merged_VehiclePosition.json'
         self.GTFS_URL     = r'https://www.arcgis.com/sharing/rest/content/items/a355aabd5a8c490186bdce559c9c75fb/data'
         self.FOLDERs      = ['GTFS', 'BUS_STP', 'BUS_LOC', 'FRMTD_DATA', 'BUS_SPEED', 'GRAPHICS', 'LOGS']
-        self.GATHER_TABLE = {"BUS_LOC_DB", "U_ID_TEMP", "ERROR_DB", "ROUTE_SPEED"}
+        self.GATHER_TABLE = {"BUS_LOC_DB", "U_ID_TEMP", "ERROR_DB", "ROUTE_SPEED", "DB_LOGS"}
         self.table_dict   = {
             "BUS_LOC_DB":     ['u_id', 'id', 'trip_trip_id', 'trip_schedule_relationship', 'trip_route_id','position_latitude', 'position_longitude', 'position_bearing','position_speed', 'current_status', 'timestamp', 'stop_id','vehicle_id', 'vehicle_label', 'dt_colc'],
             "U_ID_TEMP":      ["u_id", "timestamp"],
