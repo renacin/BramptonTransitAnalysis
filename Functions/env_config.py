@@ -43,7 +43,6 @@ class Config():
         self.zip_path            = os.path.join(self.csv_out_path,       "GTFS", "GTFS.zip")
         self.foldr_path          = os.path.join(self.csv_out_path,       "GTFS")
         self.out_dict            = {}
-        # self.LOG_PATH            = os.path.join(self.csv_out_path, "LOGS")
 
         # Datetime Variables
         self.td_l_dt_dsply_frmt = "%d-%m-%Y %H:%M:%S"
