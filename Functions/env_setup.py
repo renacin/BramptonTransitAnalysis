@@ -50,8 +50,8 @@ class EnvConfig():
                 try:
                     os.remove(full_path)
                 except OSError as e:
-                    shared_logger("Data Janitor  ", f"[ERROR] Could Not Remove {file_ext} Files", 3, self.cfg.LOG_PATH)
                     raise f"[ERROR] Could Not Remove {file_ext} Files"
+
 
 
     # -------------------- Private Function #3 ---------------------------------
@@ -60,8 +60,8 @@ class EnvConfig():
 
         # Verify That The Path Exists Raise Error!
         if os.path.exists(self.cfg.dwnld_path) != True:
-            shared_logger("Data Janitor  ", f"[ERROR] Download Folder Does Not Exist", 3, self.cfg.LOG_PATH)
             raise f"[ERROR] Download Folder Does Not Exist"
+
 
 
     # -------------------- Private Function #4 ---------------------------------
@@ -79,8 +79,6 @@ class EnvConfig():
             if not os.path.exists(dir_chk):
                 os.makedirs(dir_chk)
 
-        # Log export
-        shared_logger("Data Janitor  ", f"Folders Prepared", 1, self.cfg.LOG_PATH)
 
 
     # -------------------- Private Function #5 ---------------------------------
@@ -89,13 +87,19 @@ class EnvConfig():
 
         # Iterate Through Table Dictionary And Create Tables If They Don't Exist Already
         with sqlite3.connect(self.cfg.db_path) as conn:
+
+            # Make Sure The Database Is In WAL Mode To Allow For Concurrent Writes & Read | Verify It Worked
+            conn.execute("PRAGMA journal_mode=WAL")
+            mode = conn.execute("PRAGMA journal_mode").fetchone()[0]
+
+            # Make Needed Tables
             for table_ in self.cfg.table_dict:
                 sql_string = ", ".join(self.cfg.table_dict[table_])
                 conn.execute(f'''CREATE TABLE IF NOT EXISTS {table_} ({sql_string});''')
                 conn.commit()
 
         # Log export
-        shared_logger("Data Janitor  ", f"Databases Ready", 1, self.cfg.LOG_PATH)
+        shared_logger("Data Janitor  ", f"Databases Ready", 1, self.cfg.db_path)
 
 
     # -------------------- Private Function #6 ---------------------------------
@@ -116,21 +120,21 @@ class EnvConfig():
             try:
                 # Extract Data
                 shutil.unpack_archive(self.cfg.zip_path, self.cfg.foldr_path)
-                shared_logger("Data Janitor  ", f"Extracted GTFS Data", 1, self.cfg.LOG_PATH)
+                shared_logger("Data Janitor  ", f"Extracted GTFS Data", 1, self.cfg.db_path)
 
                 # Remove Unneeded Files & Folders
                 try:
                     os.remove(self.cfg.zip_path)
                 except OSError as e:
-                    shared_logger("Data Janitor  ", f"[ERROR] Could Not Remove Zip", 3, self.cfg.LOG_PATH)
+                    shared_logger("Data Janitor  ", f"[ERROR] Could Not Remove Zip", 3, self.cfg.db_path)
                     raise e
             
             except shutil.ReadError as e:
-                shared_logger("Data Janitor  ", f"[ERROR] Could Not Extract GTFS Data", 3, self.cfg.LOG_PATH)
+                shared_logger("Data Janitor  ", f"[ERROR] Could Not Extract GTFS Data", 3, self.cfg.db_path)
                 raise e
 
         else:
-            shared_logger("Data Janitor  ", f"[ERROR] Bad Response", 3, self.cfg.LOG_PATH)
+            shared_logger("Data Janitor  ", f"[ERROR] Bad Response", 3, self.cfg.db_path)
             raise e
 
 
@@ -159,7 +163,7 @@ class EnvConfig():
                         temp_df["feed_version"] = feed_cur_version
                         temp_df                 = temp_df[self.cfg.table_dict[file_name]]
                         temp_df.to_sql(file_name, conn, if_exists="append", index=False)
-                        shared_logger("Data Janitor  ", f"New GTFS Data Uploaded -> {file_name}", 1, self.cfg.LOG_PATH)
+                        shared_logger("Data Janitor  ", f"New GTFS Data Uploaded -> {file_name}", 1, self.cfg.db_path)
 
 
             # Delete All Text Files In Folder
@@ -186,7 +190,7 @@ class EnvConfig():
 
             # If No New Data Back Out
             if int(max_colctd_feed_id) <= int(max_routes_feed_id):
-                shared_logger("Data Janitor  ", f"Speed Table Is Current", 1, self.cfg.LOG_PATH)
+                shared_logger("Data Janitor  ", f"Speed Table Is Current", 1, self.cfg.db_path)
                 return
 
 
@@ -261,7 +265,7 @@ class EnvConfig():
 
             # Upload The Speed Dataframe Data To Respective Table
             avg_spd_df.to_sql("ROUTE_SPEED", conn, if_exists="append", index=False)
-            shared_logger("Data Janitor  ", f"New Route Speed Data Uploaded", 1, self.cfg.LOG_PATH)
+            shared_logger("Data Janitor  ", f"New Route Speed Data Uploaded", 1, self.cfg.db_path)
 
 
 

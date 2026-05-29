@@ -5,6 +5,7 @@
 # ----------------------------------------------------------------------------------------------------------------------
 from datetime import datetime
 import numpy as np
+import sqlite3
 import logging
 import os
 # ----------------------------------------------------------------------------------------------------------------------
@@ -54,31 +55,20 @@ def shared_logger(logger_name="", message_txt="", func_level=1, log_location="")
         message_txt  --> "Hello this is a log message"
         func_level   --> 1: INFO, 2:WARNING, 3:ERROR, 4:CRITICAL,
         log_location --> Database & Table Location
-        
     """
 
-    # Create A Log File Date Name
-    today_dt = datetime.now().strftime("%Y_%m_%d")
-    log_name = f"LOG_FILE_{today_dt}.log"
-    log_path = os.path.join(log_location, log_name)
+    # Get Current Time For Logging
+    now = datetime.now()
 
-    # Define Logger Name & Basic Level Of Logging Tool
-    logger = logging.getLogger(logger_name)
-    logger.setLevel(logging.INFO)
+    # Write To Database
+    with sqlite3.connect(log_location) as conn:
 
-    # Remove Any Other Loggers, Stream To The Console, And Define Format
-    logger.handlers.clear()
-    handler = logging.FileHandler(log_path, mode='a', encoding='utf-8')
-    handler.setFormatter(logging.Formatter('|-- %(asctime)s | %(name)-12s | %(levelname)-8s : %(message)s --|',datefmt='%Y-%m-%d %H:%M:%S'))
-    logger.addHandler(handler)
+        # Connect TO Database Table & Write Data
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO DB_LOGS (time_stamp, reporter, warning_level, info) values (?, ?, ?, ?)", (now, logger_name, func_level, message_txt))
 
-    # Depending On The Output Choose Level
-    if    func_level == 1: logger.info(message_txt)
-    elif  func_level == 2: logger.warning(message_txt)
-    elif  func_level == 3: logger.error(message_txt)
-    elif  func_level == 4: logger.critical(message_txt)
-    else: print("Logging Error!")
-
+        # Save All Changes To The Database
+        conn.commit()
 
 
 
