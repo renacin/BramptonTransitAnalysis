@@ -97,23 +97,18 @@ class Collector():
 
 
             # Upload New Data To An Intermediary Temp Table, Check If The U_IDs Are In A Cache From 10 Min Ago, If Not Add To Database
-            with sqlite3.connect(self.cfg.db_path, timeout = 30) as conn:
-
-                # Wrap With Error Handling Just In Case
+            with sqlite3.connect(self.cfg.db_path, timeout=30, isolation_level=None) as conn:  # <-- added
                 try:
-                    # Always Set These Just In Case Settings Were Removed On Delete Or Vaccum
                     conn.execute("PRAGMA journal_mode=WAL")
-                    conn.execute("PRAGMA busy_timeout=30000") # 30s In Milliseconds
-
-                    # Grab The Cursor & Set Lock Mode | New Added Begin Immediate To Grab A Lock And Add Data, If No Lock Wait
-                    cursor = conn.cursor()
-                    cursor.execute("BEGIN IMMEDIATE")
+                    conn.execute("PRAGMA busy_timeout=30000")
+                    conn.execute("BEGIN IMMEDIATE")
 
                     # Create A Temporary Space To Store Data Pulled
                     df.to_sql('LOC_TEMP', conn, if_exists='replace', index=False)
+                    conn.execute("BEGIN IMMEDIATE")
                 
                     # Compare Data U_IDs From New Data Pulled To U_ID Cache Of X Minutes Ago, Only Look For New Data 
-                    cursor.execute("""
+                    conn.execute("""
                         INSERT INTO BUS_LOC_DB(id, u_id, trip_trip_id, 
                                             trip_schedule_relationship, 
                                             trip_route_id, position_latitude, position_longitude, 
@@ -132,8 +127,8 @@ class Collector():
                     """)
 
                     # Drop The Temporary Table Where We Stored The Newly Collected Data & Capture Rows Added
-                    new_rows_inserted = cursor.rowcount
-                    conn.execute('DROP TABLE IF EXISTS LOC_TEMP')
+                    new_rows_inserted = conn.execute("SELECT changes()").fetchone()[0]
+                    conn.execute("DROP TABLE IF EXISTS LOC_TEMP")
 
                     # Update The U_ID Cache - Combine U_IDs From New Data & U_IDs In Most Recent Cache
                     all_uids = pd.concat([pd.read_sql_query("SELECT * FROM U_ID_TEMP", conn), df[["u_id", "timestamp"]]])
@@ -151,7 +146,7 @@ class Collector():
                     all_uids.to_sql('U_ID_TEMP', conn, if_exists='replace', index=False)
 
                     # Save All Changes To The Database
-                    conn.commit()
+                    conn.execute("COMMIT")
 
                     # Update User
                     shared_logger("Data Collector", f"New Bus Locations Processed --> {new_rows_inserted:04}", 1, self.cfg.db_path)
@@ -160,22 +155,22 @@ class Collector():
 
                 # If Something Happens Rollback To Begin, Inform User, And Wait
                 except sqlite3.IntegrityError as e:
-                    conn.rollback()
+                    conn.execute("ROLLBACK")
                     shared_logger("Data Collector", f"Duplicate Key Error: {e}", 2, self.cfg.db_path)
                     time.sleep(self.cfg.timeout_time * 2)
 
                 except sqlite3.OperationalError as e:
-                    conn.rollback()
+                    conn.execute("ROLLBACK")
                     shared_logger("Data Collector", f"Database Operational Error: {e}", 2, self.cfg.db_path)
                     time.sleep(self.cfg.timeout_time * 2)
 
                 except KeyboardInterrupt:
-                    conn.rollback()
+                    conn.execute("ROLLBACK")
                     shared_logger("Data Collector", f"Keyboard Interrupt", 3, self.cfg.db_path)
                     sys.exit()
 
                 except Exception as e:
-                    conn.rollback()
+                    conn.execute("ROLLBACK")
                     shared_logger("Data Collector", f"Unexpected Error: {e}", 2, self.cfg.db_path)
                     time.sleep(self.cfg.timeout_time * 2)
 
