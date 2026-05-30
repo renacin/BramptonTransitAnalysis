@@ -12,7 +12,7 @@ import time as time
 from datetime import datetime
 
 from env_config import Config
-from Functions.data_helper import shared_logger
+from data_helper import shared_logger
 # ----------------------------------------------------------------------------------------------------------------------
 
 
