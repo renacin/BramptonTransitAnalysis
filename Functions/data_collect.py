@@ -95,17 +95,24 @@ class Collector():
             df["u_id"]      = df["trip_route_id"] + "_" + df["vehicle_id"] + "_" + df["timestamp"].astype(str)
 
 
+
             # Upload New Data To An Intermediary Temp Table, Check If The U_IDs Are In A Cache From 10 Min Ago, If Not Add To Database
-            with sqlite3.connect(self.cfg.db_path) as conn:
+            with sqlite3.connect(self.cfg.db_path, timeout = 30) as conn:
 
                 # Wrap With Error Handling Just In Case
-                try: 
+                try:
+                    # Always Set These Just In Case Settings Were Removed On Delete Or Vaccum
+                    conn.execute("PRAGMA journal_mode=WAL")
+                    conn.execute("PRAGMA busy_timeout=30000") # 30s In Milliseconds
+
+                    # Grab The Cursor & Set Lock Mode | New Added Begin Immediate To Grab A Lock And Add Data, If No Lock Wait
+                    cursor = conn.cursor()
+                    cursor.execute("BEGIN IMMEDIATE")
 
                     # Create A Temporary Space To Store Data Pulled
                     df.to_sql('LOC_TEMP', conn, if_exists='replace', index=False)
                 
-                    # Compare Data U_IDs From New Data Pulled To U_ID Cache Of X Minutes Ago, Only Look For New Data
-                    cursor = conn.cursor()
+                    # Compare Data U_IDs From New Data Pulled To U_ID Cache Of X Minutes Ago, Only Look For New Data 
                     cursor.execute("""
                         INSERT INTO BUS_LOC_DB(id, u_id, trip_trip_id, 
                                             trip_schedule_relationship, 
