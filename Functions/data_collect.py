@@ -144,22 +144,34 @@ class Collector():
                 time.sleep(self.cfg.timeout_time)
 
             except sqlite3.OperationalError as e:
-                conn.execute("ROLLBACK")
+                try:
+                    conn.execute("ROLLBACK")
+                except sqlite3.OperationalError:
+                    pass  # Already committed, nothing to roll back
                 shared_logger("Data Collector", f"Database Operational Error: {e}", 2, self.cfg.db_path)
                 time.sleep(self.cfg.timeout_time * 2)
 
             except sqlite3.IntegrityError as e:
-                conn.execute("ROLLBACK")
+                try:
+                    conn.execute("ROLLBACK")
+                except sqlite3.OperationalError:
+                    pass  # Already committed, nothing to roll back
                 shared_logger("Data Collector", f"Duplicate Key Error: {e}", 2, self.cfg.db_path)
                 time.sleep(self.cfg.timeout_time * 2)
 
             except KeyboardInterrupt:
-                conn.execute("ROLLBACK")
+                try:
+                    conn.execute("ROLLBACK")
+                except sqlite3.OperationalError:
+                    pass  # Already committed, nothing to roll back
                 shared_logger("Data Collector", f"Keyboard Interrupt", 3, self.cfg.db_path)
                 sys.exit()
 
             except Exception as e:
-                conn.execute("ROLLBACK")
+                try:
+                    conn.execute("ROLLBACK")
+                except sqlite3.OperationalError:
+                    pass  # Already committed, nothing to roll back
                 shared_logger("Data Collector", f"Unexpected Error: {e}", 2, self.cfg.db_path)
                 time.sleep(self.cfg.timeout_time * 2)   
 
