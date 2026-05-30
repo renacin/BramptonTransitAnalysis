@@ -95,84 +95,73 @@ class Collector():
             df["u_id"]      = df["trip_route_id"] + "_" + df["vehicle_id"] + "_" + df["timestamp"].astype(str)
 
 
+        with sqlite3.connect(self.cfg.db_path, timeout=30, isolation_level=None) as conn:
+            try:
+                conn.execute("PRAGMA journal_mode=WAL")
+                conn.execute("PRAGMA busy_timeout=30000")
 
-            # Upload New Data To An Intermediary Temp Table, Check If The U_IDs Are In A Cache From 10 Min Ago, If Not Add To Database
-            with sqlite3.connect(self.cfg.db_path, timeout=30, isolation_level=None) as conn:  # <-- added
-                try:
-                    conn.execute("PRAGMA journal_mode=WAL")
-                    conn.execute("PRAGMA busy_timeout=30000")
-                    conn.execute("BEGIN IMMEDIATE")
+                # --- Phase 1: Let pandas write LOC_TEMP freely (no active transaction) ---
+                df.to_sql('LOC_TEMP', conn, if_exists='replace', index=False)
 
-                    # Create A Temporary Space To Store Data Pulled
-                    df.to_sql('LOC_TEMP', conn, if_exists='replace', index=False)
-                    conn.execute("BEGIN IMMEDIATE")
-                
-                    # Compare Data U_IDs From New Data Pulled To U_ID Cache Of X Minutes Ago, Only Look For New Data 
-                    conn.execute("""
-                        INSERT INTO BUS_LOC_DB(id, u_id, trip_trip_id, 
-                                            trip_schedule_relationship, 
-                                            trip_route_id, position_latitude, position_longitude, 
-                                            position_bearing, position_speed, current_status, 
-                                            timestamp, stop_id, vehicle_id, 
-                                            vehicle_label, dt_colc)
-                        
-                        SELECT id, u_id, trip_trip_id, 
-                               trip_schedule_relationship, trip_route_id, position_latitude, 
-                               position_longitude, position_bearing, position_speed, 
-                               current_status, timestamp, stop_id, 
-                               vehicle_id, vehicle_label, dt_colc
-                                
-                        FROM LOC_TEMP
-                        WHERE NOT EXISTS (SELECT 1 FROM U_ID_TEMP WHERE U_ID_TEMP.u_id = LOC_TEMP.u_id)
-                    """)
+                # --- Phase 2: Grab lock for all critical writes ---
+                conn.execute("BEGIN IMMEDIATE")
 
-                    # Drop The Temporary Table Where We Stored The Newly Collected Data & Capture Rows Added
-                    new_rows_inserted = conn.execute("SELECT changes()").fetchone()[0]
-                    conn.execute("DROP TABLE IF EXISTS LOC_TEMP")
+                conn.execute("""
+                    INSERT INTO BUS_LOC_DB(id, u_id, trip_trip_id, 
+                                        trip_schedule_relationship, trip_route_id, 
+                                        position_latitude, position_longitude, position_bearing, 
+                                        position_speed, current_status, timestamp, 
+                                        stop_id, vehicle_id, vehicle_label, dt_colc)
+                    SELECT id, u_id, trip_trip_id, 
+                        trip_schedule_relationship, trip_route_id, position_latitude, 
+                        position_longitude, position_bearing, position_speed, 
+                        current_status, timestamp, stop_id, 
+                        vehicle_id, vehicle_label, dt_colc
+                    FROM LOC_TEMP
+                    WHERE NOT EXISTS (SELECT 1 FROM U_ID_TEMP WHERE U_ID_TEMP.u_id = LOC_TEMP.u_id)
+                """)
 
-                    # Update The U_ID Cache - Combine U_IDs From New Data & U_IDs In Most Recent Cache
-                    all_uids = pd.concat([pd.read_sql_query("SELECT * FROM U_ID_TEMP", conn), df[["u_id", "timestamp"]]])
+                new_rows_inserted = conn.execute("SELECT changes()").fetchone()[0]
+                conn.execute("DROP TABLE IF EXISTS LOC_TEMP")
 
-                    # Sort, Where The Most Recent U_IDs Are At The Top, Remove Duplicates
-                    all_uids["timestamp"] = all_uids["timestamp"].astype('int')
-                    all_uids = all_uids.sort_values(by="timestamp", ascending=False)
-                    all_uids = all_uids.drop_duplicates()
+                # Build updated U_ID cache in Python, then write with explicit SQL (NOT to_sql)
+                all_uids = pd.read_sql_query("SELECT * FROM U_ID_TEMP", conn)
+                all_uids = pd.concat([all_uids, df[["u_id", "timestamp"]]])
+                all_uids["timestamp"] = all_uids["timestamp"].astype('int')
+                all_uids = all_uids.sort_values(by="timestamp", ascending=False).drop_duplicates()
+                max_timestamp = all_uids["timestamp"].max() - (self.cfg.cache_time_limit * 60)
+                all_uids = all_uids[all_uids["timestamp"] >= max_timestamp]
 
-                    # Find The Max Time Stamp, And Only Keep Rows A Couple Of Min Back From That Value
-                    max_timestamp = all_uids["timestamp"].max() - (self.cfg.cache_time_limit * 60)
-                    all_uids = all_uids[all_uids["timestamp"] >= max_timestamp]
+                # Write U_ID_TEMP with explicit SQL instead of to_sql — keeps pandas out of the transaction
+                conn.execute("DELETE FROM U_ID_TEMP")
+                conn.executemany(
+                    "INSERT INTO U_ID_TEMP(u_id, timestamp) VALUES (?, ?)",
+                    all_uids[["u_id", "timestamp"]].values.tolist()
+                )
 
-                    # Update the U_ID cache with filtered data
-                    all_uids.to_sql('U_ID_TEMP', conn, if_exists='replace', index=False)
+                conn.execute("COMMIT")
+                shared_logger("Data Collector", f"New Bus Locations Processed --> {new_rows_inserted:04}", 1, self.cfg.db_path)
+                time.sleep(self.cfg.timeout_time)
 
-                    # Save All Changes To The Database
-                    conn.execute("COMMIT")
+            except sqlite3.OperationalError as e:
+                conn.execute("ROLLBACK")
+                shared_logger("Data Collector", f"Database Operational Error: {e}", 2, self.cfg.db_path)
+                time.sleep(self.cfg.timeout_time * 2)
 
-                    # Update User
-                    shared_logger("Data Collector", f"New Bus Locations Processed --> {new_rows_inserted:04}", 1, self.cfg.db_path)
-                    time.sleep(self.cfg.timeout_time)
+            except sqlite3.IntegrityError as e:
+                conn.execute("ROLLBACK")
+                shared_logger("Data Collector", f"Duplicate Key Error: {e}", 2, self.cfg.db_path)
+                time.sleep(self.cfg.timeout_time * 2)
 
+            except KeyboardInterrupt:
+                conn.execute("ROLLBACK")
+                shared_logger("Data Collector", f"Keyboard Interrupt", 3, self.cfg.db_path)
+                sys.exit()
 
-                # If Something Happens Rollback To Begin, Inform User, And Wait
-                except sqlite3.IntegrityError as e:
-                    conn.execute("ROLLBACK")
-                    shared_logger("Data Collector", f"Duplicate Key Error: {e}", 2, self.cfg.db_path)
-                    time.sleep(self.cfg.timeout_time * 2)
-
-                except sqlite3.OperationalError as e:
-                    conn.execute("ROLLBACK")
-                    shared_logger("Data Collector", f"Database Operational Error: {e}", 2, self.cfg.db_path)
-                    time.sleep(self.cfg.timeout_time * 2)
-
-                except KeyboardInterrupt:
-                    conn.execute("ROLLBACK")
-                    shared_logger("Data Collector", f"Keyboard Interrupt", 3, self.cfg.db_path)
-                    sys.exit()
-
-                except Exception as e:
-                    conn.execute("ROLLBACK")
-                    shared_logger("Data Collector", f"Unexpected Error: {e}", 2, self.cfg.db_path)
-                    time.sleep(self.cfg.timeout_time * 2)
+            except Exception as e:
+                conn.execute("ROLLBACK")
+                shared_logger("Data Collector", f"Unexpected Error: {e}", 2, self.cfg.db_path)
+                time.sleep(self.cfg.timeout_time * 2)   
 
 
 

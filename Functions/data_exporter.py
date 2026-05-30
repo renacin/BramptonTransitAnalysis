@@ -38,44 +38,44 @@ class Exporter():
 
         # Try To Hold A Lock On The Database
         with sqlite3.connect(self.cfg.db_path, timeout=120, isolation_level=None) as conn:
-            try:
-                # Set PRAGMAs BEFORE any transaction, while no lock is held
-                conn.execute("PRAGMA journal_mode=WAL")
-                conn.execute("PRAGMA busy_timeout=120000")
+            # try:
 
-                # Now manually begin the exclusive transaction
-                conn.execute("BEGIN EXCLUSIVE")
-                shared_logger("Data Exporter", "Exclusive Lock Obtained", 1, self.cfg.db_path)
+            # Set PRAGMAs BEFORE any transaction, while no lock is held
+            conn.execute("PRAGMA journal_mode=WAL")
+            conn.execute("PRAGMA busy_timeout=120000")
 
-                # --- export work goes here ---
-                print("Did This Shit Work?")
+            # Now manually begin the exclusive transaction
+            conn.execute("BEGIN EXCLUSIVE")
 
-                conn.execute("COMMIT")
-                shared_logger("Data Exporter", "Exclusive Lock Released", 1, self.cfg.db_path)
+            # --- export work goes here ---
+            print("Did This Shit Work?")
 
-
+            conn.execute("COMMIT")
+            shared_logger("Data Exporter", "Exclusive Lock Released", 1, self.cfg.db_path)
 
 
-            # If Something Happens Rollback To Begin, Inform User, And Wait
-            except sqlite3.IntegrityError as e:
-                conn.execute("ROLLBACK")
-                shared_logger("Data Collector", f"Duplicate Key Error: {e}", 2, self.cfg.db_path)
-                time.sleep(self.cfg.timeout_time * 2)
 
-            except sqlite3.OperationalError as e:
-                conn.execute("ROLLBACK")
-                shared_logger("Data Collector", f"Database Operational Error: {e}", 2, self.cfg.db_path)
-                time.sleep(self.cfg.timeout_time * 2)
 
-            except KeyboardInterrupt:
-                conn.execute("ROLLBACK")
-                shared_logger("Data Collector", f"Keyboard Interrupt", 3, self.cfg.db_path)
-                sys.exit()
+            # # If Something Happens Rollback To Begin, Inform User, And Wait
+            # except sqlite3.IntegrityError as e:
+            #     conn.execute("ROLLBACK")
+            #     shared_logger("Data Collector", f"Duplicate Key Error: {e}", 2, self.cfg.db_path)
+            #     time.sleep(self.cfg.timeout_time * 2)
 
-            except Exception as e:
-                conn.execute("ROLLBACK")
-                shared_logger("Data Collector", f"Unexpected Error: {e}", 2, self.cfg.db_path)
-                time.sleep(self.cfg.timeout_time * 2)
+            # except sqlite3.OperationalError as e:
+            #     conn.execute("ROLLBACK")
+            #     shared_logger("Data Collector", f"Database Operational Error: {e}", 2, self.cfg.db_path)
+            #     time.sleep(self.cfg.timeout_time * 2)
+
+            # except KeyboardInterrupt:
+            #     conn.execute("ROLLBACK")
+            #     shared_logger("Data Collector", f"Keyboard Interrupt", 3, self.cfg.db_path)
+            #     sys.exit()
+
+            # except Exception as e:
+            #     conn.execute("ROLLBACK")
+            #     shared_logger("Data Collector", f"Unexpected Error: {e}", 2, self.cfg.db_path)
+            #     time.sleep(self.cfg.timeout_time * 2)
 
 
 
