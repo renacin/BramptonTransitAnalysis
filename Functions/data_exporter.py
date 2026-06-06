@@ -51,7 +51,7 @@ class Exporter():
             print("Did This Shit Work?")
 
             conn.execute("COMMIT")
-            shared_logger("Data Exporter", "Exclusive Lock Released", 1, self.cfg.db_path)
+            shared_logger("Data Exporter", "Exclusive Lock Released", 1, self.cfg.dblog_path)
 
 
 
@@ -59,22 +59,22 @@ class Exporter():
             # # If Something Happens Rollback To Begin, Inform User, And Wait
             # except sqlite3.IntegrityError as e:
             #     conn.execute("ROLLBACK")
-            #     shared_logger("Data Collector", f"Duplicate Key Error: {e}", 2, self.cfg.db_path)
+            #     shared_logger("Data Collector", f"Duplicate Key Error: {e}", 2, self.cfg.dblog_path)
             #     time.sleep(self.cfg.timeout_time * 2)
 
             # except sqlite3.OperationalError as e:
             #     conn.execute("ROLLBACK")
-            #     shared_logger("Data Collector", f"Database Operational Error: {e}", 2, self.cfg.db_path)
+            #     shared_logger("Data Collector", f"Database Operational Error: {e}", 2, self.cfg.dblog_path)
             #     time.sleep(self.cfg.timeout_time * 2)
 
             # except KeyboardInterrupt:
             #     conn.execute("ROLLBACK")
-            #     shared_logger("Data Collector", f"Keyboard Interrupt", 3, self.cfg.db_path)
+            #     shared_logger("Data Collector", f"Keyboard Interrupt", 3, self.cfg.dblog_path)
             #     sys.exit()
 
             # except Exception as e:
             #     conn.execute("ROLLBACK")
-            #     shared_logger("Data Collector", f"Unexpected Error: {e}", 2, self.cfg.db_path)
+            #     shared_logger("Data Collector", f"Unexpected Error: {e}", 2, self.cfg.dblog_path)
             #     time.sleep(self.cfg.timeout_time * 2)
 
 

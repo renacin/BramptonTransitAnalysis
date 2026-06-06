@@ -39,7 +39,7 @@ class Collector():
 
             # Handle Rate Limiting
             if r.status_code == 429:
-                shared_logger("Data Collector", f"Rate Limit Exceeded (HTTP 429)", 2, self.cfg.db_path)
+                shared_logger("Data Collector", f"Rate Limit Exceeded (HTTP 429)", 2, self.cfg.dblog_path)
                 df = pd.DataFrame()
 
             else:
@@ -47,7 +47,7 @@ class Collector():
                 data = r.json()
                 
                 if 'entity' not in data:
-                    shared_logger("Data Collector", f"Unexpected Response Format: {list(data.keys())}", 2, self.cfg.db_path)
+                    shared_logger("Data Collector", f"Unexpected Response Format: {list(data.keys())}", 2, self.cfg.dblog_path)
                     df = pd.DataFrame()
                 else:
                     df = pd.json_normalize(data['entity'])
@@ -55,23 +55,23 @@ class Collector():
 
         # Catch All Errors
         except requests.exceptions.JSONDecodeError:
-            shared_logger("Data Collector", f"Invalid JSON Response From Feed", 2, self.cfg.db_path)
+            shared_logger("Data Collector", f"Invalid JSON Response From Feed", 2, self.cfg.dblog_path)
             df = pd.DataFrame()
 
         except requests.exceptions.Timeout:                 
-            shared_logger("Data Collector", f"Connection Timed Out After {self.cfg.timeout_time}s", 2, self.cfg.db_path)
+            shared_logger("Data Collector", f"Connection Timed Out After {self.cfg.timeout_time}s", 2, self.cfg.dblog_path)
             df = pd.DataFrame()
             
         except requests.exceptions.ConnectionError:
-            shared_logger("Data Collector", f"Endpoint Connection Failed", 2, self.cfg.db_path)
+            shared_logger("Data Collector", f"Endpoint Connection Failed", 2, self.cfg.dblog_path)
             df = pd.DataFrame()
             
         except requests.exceptions.HTTPError as e:
-            shared_logger("Data Collector", f"HTTP Error {e}", 2, self.cfg.db_path)
+            shared_logger("Data Collector", f"HTTP Error {e}", 2, self.cfg.dblog_path)
             df = pd.DataFrame()
 
         except KeyboardInterrupt:
-            shared_logger("Data Collector", f"Keyboard Interrupt", 3, self.cfg.db_path)
+            shared_logger("Data Collector", f"Keyboard Interrupt", 3, self.cfg.dblog_path)
             sys.exit()
 
 
@@ -79,7 +79,7 @@ class Collector():
         # ----------------------------------------------------------------------------------------
         # Check To See If GTFS Data Is Empty. If It Is Rate Limit Code Here So We Don't Get Banned
         if len(df) == 0:
-            shared_logger("Data Collector", f" ^^^ Skipping Data Collection For {self.cfg.timeout_time}s", 2, self.cfg.db_path)
+            shared_logger("Data Collector", f" ^^^ Skipping Data Collection For {self.cfg.timeout_time}s", 2, self.cfg.dblog_path)
             time.sleep(self.cfg.timeout_time)
 
 
@@ -140,7 +140,7 @@ class Collector():
                 )
 
                 conn.execute("COMMIT")
-                shared_logger("Data Collector", f"New Bus Locations Processed --> {new_rows_inserted:04}", 1, self.cfg.db_path)
+                shared_logger("Data Collector", f"New Bus Locations Processed --> {new_rows_inserted:04}", 1, self.cfg.dblog_path)
                 time.sleep(self.cfg.timeout_time)
 
             except sqlite3.OperationalError as e:
@@ -148,7 +148,7 @@ class Collector():
                     conn.execute("ROLLBACK")
                 except sqlite3.OperationalError:
                     pass  # Already committed, nothing to roll back
-                shared_logger("Data Collector", f"Database Operational Error: {e}", 2, self.cfg.db_path)
+                shared_logger("Data Collector", f"Database Operational Error: {e}", 2, self.cfg.dblog_path)
                 time.sleep(self.cfg.timeout_time * 2)
 
             except sqlite3.IntegrityError as e:
@@ -156,7 +156,7 @@ class Collector():
                     conn.execute("ROLLBACK")
                 except sqlite3.OperationalError:
                     pass  # Already committed, nothing to roll back
-                shared_logger("Data Collector", f"Duplicate Key Error: {e}", 2, self.cfg.db_path)
+                shared_logger("Data Collector", f"Duplicate Key Error: {e}", 2, self.cfg.dblog_path)
                 time.sleep(self.cfg.timeout_time * 2)
 
             except KeyboardInterrupt:
@@ -164,7 +164,7 @@ class Collector():
                     conn.execute("ROLLBACK")
                 except sqlite3.OperationalError:
                     pass  # Already committed, nothing to roll back
-                shared_logger("Data Collector", f"Keyboard Interrupt", 3, self.cfg.db_path)
+                shared_logger("Data Collector", f"Keyboard Interrupt", 3, self.cfg.dblog_path)
                 sys.exit()
 
             except Exception as e:
@@ -172,7 +172,7 @@ class Collector():
                     conn.execute("ROLLBACK")
                 except sqlite3.OperationalError:
                     pass  # Already committed, nothing to roll back
-                shared_logger("Data Collector", f"Unexpected Error: {e}", 2, self.cfg.db_path)
+                shared_logger("Data Collector", f"Unexpected Error: {e}", 2, self.cfg.dblog_path)
                 time.sleep(self.cfg.timeout_time * 2)   
 
 
