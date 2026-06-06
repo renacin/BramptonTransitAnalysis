@@ -32,6 +32,7 @@ class EnvConfig():
         # Find What Operating System And Create A Temp Working Space In Downloads Folder
         self.__find_downloads_folder()
         self.__create_folders()
+        self.__dblog_check()
         self.__db_check()
         self.__get_gtfs_data()
         self.__upld_gtfs_data()
@@ -80,6 +81,27 @@ class EnvConfig():
                 os.makedirs(dir_chk)
 
 
+    # -------------------- Private Function #5 ---------------------------------
+    def __dblog_check(self):
+        """ Create a database that will store all log and status information of the main data collection database """
+
+        # Iterate Through Table Dictionary And Create Tables If They Don't Exist Already
+        with sqlite3.connect(self.cfg.dblog_path) as conn:
+
+            # Make Sure The Database Is In WAL Mode To Allow For Concurrent Writes & Read | Verify It Worked
+            conn.execute("PRAGMA journal_mode=WAL")
+            mode = conn.execute("PRAGMA journal_mode").fetchone()[0]
+
+            # Make Needed Tables
+            for table_ in self.cfg.log_dict:
+                sql_string = ", ".join(self.cfg.log_dict[table_])
+                conn.execute(f'''CREATE TABLE IF NOT EXISTS {table_} ({sql_string});''')
+                conn.commit()
+
+        # Log export
+        shared_logger("Data Janitor  ", f"Log Database Ready", 1, self.cfg.dblog_path)
+
+
 
     # -------------------- Private Function #5 ---------------------------------
     def __db_check(self):
@@ -99,7 +121,7 @@ class EnvConfig():
                 conn.commit()
 
         # Log export
-        shared_logger("Data Janitor  ", f"Databases Ready", 1, self.cfg.db_path)
+        shared_logger("Data Janitor  ", f"Data Database Ready", 1, self.cfg.dblog_path)
 
 
     # -------------------- Private Function #6 ---------------------------------
@@ -120,21 +142,21 @@ class EnvConfig():
             try:
                 # Extract Data
                 shutil.unpack_archive(self.cfg.zip_path, self.cfg.foldr_path)
-                shared_logger("Data Janitor  ", f"Extracted GTFS Data", 1, self.cfg.db_path)
+                shared_logger("Data Janitor  ", f"Extracted GTFS Data", 1, self.cfg.dblog_path)
 
                 # Remove Unneeded Files & Folders
                 try:
                     os.remove(self.cfg.zip_path)
                 except OSError as e:
-                    shared_logger("Data Janitor  ", f"[ERROR] Could Not Remove Zip", 3, self.cfg.db_path)
+                    shared_logger("Data Janitor  ", f"[ERROR] Could Not Remove Zip", 3, self.cfg.dblog_path)
                     raise e
             
             except shutil.ReadError as e:
-                shared_logger("Data Janitor  ", f"[ERROR] Could Not Extract GTFS Data", 3, self.cfg.db_path)
+                shared_logger("Data Janitor  ", f"[ERROR] Could Not Extract GTFS Data", 3, self.cfg.dblog_path)
                 raise e
 
         else:
-            shared_logger("Data Janitor  ", f"[ERROR] Bad Response", 3, self.cfg.db_path)
+            shared_logger("Data Janitor  ", f"[ERROR] Bad Response", 3, self.cfg.dblog_path)
             raise e
 
 
@@ -163,7 +185,7 @@ class EnvConfig():
                         temp_df["feed_version"] = feed_cur_version
                         temp_df                 = temp_df[self.cfg.table_dict[file_name]]
                         temp_df.to_sql(file_name, conn, if_exists="append", index=False)
-                        shared_logger("Data Janitor  ", f"New GTFS Data Uploaded -> {file_name}", 1, self.cfg.db_path)
+                        shared_logger("Data Janitor  ", f"New GTFS Data Uploaded -> {file_name}", 1, self.cfg.dblog_path)
 
 
             # Delete All Text Files In Folder
@@ -190,7 +212,7 @@ class EnvConfig():
 
             # If No New Data Back Out
             if int(max_colctd_feed_id) <= int(max_routes_feed_id):
-                shared_logger("Data Janitor  ", f"Speed Table Is Current", 1, self.cfg.db_path)
+                shared_logger("Data Janitor  ", f"Speed Table Is Current", 1, self.cfg.dblog_path)
                 return
 
 
@@ -265,7 +287,7 @@ class EnvConfig():
 
             # Upload The Speed Dataframe Data To Respective Table
             avg_spd_df.to_sql("ROUTE_SPEED", conn, if_exists="append", index=False)
-            shared_logger("Data Janitor  ", f"New Route Speed Data Uploaded", 1, self.cfg.db_path)
+            shared_logger("Data Janitor  ", f"New Route Speed Data Uploaded", 1, self.cfg.dblog_path)
 
 
 
