@@ -3,6 +3,7 @@
 # Title                                      Main Logic Of Data Exporter
 #
 # ----------------------------------------------------------------------------------------------------------------------
+import os
 import sys
 import sqlite3
 import pandas as pd
@@ -25,16 +26,16 @@ class Exporter():
 
 
     # -------------------- Public Function #1 ---------------------------------
-    def export_all(self):
+    def export_bus_locs(self):
         """
-        When Called This Function Will Export All Old Data From Database Into CSVs In Respective Folders. 
-        This function is simply a shell running private functions that will seperatly focus on
-            Exporting:
-                + Entire Table Containing Collected Bus Locations (Daily)
-                + All GTFS Feed Data                              (If Old Data Is Detected - More Than 1 Cycle Old)
-                + Calculated Speed Table                          (If Old Data Is Detected - More Than 1 Cycle Old)
-                + LOG Table                                       (Daily)
+        When Called This Function Will Export All Old Data From Database That Looks At Bus Locations.
+        This Function Should Run Daily.
         """
+
+        # Define Needed Variables
+        dt_nw = datetime.now().strftime(self.cfg.td_s_dt_dsply_frmt)
+        bus_locs_out_path = os.path.join(self.cfg.out_bus_loc_path, f"BUS_LOC_DB_{dt_nw}.csv")
+
 
         # Try To Hold A Lock On The Database
         with sqlite3.connect(self.cfg.db_path, timeout=120, isolation_level=None) as conn:
@@ -44,14 +45,22 @@ class Exporter():
             conn.execute("PRAGMA journal_mode=WAL")
             conn.execute("PRAGMA busy_timeout=120000")
 
-            # Now manually begin the exclusive transaction
-            conn.execute("BEGIN EXCLUSIVE")
+            try:
+                conn.execute("BEGIN IMMEDIATE")
 
-            # --- export work goes here ---
-            print("Did This Shit Work?")
+                # Grab All Data & Export
+                df = pd.read_sql_query("""SELECT * FROM BUS_LOC_DB""", conn)
+                df.to_csv(bus_locs_out_path, index=False)
 
-            conn.execute("COMMIT")
-            shared_logger("Data Exporter", "Exclusive Lock Released", 1, self.cfg.dblog_path)
+                # Delete All Data & Vacuum Database
+                conn.execute("""DELETE FROM BUS_LOC_DB""")
+                conn.execute("COMMIT")
+                conn.execute("VACUUM")
+                shared_logger("Data Exporter", f"Exported All Bus Locations", 1, self.cfg.dblog_path)
+
+            except Exception as e:
+                conn.execute("ROLLBACK")
+                shared_logger("Data Exporter", f"Bus Location Export cleanup failed: {e}", 2, self.cfg.dblog_path)
 
 
 
@@ -85,5 +94,5 @@ class Exporter():
 # Entry Point Into Python Code (For Testing!)
 if __name__ == "__main__":
     exporter = Exporter()
-    exporter.export_all()
+    exporter.export_bus_locs()
 

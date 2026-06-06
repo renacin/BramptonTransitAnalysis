@@ -43,6 +43,9 @@ class Config():
         self.foldr_path          = os.path.join(self.csv_out_path,       "GTFS")
         self.out_dict            = {}
 
+        # Data Export Paths
+        self.out_bus_loc_path    = os.path.join(self.csv_out_path, "BUS_LOC")
+
         # Datetime Variables
         self.td_l_dt_dsply_frmt  = "%d-%m-%Y %H:%M:%S"
         self.td_s_dt_dsply_frmt  = "%d-%m-%Y"
