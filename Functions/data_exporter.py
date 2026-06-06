@@ -58,33 +58,25 @@ class Exporter():
                 conn.execute("VACUUM")
                 shared_logger("Data Exporter", f"Exported All Bus Locations", 1, self.cfg.dblog_path)
 
+
+            # If Something Happens Rollback To Begin, Inform User, And Wait
+            except sqlite3.IntegrityError as e:
+                conn.execute("ROLLBACK")
+                shared_logger("Data Exporter", f"Bus Location Export cleanup failed: {e}", 2, self.cfg.dblog_path)
+
+            except sqlite3.OperationalError as e:
+                conn.execute("ROLLBACK")
+                shared_logger("Data Exporter", f"Bus Location Export cleanup failed: {e}", 2, self.cfg.dblog_path)
+
+            except KeyboardInterrupt:
+                conn.execute("ROLLBACK")
+                shared_logger("Data Exporter", f"Keyboard Interupt: {e}", 2, self.cfg.dblog_path)
+                sys.exit()
+
             except Exception as e:
                 conn.execute("ROLLBACK")
                 shared_logger("Data Exporter", f"Bus Location Export cleanup failed: {e}", 2, self.cfg.dblog_path)
 
-
-
-
-            # # If Something Happens Rollback To Begin, Inform User, And Wait
-            # except sqlite3.IntegrityError as e:
-            #     conn.execute("ROLLBACK")
-            #     shared_logger("Data Collector", f"Duplicate Key Error: {e}", 2, self.cfg.dblog_path)
-            #     time.sleep(self.cfg.timeout_time * 2)
-
-            # except sqlite3.OperationalError as e:
-            #     conn.execute("ROLLBACK")
-            #     shared_logger("Data Collector", f"Database Operational Error: {e}", 2, self.cfg.dblog_path)
-            #     time.sleep(self.cfg.timeout_time * 2)
-
-            # except KeyboardInterrupt:
-            #     conn.execute("ROLLBACK")
-            #     shared_logger("Data Collector", f"Keyboard Interrupt", 3, self.cfg.dblog_path)
-            #     sys.exit()
-
-            # except Exception as e:
-            #     conn.execute("ROLLBACK")
-            #     shared_logger("Data Collector", f"Unexpected Error: {e}", 2, self.cfg.dblog_path)
-            #     time.sleep(self.cfg.timeout_time * 2)
 
 
 
