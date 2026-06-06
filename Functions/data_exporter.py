@@ -51,6 +51,8 @@ class Exporter():
                 # Grab All Data & Export
                 df = pd.read_sql_query("""SELECT * FROM BUS_LOC_DB""", conn)
                 df.to_csv(bus_locs_out_path, index=False)
+                shared_logger("Data Exporter", f"Rows captured: {len(df)}", 1, self.cfg.dblog_path)
+
 
                 # Delete All Data & Vacuum Database
                 conn.execute("""DELETE FROM BUS_LOC_DB""")
@@ -60,17 +62,13 @@ class Exporter():
 
 
             # If Something Happens Rollback To Begin, Inform User, And Wait
-            except sqlite3.IntegrityError as e:
-                conn.execute("ROLLBACK")
-                shared_logger("Data Exporter", f"Bus Location Export cleanup failed: {e}", 2, self.cfg.dblog_path)
-
-            except sqlite3.OperationalError as e:
+            except (sqlite3.IntegrityError, sqlite3.OperationalError) as e:
                 conn.execute("ROLLBACK")
                 shared_logger("Data Exporter", f"Bus Location Export cleanup failed: {e}", 2, self.cfg.dblog_path)
 
             except KeyboardInterrupt:
                 conn.execute("ROLLBACK")
-                shared_logger("Data Exporter", f"Keyboard Interupt: {e}", 2, self.cfg.dblog_path)
+                shared_logger("Data Exporter", f"Keyboard Interupt", 2, self.cfg.dblog_path)
                 sys.exit()
 
             except Exception as e:
