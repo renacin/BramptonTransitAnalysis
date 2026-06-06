@@ -140,7 +140,7 @@ class Collector():
                 )
 
                 conn.execute("COMMIT")
-                shared_logger("Data Collector", f"New Bus Locations Processed --> {new_rows_inserted:04}", 1, self.cfg.dblog_path)
+                shared_logger("Data Collector", f"New Data -> {new_rows_inserted:04}", 1, self.cfg.dblog_path)
                 time.sleep(self.cfg.timeout_time)
 
             except sqlite3.OperationalError as e:
