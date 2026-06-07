@@ -106,8 +106,14 @@ class Exporter():
 
                         # Get All Data Older Than The Second Entry
                         if len(dates_) != 1:
+
+                            # Get Path Name
+                            dt_nw = datetime.now().strftime(self.cfg.td_s_dt_dsply_frmt)
+                            out_path = os.path.join(self.cfg.csv_out_path, f"{table_}_{dt_nw}.csv")
+
+                            # Pull All Data & Write To Appropriate Folder
                             df = pd.read_sql_query(f"""SELECT * FROM {table_} WHERE CAST(feed_version AS INTEGER) < CAST({str(dates_[1])} AS INTEGER)""", conn)
-                            df.to_csv(fr"""C:\Users\renac\Desktop\{table_}_EXPORT.csv""", index=False)
+                            df.to_csv(out_path, index=False)
                             shared_logger("Data Exporter", f"Exported Old {table_} Data", 1, self.cfg.dblog_path)
 
                             # Delete All Data & Vacuum Database
