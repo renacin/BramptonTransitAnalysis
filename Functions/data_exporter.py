@@ -26,7 +26,7 @@ class Exporter():
 
 
 
-    # -------------------- Private Function #1 ---------------------------------
+    # -------------------- Public Function #1 ---------------------------------
     def export_all(self):
         """
         When Called This Function Will Export All Old Data & Clean Pertinent Tables.
@@ -62,8 +62,8 @@ class Exporter():
 
                 # Grab All Data & Export
                 df = pd.read_sql_query("""SELECT * FROM BUS_LOC_DB""", conn)
-                shared_logger("Data Exporter", f"Exporting {len(df)} Rows: ", 1, self.cfg.dblog_path)
                 df.to_csv(bus_locs_out_path, index=False)
+                shared_logger("Data Exporter", f"Exporting {len(df)} Rows", 1, self.cfg.dblog_path)
 
                 # Delete All Data & Vacuum Database
                 conn.execute("""DELETE FROM BUS_LOC_DB""")
@@ -74,16 +74,25 @@ class Exporter():
 
             # If Something Happens Rollback To Begin, Inform User, And Wait
             except (sqlite3.IntegrityError, sqlite3.OperationalError) as e:
-                conn.execute("ROLLBACK")
+                try:
+                    conn.execute("ROLLBACK")
+                except:
+                    pass
                 shared_logger("Data Exporter", f"Bus Location Export cleanup failed: {e}", 2, self.cfg.dblog_path)
 
             except KeyboardInterrupt:
-                conn.execute("ROLLBACK")
+                try:
+                    conn.execute("ROLLBACK")
+                except:
+                    pass
                 shared_logger("Data Exporter", f"Keyboard Interrupt", 2, self.cfg.dblog_path)
                 sys.exit()
 
             except Exception as e:
-                conn.execute("ROLLBACK")
+                try:
+                    conn.execute("ROLLBACK")
+                except:
+                    pass
                 shared_logger("Data Exporter", f"Bus Location Export cleanup failed: {e}", 2, self.cfg.dblog_path)
 
 
@@ -134,16 +143,25 @@ class Exporter():
 
             # If Something Happens Rollback To Begin, Inform User, And Wait
             except (sqlite3.IntegrityError, sqlite3.OperationalError) as e:
-                conn.execute("ROLLBACK")
+                try:
+                    conn.execute("ROLLBACK")
+                except:
+                    pass
                 shared_logger("Data Exporter", f"Failed To Clean Up {table_}: {e}", 2, self.cfg.dblog_path)
 
             except KeyboardInterrupt:
-                conn.execute("ROLLBACK")
+                try:
+                    conn.execute("ROLLBACK")
+                except:
+                    pass
                 shared_logger("Data Exporter", f"Keyboard Interrupt", 2, self.cfg.dblog_path)
                 sys.exit()
 
             except Exception as e:
-                conn.execute("ROLLBACK")
+                try:
+                    conn.execute("ROLLBACK")
+                except:
+                    pass
                 shared_logger("Data Exporter", f"Failed To Clean Up {table_}: {e}", 2, self.cfg.dblog_path)
 
 
