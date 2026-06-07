@@ -16,11 +16,11 @@ class Config():
         self.BUS_LOC_URL         = r'https://gtfs-rt-merge.prod.bt-cadavl.com/BramptonTransit/GTFS/merged_VehiclePosition.json'
         self.GTFS_URL            = r'https://www.arcgis.com/sharing/rest/content/items/a355aabd5a8c490186bdce559c9c75fb/data'
         self.FOLDERs             = ['GTFS', 'BUS_STP', 'BUS_LOC', 'FRMTD_DATA', 'BUS_SPEED', 'GRAPHICS', 'LOGS']
-        self.GATHER_TABLE        = {"BUS_LOC_DB", "U_ID_TEMP", "ERROR_DB", "ROUTE_SPEED"}
+        self.NOT_FEED_BASED      = {"BUS_LOC_DB", "U_ID_TEMP"}
+        self.GATHER_TABLE        = {"BUS_LOC_DB", "U_ID_TEMP", "ROUTE_SPEED"}
         self.log_dict            = {"DB_LOGS":        ['time_stamp', 'reporter', 'warning_level', 'info']}
         self.table_dict          = {"BUS_LOC_DB":     ['u_id', 'id', 'trip_trip_id', 'trip_schedule_relationship', 'trip_route_id','position_latitude', 'position_longitude', 'position_bearing','position_speed', 'current_status', 'timestamp', 'stop_id','vehicle_id', 'vehicle_label', 'dt_colc'],
                                     "U_ID_TEMP":      ["u_id", "timestamp"],
-                                    "ERROR_DB":       ["timestamp", "e_type", "delay"],
                                     "FEED_INFO":      ["feed_publisher_name", "feed_lang", "feed_start_date", "feed_end_date", "feed_version"],
                                     "ROUTES":         ["route_id", "route_short_name", "route_long_name", "feed_version"],
                                     "TRIPS":          ["route_id", "service_id", "trip_id", "trip_headsign", "direction_id", "block_id", "shape_id", "feed_version"],
