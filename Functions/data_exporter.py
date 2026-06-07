@@ -25,7 +25,17 @@ class Exporter():
         self.cfg = Config()
 
 
-    # -------------------- Public Function #1 ---------------------------------
+
+    # -------------------- Private Function #1 ---------------------------------
+    def export_bus_locs(self):
+        """
+        When Called This Function Will Export All Old Data From Database That Looks At Bus Locations.
+        This Function Should Run Daily.
+        """
+
+
+
+    # -------------------- Private Function #1 ---------------------------------
     def export_bus_locs(self):
         """
         When Called This Function Will Export All Old Data From Database That Looks At Bus Locations.
@@ -75,7 +85,7 @@ class Exporter():
 
 
 
-    # -------------------- Public Function #2 ---------------------------------
+    # -------------------- Private Function #2 ---------------------------------
     def export_old_gtfs(self):
         """
         When Called This Function Will Export All Old GTFS Data In The Database. Including The Current FEED_VERSION Only Keep 2 Current Feed Version. 
@@ -94,22 +104,17 @@ class Exporter():
                 for table_ in self.cfg.table_dict:
                     if table_ not in self.cfg.NOT_FEED_BASED:
 
-                        # Grab A Lock
-                        conn.execute("BEGIN IMMEDIATE")
-
                         # We Need To Find Rows Where The Feed Version Is 2 Cycles Older Than The Current
                         df = pd.read_sql_query(f"""SELECT DISTINCT feed_version FROM {table_}""", conn)
                         dates_ = [int(x) for x in df["feed_version"].tolist()]
-                        dates_.append(20260530)
-                        dates_.append(20260607)
                         dates_.sort(reverse=True)
 
                         # Get All Data Older Than The Second Entry
-                        if len(dates_) != 1:
+                        if len(dates_) > 1:
 
                             # Get Path Name
                             dt_nw = datetime.now().strftime(self.cfg.td_s_dt_dsply_frmt)
-                            out_path = os.path.join(self.cfg.csv_out_path, f"{table_}_{dt_nw}.csv")
+                            out_path = os.path.join(self.cfg.csv_out_path, table_, f"{table_}_{dt_nw}.csv")
 
                             # Pull All Data & Write To Appropriate Folder
                             df = pd.read_sql_query(f"""SELECT * FROM {table_} WHERE CAST(feed_version AS INTEGER) < CAST({str(dates_[1])} AS INTEGER)""", conn)
@@ -117,6 +122,7 @@ class Exporter():
                             shared_logger("Data Exporter", f"Exported Old {table_} Data", 1, self.cfg.dblog_path)
 
                             # Delete All Data & Vacuum Database
+                            conn.execute("BEGIN IMMEDIATE")
                             conn.execute(f"""DELETE FROM {table_} WHERE CAST(feed_version AS INTEGER) < CAST({str(dates_[1])} AS INTEGER)""")
                             conn.execute("COMMIT")
                             conn.execute("VACUUM")
