@@ -27,16 +27,19 @@ class Exporter():
 
 
     # -------------------- Private Function #1 ---------------------------------
-    def export_bus_locs(self):
+    def export_all(self):
         """
-        When Called This Function Will Export All Old Data From Database That Looks At Bus Locations.
-        This Function Should Run Daily.
+        When Called This Function Will Export All Old Data & Clean Pertinent Tables.
         """
+
+        # Run Private Functions
+        self.__export_bus_locs()
+        self.__export_old_gtfs()
 
 
 
     # -------------------- Private Function #1 ---------------------------------
-    def export_bus_locs(self):
+    def __export_bus_locs(self):
         """
         When Called This Function Will Export All Old Data From Database That Looks At Bus Locations.
         This Function Should Run Daily.
@@ -86,7 +89,7 @@ class Exporter():
 
 
     # -------------------- Private Function #2 ---------------------------------
-    def export_old_gtfs(self):
+    def __export_old_gtfs(self):
         """
         When Called This Function Will Export All Old GTFS Data In The Database. Including The Current FEED_VERSION Only Keep 2 Current Feed Version. 
         Export Everything Else.
@@ -153,5 +156,5 @@ class Exporter():
 # Entry Point Into Python Code (For Testing!)
 if __name__ == "__main__":
     exporter = Exporter()
-    exporter.export_old_gtfs()
+    exporter.export_all()
 
