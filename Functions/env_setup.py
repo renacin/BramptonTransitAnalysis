@@ -41,21 +41,6 @@ class EnvConfig():
 
 
 
-    # -------------------- Private Function #2 ---------------------------------
-    def __delete_files(self, file_ext = "", path = ""):
-        """ Delete All Files In Path """
-
-        # Verify That The Path Exists Raise Error!
-        for file_ in os.listdir(path):
-            full_path = os.path.join(path, file_)
-            if file_.endswith(file_ext):
-                try:
-                    os.remove(full_path)
-                except OSError as e:
-                    raise f"[ERROR] Could Not Remove {file_ext} Files"
-
-
-
     # -------------------- Private Function #3 ---------------------------------
     def __find_downloads_folder(self):
         """ Find The Location Of The Downloads Folder """
