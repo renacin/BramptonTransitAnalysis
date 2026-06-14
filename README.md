@@ -1,4 +1,4 @@
-# BramptonTransitAnalysis (!!!Work In Progress!!!)
+# BramptonTransitAnalysis (Work In Progress...)
 
 A long-running Python data collection pipeline that pulls real-time and static GTFS data from Brampton Transit, stores it in a local SQLite database, and exports daily snapshots to CSV. Designed to run continuously on a local machine or server.
 
