@@ -5,8 +5,7 @@
 # ----------------------------------------------------------------------------------------------------------------------
 import time
 import threading
-stop_event = threading.Event()
-from datetime import date, timedelta
+from datetime import datetime, timedelta
 
 from Functions.env_config      import *
 from Functions.env_setup       import *
@@ -14,6 +13,8 @@ from Functions.gtfs_downloader import *
 from Functions.data_helper     import *
 from Functions.data_exporter   import *
 from Functions.data_collect    import *
+
+stop_event = threading.Event()
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -43,66 +44,71 @@ def data_collector_scheduler():
     # Start Data Collector
     DataCollector = Collector()
     while not stop_event.is_set():
-        try: DataCollector.get_bus_loc()
-        except: pass
+        try:
+            DataCollector.get_bus_loc()
+        except Exception as e:
+            pass
+        finally:
+            stop_event.wait(15)
 
 
 
 # Create Scheduled Behaviour For: Data Exporter
-def data_collector_exporter():
+def data_exporter_scheduler():
+    """ Instantiate Data Exporter & Start Main Loop """
 
     # Start The Data Exporter
     DataExporter = Exporter()
 
-    # Main Loop Checking If It's 2:30AM
+    # Main Loop Checking If It's 2:30AM, Sleep Until Then, Then Export, The Wait 30 Min, Repeat
     while not stop_event.is_set():
-
-        # Find Seconds Until Window, Sleep, & Then Do Work
-        pass
-
-
+        stop_event.wait(seconds_until(hour_=2, minute_=30))
+        DataExporter.export_all()
+        stop_event.wait(1800)
 
 
 
+# Create Scheduled Behaviour For: GTFS Downloader
+def gtfs_dowloader_scheduler():
+    """ Instantiate GTFS Downloader & Start Main Loop """
 
+    # Start The Data Exporter
+    GTFS_Getter = GTFS_Downloader()
+
+    # Main Loop Checking If It's 12:30PM, Sleep Until Then, Then Export, The Wait 30 Min, Repeat
+    while not stop_event.is_set():
+        stop_event.wait(seconds_until(hour_=12, minute_=30))
+        GTFS_Getter.gather_GTFS()
+        stop_event.wait(1800)
 
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 # The Main Function Will Run Each Sub Function As It's Own Process & Have Error Catching For Graceful Shut Down
 def main():
-    # print(seconds_until(hour_=12, minute_=30))
 
+    # Step #1 Prepare Folders With Environment Setup
+    EnvSetup = EnvConfig()
+    EnvSetup.setup()
 
-
-
-
-
-
-
-    # # Step #1 Prepare Folders With Environment Setup
-    # EnvSetup = EnvConfig()
-    # EnvSetup.setup()
-
-
-    # # Define Each Process, They Should Be Their Own Thread And Run Independently
-    # threads = [threading.Thread(target = data_collector_scheduler, name="DataCollector", daemon=True),]
+    # Define Each Process, They Should Be Their Own Thread And Run Independently
+    threads = [threading.Thread(target = data_collector_scheduler, name="DataCollector",  daemon=True),
+               threading.Thread(target = data_exporter_scheduler,  name="DataExporter",   daemon=True),
+               threading.Thread(target = gtfs_dowloader_scheduler, name="GTFSDownloader", daemon=True),]
  
-
-    # # Start Each Thread
-    # for t in threads:
-    #     t.start()
+    # Start Each Thread
+    for t in threads:
+        t.start()
  
-    
-    # # Main Loop Of Thread (Keep Looking For A Kill Signal)
-    # try:
-    #     while True:
-    #         time.sleep(1)
+    # Main Loop Of Thread (Keep Looking For A Kill Signal)
+    try:
+        while True:
+            time.sleep(1)
  
-    # except KeyboardInterrupt:
-    #     stop_event.set()
-    #     for t in threads:
-    #         t.join(timeout=30)
+    except KeyboardInterrupt:
+        stop_event.set()
+        for t in threads:
+            t.join(timeout=30)
  
 
 
