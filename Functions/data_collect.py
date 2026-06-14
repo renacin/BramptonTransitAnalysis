@@ -11,8 +11,8 @@ import pandas as pd
 import time as time
 from datetime import datetime
 
-from env_config import Config
-from data_helper import shared_logger
+from Functions.env_config  import Config
+from Functions.data_helper import shared_logger
 # ----------------------------------------------------------------------------------------------------------------------
 
 

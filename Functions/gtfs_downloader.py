@@ -10,8 +10,8 @@ import shutil
 import pandas as pd
 from datetime import datetime
 
-from data_helper import *
-from env_config import Config
+from Functions.data_helper import *
+from Functions.env_config  import Config
 # ----------------------------------------------------------------------------------------------------------------------
 
 
