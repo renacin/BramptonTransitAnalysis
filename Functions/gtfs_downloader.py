@@ -44,7 +44,7 @@ class GTFS_Downloader():
                 try:
                     os.remove(full_path)
                 except OSError as e:
-                    raise f"[ERROR] Could Not Remove {file_ext} Files"
+                    raise OSError(f"[ERROR] Could Not Remove {file_ext} Files")
 
 
     # -------------------- Private Function #6 ---------------------------------
@@ -80,7 +80,7 @@ class GTFS_Downloader():
 
         else:
             shared_logger("Data Janitor  ", f"[ERROR] Bad Response", 3, self.cfg.dblog_path)
-            raise e
+            raise requests.exceptions.HTTPError(f"Bad response: {response.status_code}")
         
 
     # -------------------- Private Function #7 ---------------------------------

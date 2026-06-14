@@ -47,7 +47,7 @@ class EnvConfig():
 
         # Verify That The Path Exists Raise Error!
         if os.path.exists(self.cfg.dwnld_path) != True:
-            raise f"[ERROR] Download Folder Does Not Exist"
+            raise FileNotFoundError("[ERROR] Download Folder Does Not Exist")
 
 
 
