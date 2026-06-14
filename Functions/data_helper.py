@@ -73,9 +73,7 @@ def shared_logger(logger_name="", message_txt="", func_level=1, log_location="")
 
 
 
-
 # ----------------------------------------------------------------------------------------------------------------------
-
 # Entry Point Into Python Code (For Testing!)
 if __name__ == "__main__":
     pass

@@ -166,13 +166,8 @@ class Exporter():
 
 
 
-
-
-
 # ----------------------------------------------------------------------------------------------------------------------
-
 # Entry Point Into Python Code (For Testing!)
 if __name__ == "__main__":
-    exporter = Exporter()
-    exporter.export_all()
+    pass
 

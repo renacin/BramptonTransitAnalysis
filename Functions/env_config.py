@@ -44,9 +44,15 @@ class Config():
         self.out_dict            = {}
 
         # Data Export Paths
-        self.out_bus_loc_path    = os.path.join(self.csv_out_path, "BUS_LOC")
+        self.out_bus_loc_path    = os.path.join(self.csv_out_path, "BUS_LOC_DB")
 
         # Datetime Variables
         self.td_l_dt_dsply_frmt  = "%d-%m-%Y %H:%M:%S"
         self.td_s_dt_dsply_frmt  = "%d-%m-%Y"
 
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Entry Point Into Python Code (For Testing!)
+if __name__ == "__main__":
+    pass

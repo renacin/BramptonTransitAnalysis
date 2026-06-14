@@ -178,14 +178,6 @@ class Collector():
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-
 # Entry Point Into Python Code (For Testing!)
 if __name__ == "__main__":
-    collector = Collector()
-
-    while True:
-        try:
-            collector.get_bus_loc()
-
-        except KeyboardInterrupt:
-            sys.exit()
+    pass

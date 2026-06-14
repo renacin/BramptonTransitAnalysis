@@ -211,8 +211,6 @@ class EnvConfig():
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-
 # Entry Point Into Python Code (For Testing!)
 if __name__ == "__main__":
-    env_setup = EnvConfig()
-    env_setup.setup()
+    pass
