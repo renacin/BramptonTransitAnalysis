@@ -16,4 +16,6 @@ env.bak/
 venv.bak/
 .spyderproject
 .spyproject
+*.csv
+*.db
 

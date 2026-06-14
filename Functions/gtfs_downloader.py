@@ -1,6 +1,6 @@
 # Name:                                            Renacin Matadeen
-# Date:                                               03/28/2026
-# Title                                       Main Logic Of Database Setup
+# Date:                                               06/13/2026
+# Title                                       Main Logic Of GTFS Data Downloader
 #
 # ----------------------------------------------------------------------------------------------------------------------
 import os
@@ -16,7 +16,7 @@ from env_config import Config
 
 
 class GTFS_Downloader():
-    """ This class will set up databases  """
+    """ This class will set up the tools needed to download GTFS data  """
 
     # -------------------- Functions Run On Instantiation ----------------------
     def __init__(self):
@@ -26,102 +26,11 @@ class GTFS_Downloader():
 
 
     # ~~~~~~~~~~~~~~~~~~~~~ Public Function #1 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    def setup(self):
-        """ Find The Hostname & The Operating System On Where This Code Is Running, Paths Will Be Different For Each Op-Sys"""
+    def gather_GTFS(self):
 
-        # Find What Operating System And Create A Temp Working Space In Downloads Folder
-        self.__find_downloads_folder()
-        self.__create_folders()
-        self.__dblog_check()
-        self.__db_check()
+        """ Gather GTFS Data"""
         self.__get_gtfs_data()
         self.__upld_gtfs_data()
-        self.__upld_trip_avg_speed()
-
-
-
-    # -------------------- Private Function #2 ---------------------------------
-    def __delete_files(self, file_ext = "", path = ""):
-        """ Delete All Files In Path """
-
-        # Verify That The Path Exists Raise Error!
-        for file_ in os.listdir(path):
-            full_path = os.path.join(path, file_)
-            if file_.endswith(file_ext):
-                try:
-                    os.remove(full_path)
-                except OSError as e:
-                    raise f"[ERROR] Could Not Remove {file_ext} Files"
-
-
-
-    # -------------------- Private Function #3 ---------------------------------
-    def __find_downloads_folder(self):
-        """ Find The Location Of The Downloads Folder """
-
-        # Verify That The Path Exists Raise Error!
-        if os.path.exists(self.cfg.dwnld_path) != True:
-            raise f"[ERROR] Download Folder Does Not Exist"
-
-
-
-    # -------------------- Private Function #4 ---------------------------------
-    def __create_folders(self):
-        """ Create Needed Folders If They Don't Exist Already """
-
-        # First Check To See If The Main Folder Exists!
-        if not os.path.isdir(self.cfg.db_folder):
-            os.makedirs(self.cfg.db_folder)
-
-        # In The Out Directory Provided See If The Appropriate Sub Folders Exist!
-        for fldr_nm in self.cfg.FOLDERs:
-            dir_chk = os.path.join(self.cfg.csv_out_path, fldr_nm)
-            self.cfg.out_dict[fldr_nm] = dir_chk 
-            if not os.path.exists(dir_chk):
-                os.makedirs(dir_chk)
-
-
-    # -------------------- Private Function #5 ---------------------------------
-    def __dblog_check(self):
-        """ Create a database that will store all log and status information of the main data collection database """
-
-        # Iterate Through Table Dictionary And Create Tables If They Don't Exist Already
-        with sqlite3.connect(self.cfg.dblog_path) as conn:
-
-            # Make Sure The Database Is In WAL Mode To Allow For Concurrent Writes & Read | Verify It Worked
-            conn.execute("PRAGMA journal_mode=WAL")
-            mode = conn.execute("PRAGMA journal_mode").fetchone()[0]
-
-            # Make Needed Tables
-            for table_ in self.cfg.log_dict:
-                sql_string = ", ".join(self.cfg.log_dict[table_])
-                conn.execute(f'''CREATE TABLE IF NOT EXISTS {table_} ({sql_string});''')
-                conn.commit()
-
-        # Log export
-        shared_logger("Data Janitor  ", f"Log Database Ready", 1, self.cfg.dblog_path)
-
-
-
-    # -------------------- Private Function #5 ---------------------------------
-    def __db_check(self):
-        """ Create a database that will store bus location data; as well as basic database inter data """
-
-        # Iterate Through Table Dictionary And Create Tables If They Don't Exist Already
-        with sqlite3.connect(self.cfg.db_path) as conn:
-
-            # Make Sure The Database Is In WAL Mode To Allow For Concurrent Writes & Read | Verify It Worked
-            conn.execute("PRAGMA journal_mode=WAL")
-            mode = conn.execute("PRAGMA journal_mode").fetchone()[0]
-
-            # Make Needed Tables
-            for table_ in self.cfg.table_dict:
-                sql_string = ", ".join(self.cfg.table_dict[table_])
-                conn.execute(f'''CREATE TABLE IF NOT EXISTS {table_} ({sql_string});''')
-                conn.commit()
-
-        # Log export
-        shared_logger("Data Janitor  ", f"Data Database Ready", 1, self.cfg.dblog_path)
 
 
     # -------------------- Private Function #6 ---------------------------------
@@ -158,6 +67,38 @@ class GTFS_Downloader():
         else:
             shared_logger("Data Janitor  ", f"[ERROR] Bad Response", 3, self.cfg.dblog_path)
             raise e
+        
+
+    # -------------------- Private Function #7 ---------------------------------
+    def __upld_gtfs_data(self):
+        """
+        Having Pulled GTFS Data, Check The Effective Date Range Of The Data, If New Upload To The Database, Else Pass
+        """
+
+        # Make A Connection To The Database
+        with sqlite3.connect(self.cfg.db_path) as conn:
+
+            # First Find The GTFS Feed_Info.txt File
+            feed_df          = pd.read_csv(os.path.join(self.cfg.csv_out_path, "GTFS", "feed_info.txt"), usecols=["feed_version"])
+            feed_cur_version = str(feed_df['feed_version'].iloc[0])
+            all_gtfs_ver     = pd.read_sql_query("SELECT DISTINCT feed_version FROM FEED_INFO", conn)
+            del feed_df
+        
+            # If The Current Edit Is Not In The Database Add All Data
+            if feed_cur_version not in all_gtfs_ver["feed_version"].values:
+
+                # Upload The Rest Of The Data | Only Update GTFS Files
+                for file_name in self.cfg.table_dict:
+                    if file_name not in self.cfg.GATHER_TABLE:
+                        temp_df                 = pd.read_csv(os.path.join(self.cfg.csv_out_path, "GTFS", f"{file_name.lower()}.txt"))
+                        temp_df["feed_version"] = feed_cur_version
+                        temp_df                 = temp_df[self.cfg.table_dict[file_name]]
+                        temp_df.to_sql(file_name, conn, if_exists="append", index=False)
+                        shared_logger("Data Janitor  ", f"New GTFS Data Uploaded -> {file_name}", 1, self.cfg.dblog_path)
+
+
+            # Delete All Text Files In Folder
+            self.__delete_files(".txt", self.cfg.foldr_path)
 
 
 
