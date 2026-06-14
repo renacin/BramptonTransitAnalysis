@@ -20,26 +20,7 @@ All three threads write structured logs to a separate `LogStorage.db` via a shar
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────┐
-│                  main.py                    │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
-│  │DataCollector │  │DataExporter  │  │GTFSDownloader│  │
-│  │ every 15s    │  │ 2:30 AM      │  │ 12:30 PM     │  │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘  │
-└─────────┼─────────────────┼─────────────────┼──────────┘
-          │                 │                 │
-          ▼                 ▼                 ▼
-     ┌─────────────────────────────────────┐
-     │           DataStorage.db            │
-     │  BUS_LOC_DB · GTFS tables · ROUTE_SPEED  │
-     └──────────────────┬──────────────────┘
-                        │
-          ┌─────────────┴──────────────┐
-          ▼                            ▼
-   LogStorage.db                 CSV exports
-   (all threads)            (daily bus snapshots)
-```
+![Main Architecture](https://github.com/renacin/BramptonTransitAnalysis/blob/master/Misc/brampton_transit_architecture.png)
 
 **Deduplication:** The `U_ID_TEMP` table caches the last 5 minutes of unique IDs (composite of route, vehicle, and timestamp). Each collection cycle checks against this cache before inserting, preventing duplicate rows from overlapping API polls.
 
