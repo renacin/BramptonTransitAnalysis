@@ -18,7 +18,6 @@ stop_event = threading.Event()
 # ----------------------------------------------------------------------------------------------------------------------
 
 
-
 # Find Out How Many Seconds Until The Export Window
 def seconds_until(hour_, minute_):
     """ How Many Seconds Until Time Window? """
