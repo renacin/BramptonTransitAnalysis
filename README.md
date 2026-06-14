@@ -19,7 +19,7 @@ All three threads write structured logs to a separate `LogStorage.db` via a shar
 ---
 
 ## Architecture
-![Main Architecture](https://github.com/renacin/BramptonTransitAnalysis/blob/master/Misc/brampton_transit_architecture.png)
+![Main Architecture](Misc/brampton_transit_architecture.png)
 
 ---
 
