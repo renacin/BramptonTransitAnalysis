@@ -19,12 +19,7 @@ All three threads write structured logs to a separate `LogStorage.db` via a shar
 ---
 
 ## Architecture
-
 ![Main Architecture](https://github.com/renacin/BramptonTransitAnalysis/blob/master/Misc/brampton_transit_architecture.png)
-
-**Deduplication:** The `U_ID_TEMP` table caches the last 5 minutes of unique IDs (composite of route, vehicle, and timestamp). Each collection cycle checks against this cache before inserting, preventing duplicate rows from overlapping API polls.
-
-**Route speed calculation:** On startup and after each new GTFS feed version, stop-to-stop distances are computed using vectorised haversine and joined with scheduled arrival times to derive average trip speed and average travel speed per `trip_id`. Results are stored in `ROUTE_SPEED`.
 
 ---
 
@@ -82,41 +77,6 @@ Stop with `Ctrl+C`. The main thread catches `KeyboardInterrupt`, sets the shared
 
 ---
 
-## Output
-
-### `BUS_LOC_DB` table / daily CSV
-
-One row per unique bus observation. Key fields:
-
-| Column | Description |
-|---|---|
-| `u_id` | Composite unique ID (`route_id + vehicle_id + timestamp`) |
-| `trip_route_id` | Route identifier |
-| `vehicle_id` | Vehicle identifier |
-| `position_latitude` | Latitude |
-| `position_longitude` | Longitude |
-| `position_bearing` | Heading in degrees |
-| `position_speed` | Reported speed |
-| `timestamp` | Unix epoch from the GTFS-RT feed |
-| `dt_colc` | Human-readable datetime, converted to Eastern time |
-
-CSV files are named `BUS_LOC_DB_DD-MM-YYYY.csv` and written to `4_Storage/BUS_LOC_DB/`.
-
-### `ROUTE_SPEED` table
-
-Derived from GTFS static data. One row per `trip_id` per feed version:
-
-| Column | Description |
-|---|---|
-| `trip_id` | GTFS trip identifier |
-| `tot_dist` | Total trip distance in km |
-| `tot_idle_time` | Cumulative dwell time at stops (seconds) |
-| `tot_trvl_time` | Cumulative time moving between stops (seconds) |
-| `avg_trip_speed` | km/h averaged over total trip time |
-| `avg_trvl_speed` | km/h averaged over moving time only |
-| `feed_version` | GTFS feed version this row was derived from |
-
----
 
 ## Project structure
 
@@ -149,8 +109,3 @@ Output paths are constructed relative to `~/Downloads/BramptonTransitAnalysis/` 
 
 ---
 
-## Notes
-
-- The pipeline is designed for personal or research use. Brampton Transit's GTFS-RT feed is publicly accessible but rate-limited — polling every 15 seconds is intentional to stay within acceptable usage.
-- SQLite WAL mode is enabled on both databases, allowing the three threads to read and write concurrently without blocking each other.
-- The `DataExporter` keeps the two most recent GTFS feed versions in the database and archives older versions to CSV before deleting them. This preserves historical schedule data without growing the database indefinitely.
