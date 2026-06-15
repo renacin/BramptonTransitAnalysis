@@ -46,7 +46,7 @@ class Exporter():
         """
 
         # Define Needed Variables
-        dt_nw = datetime.now().strftime(self.cfg.td_s_dt_dsply_frmt)
+        dt_nw = datetime.now().strftime(self.cfg.td_xl_dt_dsply_frmt)
         bus_locs_out_path = os.path.join(self.cfg.out_bus_loc_path, f"BUS_LOC_DB_{dt_nw}.csv")
 
 
@@ -125,7 +125,7 @@ class Exporter():
                         if len(dates_) > 1:
 
                             # Get Path Name
-                            dt_nw = datetime.now().strftime(self.cfg.td_s_dt_dsply_frmt)
+                            dt_nw = datetime.now().strftime(self.cfg.td_xl_dt_dsply_frmt)
                             out_path = os.path.join(self.cfg.csv_out_path, table_, f"{table_}_{dt_nw}.csv")
 
                             # Pull All Data & Write To Appropriate Folder

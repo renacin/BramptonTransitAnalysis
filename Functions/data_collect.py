@@ -81,6 +81,7 @@ class Collector():
         if len(df) == 0:
             shared_logger("Data Collector", f" ^^^ Skipping Data Collection For {self.cfg.timeout_time}s", 2, self.cfg.dblog_path)
             time.sleep(self.cfg.timeout_time)
+            return
 
 
         # If The Dataframe Isn't Empty Format It And Get It Reeady For Injesting Into Database Table

@@ -47,6 +47,7 @@ class Config():
         self.out_bus_loc_path    = os.path.join(self.csv_out_path, "BUS_LOC_DB")
 
         # Datetime Variables
+        self.td_xl_dt_dsply_frmt = "%d-%m-%Y_%H_%M_%S"
         self.td_l_dt_dsply_frmt  = "%d-%m-%Y %H:%M:%S"
         self.td_s_dt_dsply_frmt  = "%d-%m-%Y"
 
