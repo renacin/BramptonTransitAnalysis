@@ -65,7 +65,7 @@ class GTFS_Downloader():
             try:
                 # Extract Data
                 shutil.unpack_archive(self.cfg.zip_path, self.cfg.foldr_path)
-                shared_logger("Data Janitor  ", f"Extracted GTFS Data", 1, self.cfg.dblog_path)
+                shared_logger("Data Janitor  ", f"Checking For New GTFS Data", 1, self.cfg.dblog_path)
 
                 # Remove Unneeded Files & Folders
                 try:
