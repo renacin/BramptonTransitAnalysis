@@ -166,6 +166,18 @@ class Exporter():
 
 
 
+    # -------------------- Private Function #3 ---------------------------------
+    def __export_old_logs(self):
+        """
+        When Called This Function Will Export All Database Logs. Note that this function will only export and clear data that is
+        2 weeks old. We need 2 weeks worth of current data in order to create some current charts & graphs.
+        """
+        pass
+
+
+
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 # Entry Point Into Python Code (For Testing!)
 if __name__ == "__main__":
