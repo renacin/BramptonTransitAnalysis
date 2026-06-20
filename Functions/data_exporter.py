@@ -117,7 +117,7 @@ class Exporter():
                     if table_ not in self.cfg.NOT_FEED_BASED:
 
                         # We Need To Find Rows Where The Feed Version Is 2 Cycles Older Than The Current
-                        df = pd.read_sql_query(f"""SELECT DISTINCT feed_version FROM {table_}""", conn)
+                        df     = pd.read_sql_query(f"""SELECT DISTINCT feed_version FROM {table_}""", conn)
                         dates_ = [int(x) for x in df["feed_version"].tolist()]
                         dates_.sort(reverse=True)
 
@@ -166,20 +166,7 @@ class Exporter():
 
 
 
-    # -------------------- Private Function #3 ---------------------------------
-    def __export_old_logs(self):
-        """
-        When Called This Function Will Export All Database Logs. Note that this function will only export and clear data that is
-        2 weeks old. We need 2 weeks worth of current data in order to create some current charts & graphs.
-        """
-        pass
-
-
-
-
-
 # ----------------------------------------------------------------------------------------------------------------------
 # Entry Point Into Python Code (For Testing!)
 if __name__ == "__main__":
     pass
-
