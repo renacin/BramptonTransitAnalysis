@@ -101,12 +101,11 @@ class Collector():
                 conn.execute("PRAGMA journal_mode=WAL")
                 conn.execute("PRAGMA busy_timeout=30000")
 
-                # --- Phase 1: Let pandas write LOC_TEMP freely (no active transaction) ---
+                # Write To Temp Cache
                 df.to_sql('LOC_TEMP', conn, if_exists='replace', index=False)
 
-                # --- Phase 2: Grab lock for all critical writes ---
+                # Write To Main Database Grab Exclusive Lock
                 conn.execute("BEGIN IMMEDIATE")
-
                 conn.execute("""
                     INSERT INTO BUS_LOC_DB(id, u_id, trip_trip_id, 
                                         trip_schedule_relationship, trip_route_id, 

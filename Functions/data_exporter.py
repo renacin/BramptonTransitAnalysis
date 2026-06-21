@@ -104,7 +104,7 @@ class Exporter():
         Export Everything Else.
         """
         
-        # Make A Connecion To The Datacollection Database - It Must be Exclusive As We Are Exporting & Cleaning The Database
+        # Make A Connecion To The Data Collection Database - It Must be Exclusive As We Are Exporting & Cleaning The Database
         with sqlite3.connect(self.cfg.db_path, timeout=120, isolation_level=None) as conn:
 
             # Set PRAGMAs BEFORE any transaction, while no lock is held
