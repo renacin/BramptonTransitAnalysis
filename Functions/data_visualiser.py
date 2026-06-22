@@ -88,22 +88,21 @@ class Visualizer():
                 db_logs_df        = df[~df["row_count"].isin(dc_df["row_count"])].copy()
                 del df
 
+
                 # Use Regex To Get Data Collection Points & Resample To 5 Minute Intervals
                 dc_df["new_rows"] = dc_df["info"].str.extract(r"->\s*(\d+)").astype(int)
                 per_bucket        = dc_df.set_index("time_stamp")["new_rows"].resample("5min").sum()
 
-                print(per_bucket)
 
+                # Find Totals For Each Category
+                total_rows = per_bucket.sum()
+                warnings   = (db_logs_df["warning_level"] >= 2).sum()
+                n_events   = (db_logs_df["warning_level"] < 2).sum()
+                hours      = per_bucket.index.hour + per_bucket.index.minute / 60
+                values     = per_bucket.values
 
-                # # Find Totals For Each Category
-                # total_rows = per_bucket.sum()
-                # warnings = (db_logs_df["warning_level"] >= 2).sum()
-                # n_events = (db_logs_df["warning_level"] < 2).sum()
-                # hours = per_bucket.index.hour + per_bucket.index.minute / 60
-                # values = per_bucket.values
-
-                # # Create Rolling Average
-                # rolling = per_bucket.rolling(window=6, center=True).mean()
+                # Create Rolling Average
+                rolling = per_bucket.rolling(window=6, center=True).mean()
 
                 # # Plot Everything
                 # fig, ax = plt.subplots(figsize=(12, 6))
@@ -125,7 +124,7 @@ class Visualizer():
                 # ax.set_xticks(range(0, 25, 3))
                 # ax.set_xticklabels([f"{h:02d}:00" for h in range(0, 25, 3)])
                 # ax.set_xlim(0, 24)
-                # ax.set_ylim(0, per_bucket.max())
+                # ax.set_ylim(0, per_bucket.max() + 50)
 
                 # # legend: scatter + rolling carry their labels; add event + warning
                 # # handles, with the counts baked into the label text
