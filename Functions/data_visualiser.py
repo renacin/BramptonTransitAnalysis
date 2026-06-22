@@ -82,61 +82,62 @@ class Visualizer():
                                         """, conn)
 
                 # Split Data Between Data Collection Logs & Database Operation Logs
-                df['row_count'] = range(len(df))
-                df["time_stamp"] = pd.to_datetime(df["time_stamp"])
-                dc_df = df[(df["reporter"] == "Data Collector") & (df["warning_level"] == 1)].copy()
-                db_logs_df = df[~df["row_count"].isin(dc_df["row_count"])].copy()
+                df['row_count']   = range(len(df))
+                df["time_stamp"]  = pd.to_datetime(df["time_stamp"])
+                dc_df             = df[(df["reporter"] == "Data Collector") & (df["warning_level"] == 1)].copy()
+                db_logs_df        = df[~df["row_count"].isin(dc_df["row_count"])].copy()
                 del df
 
                 # Use Regex To Get Data Collection Points & Resample To 5 Minute Intervals
                 dc_df["new_rows"] = dc_df["info"].str.extract(r"->\s*(\d+)").astype(int)
-                per_bucket = dc_df.set_index("time_stamp")["new_rows"].resample("5min").sum()
+                per_bucket        = dc_df.set_index("time_stamp")["new_rows"].resample("5min").sum()
 
-                # Find Totals For Each Category
-                total_rows = per_bucket.sum()
-                warnings = (db_logs_df["warning_level"] >= 2).sum()
-                n_events = (db_logs_df["warning_level"] < 2).sum()
-                hours = per_bucket.index.hour + per_bucket.index.minute / 60
-                values = per_bucket.values
+                print(per_bucket)
 
-                # Create Rolling Average
-                rolling = per_bucket.rolling(window=6, center=True).mean()
 
-                # Plot Everything
-                fig, ax = plt.subplots(figsize=(12, 6))
+                # # Find Totals For Each Category
+                # total_rows = per_bucket.sum()
+                # warnings = (db_logs_df["warning_level"] >= 2).sum()
+                # n_events = (db_logs_df["warning_level"] < 2).sum()
+                # hours = per_bucket.index.hour + per_bucket.index.minute / 60
+                # values = per_bucket.values
 
-                # scatter: 50% transparent x markers (label carries the row total)
-                ax.scatter(hours, values, marker="x", alpha=0.5, color="gray",
-                        label=f"{total_rows:,} rows collected")
-                ax.plot(hours, rolling.values, color="red", label="30-min rolling average")
+                # # Create Rolling Average
+                # rolling = per_bucket.rolling(window=6, center=True).mean()
 
-                # database events as vertical dashed lines (warnings highlighted)
-                for ev in db_logs_df.itertuples():
-                    ev_hour = ev.time_stamp.hour + ev.time_stamp.minute / 60
-                    color = "orange" if ev.warning_level >= 2 else "gray"
-                    ax.axvline(ev_hour, linestyle="--", color=color, alpha=0.7)
+                # # Plot Everything
+                # fig, ax = plt.subplots(figsize=(12, 6))
 
-                # axis styling: time-of-day x-axis, data fills the plot
-                ax.set_title(f"Database Logs — {dt_ystrd}")
-                ax.set_ylabel("Data Collected")
-                ax.set_xlabel("Time")
-                ax.set_xticks(range(0, 25, 3))
-                ax.set_xticklabels([f"{h:02d}:00" for h in range(0, 25, 3)])
-                ax.set_xlim(0, 24)
-                ax.set_ylim(0, per_bucket.max())
+                # # scatter: 50% transparent x markers (label carries the row total)
+                # ax.scatter(hours, values, marker="x", alpha=0.5, color="gray", label=f"{total_rows:,} Rows Collected")
+                # ax.plot(hours, rolling.values, color="red", label="30-Min Rolling AVG")
 
-                # legend: scatter + rolling carry their labels; add event + warning
-                # handles, with the counts baked into the label text
-                handles, _ = ax.get_legend_handles_labels()
-                handles += [
-                    Line2D([0], [0], color="gray", ls="--", label=f"{n_events} event(s)"),
-                    Line2D([0], [0], color="orange", ls="--", label=f"{warnings} warning(s)"),
-                ]
-                ax.legend(handles=handles)
+                # # database events as vertical dashed lines (warnings highlighted)
+                # for ev in db_logs_df.itertuples():
+                #     ev_hour = ev.time_stamp.hour + ev.time_stamp.minute / 60
+                #     color = "orange" if ev.warning_level >= 2 else "gray"
+                #     ax.axvline(ev_hour, linestyle="--", color=color, alpha=0.7)
 
-                plt.tight_layout()
-                plt.savefig(r"C:\Users\renac\Desktop\Testing.png", dpi=150)
-                plt.show()
+                # # axis styling: time-of-day x-axis, data fills the plot
+                # ax.set_title(f"Database Logs — {dt_ystrd}")
+                # ax.set_ylabel("Data Collected")
+                # ax.set_xlabel("Time")
+                # ax.set_xticks(range(0, 25, 3))
+                # ax.set_xticklabels([f"{h:02d}:00" for h in range(0, 25, 3)])
+                # ax.set_xlim(0, 24)
+                # ax.set_ylim(0, per_bucket.max())
+
+                # # legend: scatter + rolling carry their labels; add event + warning
+                # # handles, with the counts baked into the label text
+                # handles, _ = ax.get_legend_handles_labels()
+                # handles += [Line2D([0], [0], color="gray",   ls="--", alpha=0.5, label=f"{n_events} Event(s)"),
+                #             Line2D([0], [0], color="orange", ls="--", alpha=0.5, label=f"{warnings} Warning(s)"),
+                #             ]
+                # ax.legend(handles=handles)
+
+                # plt.tight_layout()
+                # plt.savefig(r"C:\Users\renac\Desktop\Testing.png", dpi=150)
+                # plt.show()
 
 
 
