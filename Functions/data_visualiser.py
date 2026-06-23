@@ -104,27 +104,28 @@ class Visualizer():
                 # Create Rolling Average
                 rolling = per_bucket.rolling(window=6, center=True).mean()
 
-                # # Plot Everything
-                # fig, ax = plt.subplots(figsize=(12, 6))
+                # Plot Everything
+                fig, ax = plt.subplots(figsize=(12, 6))
+                ax.scatter(hours, values, marker="x", alpha=0.5, color="gray", label=f"{total_rows:,} Rows Collected")
+                ax.plot(hours, rolling.values, color="red", label="30-Min Rolling AVG")
 
-                # # scatter: 50% transparent x markers (label carries the row total)
-                # ax.scatter(hours, values, marker="x", alpha=0.5, color="gray", label=f"{total_rows:,} Rows Collected")
-                # ax.plot(hours, rolling.values, color="red", label="30-Min Rolling AVG")
+                # Loop Through Each Event In The DB Event Database
+                for ev in db_logs_df.itertuples():
 
-                # # database events as vertical dashed lines (warnings highlighted)
-                # for ev in db_logs_df.itertuples():
-                #     ev_hour = ev.time_stamp.hour + ev.time_stamp.minute / 60
-                #     color = "orange" if ev.warning_level >= 2 else "gray"
-                #     ax.axvline(ev_hour, linestyle="--", color=color, alpha=0.7)
+                    # Find The Hour (In Decimal Format), Find The Colour, Make The Line
+                    ev_hour = ev.time_stamp.hour + ev.time_stamp.minute / 60
+                    if ev.warning_level >= 2: color = "orange" 
+                    else:                     color ="gray"
+                    ax.axvline(ev_hour, linestyle="--", color=color, alpha=0.7)
 
-                # # axis styling: time-of-day x-axis, data fills the plot
-                # ax.set_title(f"Database Logs — {dt_ystrd}")
-                # ax.set_ylabel("Data Collected")
-                # ax.set_xlabel("Time")
-                # ax.set_xticks(range(0, 25, 3))
-                # ax.set_xticklabels([f"{h:02d}:00" for h in range(0, 25, 3)])
-                # ax.set_xlim(0, 24)
-                # ax.set_ylim(0, per_bucket.max() + 50)
+                # axis styling: time-of-day x-axis, data fills the plot
+                ax.set_title(f"Database Logs — {dt_ystrd}")
+                ax.set_ylabel("Data Collected")
+                ax.set_xlabel("Time")
+                ax.set_xticks(range(0, 25, 3))
+                ax.set_xticklabels([f"{h:02d}:00" for h in range(0, 25, 3)])
+                ax.set_xlim(0, 24)
+                ax.set_ylim(0, per_bucket.max() + 50)
 
                 # # legend: scatter + rolling carry their labels; add event + warning
                 # # handles, with the counts baked into the label text
