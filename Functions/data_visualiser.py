@@ -116,7 +116,7 @@ class Visualizer():
                     ev_hour = ev.time_stamp.hour + ev.time_stamp.minute / 60
                     if ev.warning_level >= 2: color = "orange" 
                     else:                     color ="gray"
-                    ax.axvline(ev_hour, linestyle="--", color=color, alpha=0.7)
+                    ax.axvline(ev_hour, linestyle="--", color=color, alpha=0.2)
 
                 # axis styling: time-of-day x-axis, data fills the plot
                 ax.set_title(f"Database Logs — {dt_ystrd}")
@@ -127,17 +127,16 @@ class Visualizer():
                 ax.set_xlim(0, 24)
                 ax.set_ylim(0, per_bucket.max() + 50)
 
-                # # legend: scatter + rolling carry their labels; add event + warning
-                # # handles, with the counts baked into the label text
-                # handles, _ = ax.get_legend_handles_labels()
-                # handles += [Line2D([0], [0], color="gray",   ls="--", alpha=0.5, label=f"{n_events} Event(s)"),
-                #             Line2D([0], [0], color="orange", ls="--", alpha=0.5, label=f"{warnings} Warning(s)"),
-                #             ]
-                # ax.legend(handles=handles)
+                # Modify The Legend
+                handles, _ = ax.get_legend_handles_labels()
+                handles += [Line2D([0], [0], color="gray",   ls="--", alpha=0.7, label=f"{n_events} Event(s)"),
+                            Line2D([0], [0], color="orange", ls="--", alpha=0.7, label=f"{warnings} Warning(s)"),
+                            ]
+                ax.legend(handles=handles)
 
-                # plt.tight_layout()
-                # plt.savefig(r"C:\Users\renac\Desktop\Testing.png", dpi=150)
-                # plt.show()
+                plt.tight_layout()
+                plt.savefig(r"C:\Users\renac\Desktop\Testing.png", dpi=150)
+                plt.show()
 
 
 
