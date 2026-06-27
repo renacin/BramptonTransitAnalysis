@@ -116,11 +116,11 @@ class Visualizer():
                     ev_hour = ev.time_stamp.hour + ev.time_stamp.minute / 60
                     if ev.warning_level >= 2: color = "orange" 
                     else:                     color ="gray"
-                    ax.axvline(ev_hour, linestyle="--", color=color, alpha=0.2)
+                    ax.axvline(ev_hour, color=color, alpha=0.2)
 
                 # axis styling: time-of-day x-axis, data fills the plot
-                ax.set_title(f"Database Logs — {dt_ystrd}")
-                ax.set_ylabel("Data Collected")
+                ax.set_title(f"Data Collected & Database Events \n Date: {dt_ystrd}")
+                ax.set_ylabel("# Bus Locations Collected")
                 ax.set_xlabel("Time")
                 ax.set_xticks(range(0, 25, 3))
                 ax.set_xticklabels([f"{h:02d}:00" for h in range(0, 25, 3)])
@@ -129,8 +129,8 @@ class Visualizer():
 
                 # Modify The Legend
                 handles, _ = ax.get_legend_handles_labels()
-                handles += [Line2D([0], [0], color="gray",   ls="--", alpha=0.7, label=f"{n_events} Event(s)"),
-                            Line2D([0], [0], color="orange", ls="--", alpha=0.7, label=f"{warnings} Warning(s)"),
+                handles += [Line2D([0], [0], color="gray",    alpha=0.7, label=f"{n_events} Event(s)"),
+                            Line2D([0], [0], color="orange",  alpha=0.7, label=f"{warnings} Warning(s)"),
                             ]
                 ax.legend(handles=handles)
 
