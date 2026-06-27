@@ -71,7 +71,6 @@ class Visualizer():
                 conn.execute("PRAGMA journal_mode=WAL")
                 conn.execute("PRAGMA busy_timeout=30000")
 
-                # try:
                 # Read In Database Logs From The Day Before
                 df = pd.read_sql_query(f"""SELECT DISTINCT 
                                                 A.* 
@@ -84,15 +83,13 @@ class Visualizer():
                 # Split Data Between Data Collection Logs & Database Operation Logs
                 df['row_count']   = range(len(df))
                 df["time_stamp"]  = pd.to_datetime(df["time_stamp"])
+                df                = df.sort_values(by='time_stamp').reset_index(drop=True)
                 dc_df             = df[(df["reporter"] == "Data Collector") & (df["warning_level"] == 1)].copy()
                 db_logs_df        = df[~df["row_count"].isin(dc_df["row_count"])].copy()
-                del df
-
 
                 # Use Regex To Get Data Collection Points & Resample To 5 Minute Intervals
                 dc_df["new_rows"] = dc_df["info"].str.extract(r"->\s*(\d+)").astype(int)
                 per_bucket        = dc_df.set_index("time_stamp")["new_rows"].resample("5min").sum()
-
 
                 # Find Totals For Each Category
                 total_rows = per_bucket.sum()
@@ -100,6 +97,23 @@ class Visualizer():
                 n_events   = (db_logs_df["warning_level"] < 2).sum()
                 hours      = per_bucket.index.hour + per_bucket.index.minute / 60
                 values     = per_bucket.values
+
+                # We Need To Find Clusters Of When Outages Happened
+                df['event_status'] = 0
+                df["hours"] = df["time_stamp"].dt.hour + (df["time_stamp"].dt.minute / 60)
+                df.loc[(df['reporter'] == "Data Collector") & (df['warning_level'] == 2), "event_status"] = 1
+
+                # Find All Starts & Ends (0 --> 1) and (1 --> 0)
+                starts = (df['event_status'].diff()   ==  1)
+                ends   = (df['event_status'].diff(-1) == -1)
+
+                # Get The Indices From Each List
+                start_idx = df.index[starts].tolist()
+                end_idx   = df.index[ends].tolist()
+
+                # Convert cluster boundaries from row indices to decimal hours
+                start_hours = df.loc[start_idx, "hours"].tolist()
+                end_hours   = df.loc[end_idx, "hours"].tolist()
 
                 # Create Rolling Average
                 rolling = per_bucket.rolling(window=6, center=True).mean()
@@ -109,16 +123,18 @@ class Visualizer():
                 ax.scatter(hours, values, marker="x", alpha=0.5, color="gray", label=f"{total_rows:,} Rows Collected")
                 ax.plot(hours, rolling.values, color="red", label="30-Min Rolling AVG")
 
-                # Loop Through Each Event In The DB Event Database
+                # Draw Database Collection Errors (Outages) As Orange Spans
+                for x, y in zip(start_hours, end_hours):
+                    ax.axvspan(x, y, color='orange', alpha=0.3)
+
+                # Draw Non-Warning Database Events As Gray Dashed Lines
                 for ev in db_logs_df.itertuples():
-
-                    # Find The Hour (In Decimal Format), Find The Colour, Make The Line
+                    if ev.warning_level >= 2:
+                        continue  # warnings are drawn as spans above, skip here
                     ev_hour = ev.time_stamp.hour + ev.time_stamp.minute / 60
-                    if ev.warning_level >= 2: color = "orange" 
-                    else:                     color ="gray"
-                    ax.axvline(ev_hour, color=color, alpha=0.2)
+                    ax.axvline(ev_hour, linestyle="--", color="gray", alpha=0.5)
 
-                # axis styling: time-of-day x-axis, data fills the plot
+                # Axis Styling: Time-Of-Day X-Axis, Data Fills The Plot
                 ax.set_title(f"Data Collected & Database Events \n Date: {dt_ystrd}")
                 ax.set_ylabel("# Bus Locations Collected")
                 ax.set_xlabel("Time")
@@ -129,9 +145,10 @@ class Visualizer():
 
                 # Modify The Legend
                 handles, _ = ax.get_legend_handles_labels()
-                handles += [Line2D([0], [0], color="gray",    alpha=0.7, label=f"{n_events} Event(s)"),
-                            Line2D([0], [0], color="orange",  alpha=0.7, label=f"{warnings} Warning(s)"),
-                            ]
+                handles += [
+                    Line2D([0], [0], color="gray",   ls="--", alpha=0.7, label=f"{n_events} Event(s)"),
+                    Line2D([0], [0], color="orange",          alpha=0.7, label=f"{warnings} Warning(s)"),
+                ]
                 ax.legend(handles=handles)
 
                 plt.tight_layout()
