@@ -141,7 +141,7 @@ class Visualizer():
                 ax.set_xticks(range(0, 25, 3))
                 ax.set_xticklabels([f"{h:02d}:00" for h in range(0, 25, 3)])
                 ax.set_xlim(0, 24)
-                ax.set_ylim(0, per_bucket.max() + 50)
+                ax.set_ylim(0, 2000)
 
                 # Modify The Legend
                 handles, _ = ax.get_legend_handles_labels()
