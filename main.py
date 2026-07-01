@@ -107,9 +107,10 @@ def main():
     EnvSetup.setup()
 
     # Define Each Process, They Should Be Their Own Thread And Run Independently
-    threads = [threading.Thread(target = data_collector_scheduler, name="DataCollector",  daemon=True),
-               threading.Thread(target = data_exporter_scheduler,  name="DataExporter",   daemon=True),
-               threading.Thread(target = gtfs_dowloader_scheduler, name="GTFSDownloader", daemon=True),]
+    threads = [threading.Thread(target = data_collector_scheduler,  name="DataCollector",  daemon=True),
+               threading.Thread(target = data_exporter_scheduler,   name="DataExporter",   daemon=True),
+               threading.Thread(target = gtfs_dowloader_scheduler,  name="GTFSDownloader", daemon=True),
+               threading.Thread(target = data_vizualizer_scheduler, name="DataVizualizer", daemon=True),]
  
     # Start Each Thread
     for t in threads:
