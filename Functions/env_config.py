@@ -15,7 +15,7 @@ class Config():
         # Try To Create A Table For Each Item In The Following Database
         self.BUS_LOC_URL         = r'https://gtfs-rt-merge.prod.bt-cadavl.com/BramptonTransit/GTFS/merged_VehiclePosition.json'
         self.GTFS_URL            = r'https://www.arcgis.com/sharing/rest/content/items/a355aabd5a8c490186bdce559c9c75fb/data'
-        self.FOLDERs             = ["BUS_LOC_DB", "FEED_INFO", "ROUTES", "TRIPS", "STOPS", "STOP_TIMES", "ROUTE_SPEED", "GTFS"]
+        self.FOLDERs             = ["BUS_LOC_DB", "FEED_INFO", "ROUTES", "TRIPS", "STOPS", "STOP_TIMES", "ROUTE_SPEED", "GTFS", "GRAPHICS"]
         self.NOT_FEED_BASED      = {"BUS_LOC_DB", "U_ID_TEMP"}
         self.GATHER_TABLE        = {"BUS_LOC_DB", "U_ID_TEMP", "ROUTE_SPEED"}
         self.log_dict            = {"DB_LOGS":        ['time_stamp', 'reporter', 'warning_level', 'info']}
@@ -45,6 +45,7 @@ class Config():
 
         # Data Export Paths
         self.out_bus_loc_path    = os.path.join(self.csv_out_path, "BUS_LOC_DB")
+        self.out_graphics_path   = os.path.join(self.csv_out_path, "GRAPHICS")
 
         # Datetime Variables
         self.td_xl_dt_dsply_frmt = "%d-%m-%Y_%H_%M_%S"

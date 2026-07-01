@@ -118,8 +118,8 @@ class Visualizer():
                 # Create Rolling Average
                 rolling = per_bucket.rolling(window=6, center=True).mean()
 
-                # Plot Everything
-                fig, ax = plt.subplots(figsize=(12, 6))
+                # Plot Everything (12 x 6 Inches)
+                fig, ax = plt.subplots(figsize=(12, 6), layout='tight')
                 ax.scatter(hours, values, marker="x", alpha=0.5, color="gray", label=f"{total_rows:,} Rows Collected")
                 ax.plot(hours, rolling.values, color="red", label="30-Min Rolling AVG")
 
@@ -151,9 +151,17 @@ class Visualizer():
                 ]
                 ax.legend(handles=handles)
 
+
+                # Make Sure Folder Exists
+                viz_export_path   = os.path.join(self.cfg.out_graphics_path, f"{dt_ystrd}")
+                if not os.path.isdir(viz_export_path):
+                    os.makedirs(viz_export_path)
+
+                # Export Data
+                final_path   = os.path.join(viz_export_path, f"DataCollected_DatabaseEvents_{dt_ystrd}.png")
                 plt.tight_layout()
-                plt.savefig(r"C:\Users\renac\Desktop\Testing.png", dpi=150)
-                plt.show()
+                plt.savefig(final_path, dpi=150)
+
 
 
 
