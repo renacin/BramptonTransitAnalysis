@@ -7,12 +7,13 @@ import time
 import threading
 from datetime import datetime, timedelta
 
-from Functions.env_config      import *
-from Functions.env_setup       import *
-from Functions.gtfs_downloader import *
-from Functions.data_helper     import *
-from Functions.data_exporter   import *
-from Functions.data_collect    import *
+from Functions.env_config         import *
+from Functions.env_setup          import *
+from Functions.gtfs_downloader    import *
+from Functions.data_helper        import *
+from Functions.data_exporter      import *
+from Functions.data_collect       import *
+from Functions.data_visualiser    import *
 
 stop_event = threading.Event()
 # ----------------------------------------------------------------------------------------------------------------------
@@ -78,6 +79,21 @@ def gtfs_dowloader_scheduler():
     while not stop_event.is_set():
         stop_event.wait(seconds_until(hour_=12, minute_=30))
         GTFS_Getter.gather_GTFS()
+        stop_event.wait(1800)
+
+
+
+# Create Scheduled Behaviour For: GTFS Downloader
+def data_vizualizer_scheduler():
+    """ Create Graphics For Data Pulled & Analyzed """
+
+    # Start The Data Exporter
+    DataViz = Visualizer()
+
+    # Main Loop Checking If It's 6:30AM, Sleep Until Then, Then Export, The Wait 30 Min, Repeat
+    while not stop_event.is_set():
+        stop_event.wait(seconds_until(hour_=6, minute_=30))
+        DataViz.visualize_all()
         stop_event.wait(1800)
 
 
