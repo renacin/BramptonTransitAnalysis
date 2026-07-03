@@ -34,7 +34,7 @@ class Visualizer():
 
         # Make Sure MatplotLib Is Installed
         try:
-            import matplotlib.pyplot as plt
+            import matplotlib
             MAPLOT_IMPORT = True
         except ImportError:
             MAPLOT_IMPORT = False
@@ -45,7 +45,7 @@ class Visualizer():
             self.__visualize_logs()
 
         else:
-            print("No MatplotLib")
+            shared_logger("Data Visualiser", "MatplotLib Not Installed", 2, self.cfg.dblog_path)
 
 
 
