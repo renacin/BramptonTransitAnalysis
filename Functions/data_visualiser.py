@@ -56,6 +56,8 @@ class Visualizer():
         """
 
         # Import Needed Libaries
+        import matplotlib
+        matplotlib.use("Agg")
         import matplotlib.pyplot as plt
         from matplotlib.lines import Line2D
 
@@ -159,9 +161,8 @@ class Visualizer():
 
                 # Export Data
                 final_path   = os.path.join(viz_export_path, f"DataCollected_DatabaseEvents_{dt_ystrd}.png")
-                plt.tight_layout()
                 plt.savefig(final_path, dpi=150)
-
+                plt.close(fig)
 
 
 
