@@ -82,87 +82,97 @@ class Visualizer():
                                                 AND A.time_stamp <  '{dt_today}' 
                                         """, conn)
 
-                # Split Data Between Data Collection Logs & Database Operation Logs
-                df['row_count']   = range(len(df))
-                df["time_stamp"]  = pd.to_datetime(df["time_stamp"])
-                df                = df.sort_values(by='time_stamp').reset_index(drop=True)
-                dc_df             = df[(df["reporter"] == "Data Collector") & (df["warning_level"] == 1)].copy()
-                db_logs_df        = df[~df["row_count"].isin(dc_df["row_count"])].copy()
+                # If No Data Report No Need To Render Anything
+                if len(df) > 0:
 
-                # Use Regex To Get Data Collection Points & Resample To 5 Minute Intervals
-                dc_df["new_rows"] = dc_df["info"].str.extract(r"->\s*(\d+)").astype(int)
-                per_bucket        = dc_df.set_index("time_stamp")["new_rows"].resample("5min").sum()
+                    # Split Data Between Data Collection Logs & Database Operation Logs
+                    df['row_count']   = range(len(df))
+                    df["time_stamp"]  = pd.to_datetime(df["time_stamp"])
+                    df                = df.sort_values(by='time_stamp').reset_index(drop=True)
+                    dc_df             = df[(df["reporter"] == "Data Collector") & (df["warning_level"] == 1)].copy()
+                    db_logs_df        = df[~df["row_count"].isin(dc_df["row_count"])].copy()
 
-                # Find Totals For Each Category
-                total_rows = per_bucket.sum()
-                warnings   = (db_logs_df["warning_level"] >= 2).sum()
-                n_events   = (db_logs_df["warning_level"] < 2).sum()
-                hours      = per_bucket.index.hour + per_bucket.index.minute / 60
-                values     = per_bucket.values
+                    # Use Regex To Get Data Collection Points & Resample To 5 Minute Intervals
+                    dc_df["new_rows"] = dc_df["info"].str.extract(r"->\s*(\d+)").astype(int)
+                    per_bucket        = dc_df.set_index("time_stamp")["new_rows"].resample("5min").sum()
 
-                # We Need To Find Clusters Of When Outages Happened
-                df['event_status'] = 0
-                df["hours"] = df["time_stamp"].dt.hour + (df["time_stamp"].dt.minute / 60)
-                df.loc[(df['reporter'] == "Data Collector") & (df['warning_level'] == 2), "event_status"] = 1
+                    # Find Totals For Each Category
+                    total_rows = per_bucket.sum()
+                    warnings   = (db_logs_df["warning_level"] >= 2).sum()
+                    n_events   = (db_logs_df["warning_level"] < 2).sum()
+                    hours      = per_bucket.index.hour + per_bucket.index.minute / 60
+                    values     = per_bucket.values
 
-                # Find All Starts & Ends (0 --> 1) and (1 --> 0)
-                starts = (df['event_status'].diff()   ==  1)
-                ends   = (df['event_status'].diff(-1) == -1)
+                    # We Need To Find Clusters Of When Outages Happened
+                    df['event_status'] = 0
+                    df["hours"] = df["time_stamp"].dt.hour + (df["time_stamp"].dt.minute / 60)
+                    df.loc[(df['reporter'] == "Data Collector") & (df['warning_level'] == 2), "event_status"] = 1
 
-                # Get The Indices From Each List
-                start_idx = df.index[starts].tolist()
-                end_idx   = df.index[ends].tolist()
+                    # Find All Starts & Ends (0 --> 1) and (1 --> 0)
+                    starts = (df['event_status'].diff()   ==  1)
+                    ends   = (df['event_status'].diff(-1) == -1)
 
-                # Convert cluster boundaries from row indices to decimal hours
-                start_hours = df.loc[start_idx, "hours"].tolist()
-                end_hours   = df.loc[end_idx, "hours"].tolist()
+                    # Get The Indices From Each List
+                    start_idx = df.index[starts].tolist()
+                    end_idx   = df.index[ends].tolist()
 
-                # Create Rolling Average
-                rolling = per_bucket.rolling(window=6, center=True).mean()
+                    # Convert cluster boundaries from row indices to decimal hours
+                    start_hours = df.loc[start_idx, "hours"].tolist()
+                    end_hours   = df.loc[end_idx, "hours"].tolist()
 
-                # Plot Everything (12 x 6 Inches)
-                fig, ax = plt.subplots(figsize=(12, 6), layout='tight')
-                ax.scatter(hours, values, marker="x", alpha=0.5, color="gray", label=f"{total_rows:,} Rows Collected")
-                ax.plot(hours, rolling.values, color="red", label="30-Min Rolling AVG")
+                    # Create Rolling Average
+                    rolling = per_bucket.rolling(window=6, center=True).mean()
 
-                # Draw Database Collection Errors (Outages) As Orange Spans
-                for x, y in zip(start_hours, end_hours):
-                    ax.axvspan(x, y, color='orange', alpha=0.3)
+                    # Plot Everything (12 x 6 Inches)
+                    fig, ax = plt.subplots(figsize=(12, 6), layout='tight')
+                    ax.scatter(hours, values, marker="x", alpha=0.5, color="gray", label=f"{total_rows:,} Rows Collected")
+                    ax.plot(hours, rolling.values, color="red", label="30-Min Rolling AVG")
 
-                # Draw Non-Warning Database Events As Gray Dashed Lines
-                for ev in db_logs_df.itertuples():
-                    if ev.warning_level >= 2:
-                        continue  # warnings are drawn as spans above, skip here
-                    ev_hour = ev.time_stamp.hour + ev.time_stamp.minute / 60
-                    ax.axvline(ev_hour, linestyle="--", color="gray", alpha=0.5)
+                    # Draw Database Collection Errors (Outages) As Orange Spans
+                    for x, y in zip(start_hours, end_hours):
+                        ax.axvspan(x, y, color='orange', alpha=0.3)
 
-                # Axis Styling: Time-Of-Day X-Axis, Data Fills The Plot
-                ax.set_title(f"Data Collected & Database Events \n Date: {dt_ystrd}")
-                ax.set_ylabel("# Bus Locations Collected")
-                ax.set_xlabel("Time")
-                ax.set_xticks(range(0, 25, 3))
-                ax.set_xticklabels([f"{h:02d}:00" for h in range(0, 25, 3)])
-                ax.set_xlim(0, 24)
-                ax.set_ylim(0, 2000)
+                    # Draw Non-Warning Database Events As Gray Dashed Lines
+                    for ev in db_logs_df.itertuples():
+                        if ev.warning_level >= 2:
+                            continue  # warnings are drawn as spans above, skip here
+                        ev_hour = ev.time_stamp.hour + ev.time_stamp.minute / 60
+                        ax.axvline(ev_hour, linestyle="--", color="gray", alpha=0.5)
 
-                # Modify The Legend
-                handles, _ = ax.get_legend_handles_labels()
-                handles += [
-                    Line2D([0], [0], color="gray",   ls="--", alpha=0.7, label=f"{n_events} Event(s)"),
-                    Line2D([0], [0], color="orange",          alpha=0.7, label=f"{warnings} Warning(s)"),
-                ]
-                ax.legend(handles=handles)
+                    # Axis Styling: Time-Of-Day X-Axis, Data Fills The Plot
+                    ax.set_title(f"Data Collected & Database Events \n Date: {dt_ystrd}")
+                    ax.set_ylabel("# Bus Locations Collected")
+                    ax.set_xlabel("Time")
+                    ax.set_xticks(range(0, 25, 3))
+                    ax.set_xticklabels([f"{h:02d}:00" for h in range(0, 25, 3)])
+                    ax.set_xlim(0, 24)
+                    ax.set_ylim(0, 2000)
+
+                    # Modify The Legend
+                    handles, _ = ax.get_legend_handles_labels()
+                    handles += [
+                        Line2D([0], [0], color="gray",   ls="--", alpha=0.7, label=f"{n_events} Event(s)"),
+                        Line2D([0], [0], color="orange",          alpha=0.7, label=f"{warnings} Warning(s)"),
+                    ]
+                    ax.legend(handles=handles)
 
 
-                # Make Sure Folder Exists
-                viz_export_path   = os.path.join(self.cfg.out_graphics_path, f"{dt_ystrd}")
-                if not os.path.isdir(viz_export_path):
-                    os.makedirs(viz_export_path)
+                    # Make Sure Folder Exists
+                    viz_export_path   = os.path.join(self.cfg.out_graphics_path, f"{dt_ystrd}")
+                    if not os.path.isdir(viz_export_path):
+                        os.makedirs(viz_export_path)
 
-                # Export Data
-                final_path   = os.path.join(viz_export_path, f"DataCollected_DatabaseEvents_{dt_ystrd}.png")
-                plt.savefig(final_path, dpi=150)
-                plt.close(fig)
+                    # Export Data
+                    final_path   = os.path.join(viz_export_path, f"DataCollected_DatabaseEvents_{dt_ystrd}.png")
+                    plt.savefig(final_path, dpi=150)
+                    plt.close(fig)
+
+                    # Make Note To Data Logger
+                    shared_logger("Data Visualiser", "Created Logs Charts", 1, self.cfg.dblog_path)
+
+                else:
+                    # Make Note To Data Logger
+                    shared_logger("Data Visualiser", "No Data To Render", 1, self.cfg.dblog_path)
 
 
 

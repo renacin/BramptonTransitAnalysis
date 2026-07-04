@@ -52,6 +52,9 @@ class Config():
         self.td_l_dt_dsply_frmt  = "%d-%m-%Y %H:%M:%S"
         self.td_s_dt_dsply_frmt  = "%d-%m-%Y"
 
+        # Location Of Needed Keys
+        self.drpbx_keys          = r"C:\Users\renac\Desktop\DropBoxKeys.csv"
+
 
 
 # ----------------------------------------------------------------------------------------------------------------------

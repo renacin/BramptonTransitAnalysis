@@ -57,7 +57,37 @@ class DropBoxUploader():
         """
 
         try:
-            print("Uploaded Main Graphics")
+            # Import Dropbox
+            import dropbox
+
+            # Get Needed Keys From CSV File
+            df = pd.read_csv(self.cfg.drpbx_keys)
+            Appkey = df.loc[df['Name']       == 'Appkey',       'Value'].item().strip()
+            Appsecret = df.loc[df['Name']    == 'Appsecret',    'Value'].item().strip()
+            RefreshToken = df.loc[df['Name'] == 'RefreshToken', 'Value'].item().strip()
+
+            dbx = dropbox.Dropbox(app_key=Appkey, app_secret=Appsecret, oauth2_refresh_token=RefreshToken)
+
+            print(repr(Appkey), repr(Appsecret), repr(RefreshToken))
+            print(dbx.users_get_current_account())
+
+
+
+            """ 
+            except dropbox.exceptions.AuthError:
+                print("Invalid credentials")
+                except dropbox.exceptions.AuthError:
+                # bad/expired credentials
+            except dropbox.exceptions.ApiError as e:
+                # the request reached Dropbox but was rejected —
+                # file too big, bad path, insufficient space, etc.
+            except dropbox.exceptions.RateLimitError:
+                # too many requests, back off and retry
+            except (ConnectionError, dropbox.exceptions.HttpError):
+            """
+
+
+
             # # Navigate To Shell Script Location, And Generate A New Token
             # raw_resp = subprocess.check_output(['sh', self.rfresh_tkn_path], stderr=subprocess.DEVNULL)
             # raw_resp = raw_resp.decode('ascii')
@@ -80,12 +110,15 @@ class DropBoxUploader():
             # tm_nw = datetime.now().strftime(self.td_l_dt_dsply_frmt)
             # print(f"{tm_nw}: Success, Uploaded Graphics To DropBox Folder")
 
-        except:
-            print("Failed To Upload Main Graphics")
+        except Exception as e:
+            print(e)
 
             # # For Logging | Bad
             # tm_nw = datetime.now().strftime(self.td_l_dt_dsply_frmt)
             # print(f"{tm_nw}: Failure, Could Not Upload Graphics To DropBox Folder")
+
+
+
 
 
 
