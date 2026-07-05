@@ -79,17 +79,14 @@ class DropBoxUploader():
         except dropbox.exceptions.AuthError as e:
             shared_logger("Dropbox Uploader", f"Deleting Files, Bad Credentials: {e}", 2, self.cfg.dblog_path)
 
-        except dropbox.exceptions.ApiError as e:
-            shared_logger("Dropbox Uploader", f"Deleting Files, Not Enough Space: {e}", 2, self.cfg.dblog_path)
-
         except dropbox.exceptions.RateLimitError as e:
             shared_logger("Dropbox Uploader", f"Deleting Files, Rate Limit: {e}", 2, self.cfg.dblog_path)
 
+        except dropbox.exceptions.ApiError as e:
+            shared_logger("Dropbox Uploader", f"Deleting Files, Not Enough Space: {e}", 2, self.cfg.dblog_path)
+
         except (ConnectionError, dropbox.exceptions.HttpError) as e:
             shared_logger("Dropbox Uploader", f"Deleting Files, HTTP Error: {e}", 2, self.cfg.dblog_path)
-
-        except ApiError as e:
-            shared_logger("Dropbox Uploader", f"Deleting Files, General API Error: {e}", 2, self.cfg.dblog_path)
 
 
 
@@ -102,6 +99,7 @@ class DropBoxUploader():
         try:
             # Import Dropbox
             import dropbox
+            from dropbox.exceptions import ApiError
 
             # Get Needed Keys From CSV File
             df = pd.read_csv(self.cfg.drpbx_keys)
@@ -112,52 +110,35 @@ class DropBoxUploader():
             # Create An Instance Of The DropBox Connection
             dbx = dropbox.Dropbox(app_key=Appkey, app_secret=Appsecret, oauth2_refresh_token=RefreshToken)
 
-            # print(repr(Appkey), repr(Appsecret), repr(RefreshToken))
-            # print(dbx.users_get_current_account())
+            # If 1+ Graphics Folders Generated & Files In Grpahics Folder
+            all_folders = [f for f in os.listdir(self.cfg.out_graphics_path)]
+            if len(all_folders) > 0:
 
+                # Find Max Folder
+                recent_folder = max(all_folders)
+                recent_folder = os.path.join(self.cfg.out_graphics_path, recent_folder)
 
-            # # Navigate To Shell Script Location, And Generate A New Token
-            # raw_resp = subprocess.check_output(['sh', self.rfresh_tkn_path], stderr=subprocess.DEVNULL)
-            # raw_resp = raw_resp.decode('ascii')
-            # json_data = json.loads(raw_resp)
+                # If Files In Graphics Folder, Then Upload
+                if len(os.listdir(recent_folder)) > 0:
+                    for file_ in os.listdir(recent_folder):
+                        file_path = os.path.join(recent_folder, file_)
 
-            # # Create An Instance Of DBX Class
-            # dbx = dropbox.Dropbox(json_data["access_token"])
+                        # Upload File
+                        with open(file_path, "rb") as f:
+                            dbx.files_upload(f.read(), f"/{file_}", mode=dropbox.files.WriteMode("overwrite"))
 
-            # # If Files In Graphics Folder, Then Upload
-            # if len(os.listdir(self.out_dict["GRAPHICS"])) > 0:
-            #     for file_ in os.listdir(self.out_dict["GRAPHICS"]):
-            #         out_path = self.out_dict["GRAPHICS"]
-            #         file_path = f"{out_path}/{file_}"
-            #         with open(file_path, "rb") as f:
-            #             file_data = f.read()
-            #             dbx.files_upload(file_data, f"/{file_}")
-
-
-            # # For Logging | Good
-            # tm_nw = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-            # print(f"{tm_nw}: Success, Uploaded Graphics To DropBox Folder")
 
         except dropbox.exceptions.AuthError as e:
-            shared_logger("Dropbox Uploader", f"Deleting Files, Bad Credentials: {e}", 2, self.cfg.dblog_path)
-
-        except dropbox.exceptions.ApiError as e:
-            shared_logger("Dropbox Uploader", f"Deleting Files, Not Enough Space: {e}", 2, self.cfg.dblog_path)
+            shared_logger("Dropbox Uploader", f"Uploading Files, Bad Credentials: {e}", 2, self.cfg.dblog_path)
 
         except dropbox.exceptions.RateLimitError as e:
-            shared_logger("Dropbox Uploader", f"Deleting Files, Rate Limit: {e}", 2, self.cfg.dblog_path)
+            shared_logger("Dropbox Uploader", f"Uploading Files, Rate Limit: {e}", 2, self.cfg.dblog_path)
+
+        except dropbox.exceptions.ApiError as e:
+            shared_logger("Dropbox Uploader", f"Uploading Files, Not Enough Space: {e}", 2, self.cfg.dblog_path)
 
         except (ConnectionError, dropbox.exceptions.HttpError) as e:
-            shared_logger("Dropbox Uploader", f"Deleting Files, HTTP Error: {e}", 2, self.cfg.dblog_path)
-
-        except ApiError as e:
-            shared_logger("Dropbox Uploader", f"Deleting Files, General API Error: {e}", 2, self.cfg.dblog_path)
-
-
-
-
-
-
+            shared_logger("Dropbox Uploader", f"Uploading Files, HTTP Error: {e}", 2, self.cfg.dblog_path)
 
 
 
@@ -165,8 +146,5 @@ class DropBoxUploader():
 # ----------------------------------------------------------------------------------------------------------------------
 # Entry Point Into Python Code (For Testing!)
 if __name__ == "__main__":
-
-    # Create An Instance For Testing
-    DBX_Uploader = DropBoxUploader()
-    DBX_Uploader.upload_all()
+    pass
 
