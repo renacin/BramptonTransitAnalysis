@@ -49,6 +49,22 @@ class Visualizer():
 
 
 
+
+
+    # -------------------- Private Function #0 ---------------------------------
+    # TODO
+    def __delete_old_graphics(self):
+        """
+        When Called This Function Delete Old Graphics In The Graphics Folder
+        """
+
+        # FIXME
+        print("Hello World")
+
+
+
+
+
     # -------------------- Private Function #1 ---------------------------------
     def __visualize_logs(self):
         """

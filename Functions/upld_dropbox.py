@@ -42,6 +42,7 @@ class DropBoxUploader():
 
         # Run Private Functions
         if DROPBOX_IMPORT:
+            self.__emptyfolder()
             self.__maingraphics()
 
         else:
@@ -49,11 +50,53 @@ class DropBoxUploader():
 
 
 
+    # -------------------- Private Function #0 ---------------------------------
+    def __emptyfolder(self):
+        """
+        When Called This Function Will Delete Everything In The Dropbox Connected App
+        """
+
+        try:
+            # Import Dropbox
+            import dropbox
+            from dropbox.exceptions import ApiError
+
+            # Get Needed Keys From CSV File
+            df = pd.read_csv(self.cfg.drpbx_keys)
+            Appkey = df.loc[df['Name']       == 'Appkey',       'Value'].item().strip()
+            Appsecret = df.loc[df['Name']    == 'Appsecret',    'Value'].item().strip()
+            RefreshToken = df.loc[df['Name'] == 'RefreshToken', 'Value'].item().strip()
+
+            # Create An Instance Of The DropBox Connection
+            dbx = dropbox.Dropbox(app_key=Appkey, app_secret=Appsecret, oauth2_refresh_token=RefreshToken)
+
+            # From Main App Folder - Delete Everything In Folder
+            result = dbx.files_list_folder("")
+            for entry in result.entries:
+                dbx.files_delete_v2(entry.path_lower)
+
+
+        except dropbox.exceptions.AuthError as e:
+            shared_logger("Dropbox Uploader", f"Deleting Files, Bad Credentials: {e}", 2, self.cfg.dblog_path)
+
+        except dropbox.exceptions.ApiError as e:
+            shared_logger("Dropbox Uploader", f"Deleting Files, Not Enough Space: {e}", 2, self.cfg.dblog_path)
+
+        except dropbox.exceptions.RateLimitError as e:
+            shared_logger("Dropbox Uploader", f"Deleting Files, Rate Limit: {e}", 2, self.cfg.dblog_path)
+
+        except (ConnectionError, dropbox.exceptions.HttpError) as e:
+            shared_logger("Dropbox Uploader", f"Deleting Files, HTTP Error: {e}", 2, self.cfg.dblog_path)
+
+        except ApiError as e:
+            shared_logger("Dropbox Uploader", f"Deleting Files, General API Error: {e}", 2, self.cfg.dblog_path)
+
+
 
     # -------------------- Private Function #1 ---------------------------------
     def __maingraphics(self):
         """
-        When Called This Function Upload The Most Recent Graphics In The Graphics Folder
+        When Called This Function Will Upload The Most Recent Graphics In The Graphics Folder
         """
 
         try:
@@ -66,26 +109,11 @@ class DropBoxUploader():
             Appsecret = df.loc[df['Name']    == 'Appsecret',    'Value'].item().strip()
             RefreshToken = df.loc[df['Name'] == 'RefreshToken', 'Value'].item().strip()
 
+            # Create An Instance Of The DropBox Connection
             dbx = dropbox.Dropbox(app_key=Appkey, app_secret=Appsecret, oauth2_refresh_token=RefreshToken)
 
-            print(repr(Appkey), repr(Appsecret), repr(RefreshToken))
-            print(dbx.users_get_current_account())
-
-
-
-            """ 
-            except dropbox.exceptions.AuthError:
-                print("Invalid credentials")
-                except dropbox.exceptions.AuthError:
-                # bad/expired credentials
-            except dropbox.exceptions.ApiError as e:
-                # the request reached Dropbox but was rejected —
-                # file too big, bad path, insufficient space, etc.
-            except dropbox.exceptions.RateLimitError:
-                # too many requests, back off and retry
-            except (ConnectionError, dropbox.exceptions.HttpError):
-            """
-
+            # print(repr(Appkey), repr(Appsecret), repr(RefreshToken))
+            # print(dbx.users_get_current_account())
 
 
             # # Navigate To Shell Script Location, And Generate A New Token
@@ -110,12 +138,21 @@ class DropBoxUploader():
             # tm_nw = datetime.now().strftime(self.td_l_dt_dsply_frmt)
             # print(f"{tm_nw}: Success, Uploaded Graphics To DropBox Folder")
 
-        except Exception as e:
-            print(e)
+        except dropbox.exceptions.AuthError as e:
+            shared_logger("Dropbox Uploader", f"Deleting Files, Bad Credentials: {e}", 2, self.cfg.dblog_path)
 
-            # # For Logging | Bad
-            # tm_nw = datetime.now().strftime(self.td_l_dt_dsply_frmt)
-            # print(f"{tm_nw}: Failure, Could Not Upload Graphics To DropBox Folder")
+        except dropbox.exceptions.ApiError as e:
+            shared_logger("Dropbox Uploader", f"Deleting Files, Not Enough Space: {e}", 2, self.cfg.dblog_path)
+
+        except dropbox.exceptions.RateLimitError as e:
+            shared_logger("Dropbox Uploader", f"Deleting Files, Rate Limit: {e}", 2, self.cfg.dblog_path)
+
+        except (ConnectionError, dropbox.exceptions.HttpError) as e:
+            shared_logger("Dropbox Uploader", f"Deleting Files, HTTP Error: {e}", 2, self.cfg.dblog_path)
+
+        except ApiError as e:
+            shared_logger("Dropbox Uploader", f"Deleting Files, General API Error: {e}", 2, self.cfg.dblog_path)
+
 
 
 
