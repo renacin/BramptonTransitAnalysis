@@ -104,12 +104,12 @@ def dropbox_uploader_scheduler():
     """ Upload Graphcis & Files To Dropbox """
 
     # Start The Data Exporter
-    DropBoxUploader = DropBoxUploader()
+    DBX_Uploader = DropBoxUploader()
 
     # Main Loop Checking If It's 6:30AM, Sleep Until Then, Then Export, The Wait 30 Min, Repeat
     while not stop_event.is_set():
         stop_event.wait(seconds_until(hour_=5, minute_=30))
-        DropBoxUploader.upload_all()
+        DBX_Uploader.upload_all()
         stop_event.wait(1800)
 
 
