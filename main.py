@@ -14,6 +14,7 @@ from Functions.data_helper        import *
 from Functions.data_exporter      import *
 from Functions.data_collect       import *
 from Functions.data_visualiser    import *
+from Functions.upld_dropbox       import *
 
 stop_event = threading.Event()
 # ----------------------------------------------------------------------------------------------------------------------
@@ -77,7 +78,7 @@ def gtfs_dowloader_scheduler():
 
     # Main Loop Checking If It's 12:30PM, Sleep Until Then, Then Export, The Wait 30 Min, Repeat
     while not stop_event.is_set():
-        stop_event.wait(seconds_until(hour_=12, minute_=30))
+        stop_event.wait(seconds_until(hour_=3, minute_=30))
         GTFS_Getter.gather_GTFS()
         stop_event.wait(1800)
 
@@ -92,8 +93,23 @@ def data_vizualizer_scheduler():
 
     # Main Loop Checking If It's 6:30AM, Sleep Until Then, Then Export, The Wait 30 Min, Repeat
     while not stop_event.is_set():
-        stop_event.wait(seconds_until(hour_=6, minute_=30))
+        stop_event.wait(seconds_until(hour_=4, minute_=30))
         DataViz.visualize_all()
+        stop_event.wait(1800)
+
+
+
+# Create Scheduled Behaviour For: GTFS Downloader
+def dropbox_uploader_scheduler():
+    """ Upload Graphcis & Files To Dropbox """
+
+    # Start The Data Exporter
+    DropBoxUploader = DropBoxUploader()
+
+    # Main Loop Checking If It's 6:30AM, Sleep Until Then, Then Export, The Wait 30 Min, Repeat
+    while not stop_event.is_set():
+        stop_event.wait(seconds_until(hour_=5, minute_=30))
+        DropBoxUploader.upload_all()
         stop_event.wait(1800)
 
 
@@ -107,10 +123,11 @@ def main():
     EnvSetup.setup()
 
     # Define Each Process, They Should Be Their Own Thread And Run Independently
-    threads = [threading.Thread(target = data_collector_scheduler,  name="DataCollector",  daemon=True),
-               threading.Thread(target = data_exporter_scheduler,   name="DataExporter",   daemon=True),
-               threading.Thread(target = gtfs_dowloader_scheduler,  name="GTFSDownloader", daemon=True),
-               threading.Thread(target = data_vizualizer_scheduler, name="DataVizualizer", daemon=True),]
+    threads = [threading.Thread(target = data_collector_scheduler,   name="DataCollector",   daemon=True),
+               threading.Thread(target = data_exporter_scheduler,    name="DataExporter",    daemon=True),
+               threading.Thread(target = gtfs_dowloader_scheduler,   name="GTFSDownloader",  daemon=True),
+               threading.Thread(target = data_vizualizer_scheduler,  name="DataVizualizer",  daemon=True),
+               threading.Thread(target = dropbox_uploader_scheduler, name="DropBoxUploader", daemon=True),]
  
     # Start Each Thread
     for t in threads:
