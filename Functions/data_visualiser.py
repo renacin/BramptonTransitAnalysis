@@ -186,10 +186,6 @@ class Visualizer():
                     # Make Note To Data Logger
                     shared_logger("Data Visualiser", "Created Logs Charts", 1, self.cfg.dblog_path)
 
-                else:
-                    # Make Note To Data Logger
-                    shared_logger("Data Visualiser", "No Data To Render", 1, self.cfg.dblog_path)
-
 
 
             # If Something Happens Rollback To Begin, Inform User, And Wait

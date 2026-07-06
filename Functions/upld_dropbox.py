@@ -127,6 +127,9 @@ class DropBoxUploader():
                         with open(file_path, "rb") as f:
                             dbx.files_upload(f.read(), f"/{file_}", mode=dropbox.files.WriteMode("overwrite"))
 
+            shared_logger("Dropbox Uploader", f"Uploaded All Graphics To Dropbox", 1, self.cfg.dblog_path)
+            
+
 
         except dropbox.exceptions.AuthError as e:
             shared_logger("Dropbox Uploader", f"Uploading Files, Bad Credentials: {e}", 2, self.cfg.dblog_path)
