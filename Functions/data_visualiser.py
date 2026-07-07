@@ -11,7 +11,7 @@ import time as time
 from datetime import datetime, timedelta
 
 from Functions.env_config  import Config
-from Functions.data_helper import shared_logger
+from Functions.data_helper import *
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -180,7 +180,7 @@ class Visualizer():
 
                     # Export Data
                     final_path   = os.path.join(viz_export_path, f"DataCollected_DatabaseEvents_{dt_ystrd}.png")
-                    plt.savefig(final_path, dpi=150)
+                    # plt.savefig(final_path, dpi=150)
                     plt.close(fig)
 
                     # Make Note To Data Logger

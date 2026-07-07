@@ -7,6 +7,7 @@ from datetime import datetime
 import numpy as np
 import sqlite3
 import logging
+import time
 import os
 # ----------------------------------------------------------------------------------------------------------------------
 
@@ -70,6 +71,27 @@ def shared_logger(logger_name="", message_txt="", func_level=1, log_location="")
 
         # Save All Changes To The Database
         conn.commit()
+
+
+# ---------------------- Function #2 ---------------------------------
+def time_it(func):
+    """ 
+    This is a decorator function, it will mainly be used to time how long a function takes to run.
+    This function will be used in testing, not production.
+    """
+
+    def wrapper(*args, **kwargs):
+
+        # Wrap Function In Timers & Determine The Time It Took To Run
+        start   = time.perf_counter()
+        result  = func(*args, **kwargs)
+        elapsed = time.perf_counter() - start
+
+        # Print To The User How Long It Took
+        print(f"Completion Time: {func.__name__} - {elapsed:.4f}s")
+        return result
+    
+    return wrapper
 
 
 
