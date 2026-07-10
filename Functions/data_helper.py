@@ -73,7 +73,7 @@ def shared_logger(logger_name="", message_txt="", func_level=1, log_location="")
         conn.commit()
 
 
-# ---------------------- Function #2 ---------------------------------
+# ---------------------- Function #3 ---------------------------------
 def time_it(func):
     """ 
     This is a decorator function, it will mainly be used to time how long a function takes to run.
