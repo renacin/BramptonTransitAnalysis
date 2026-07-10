@@ -59,7 +59,7 @@ class Visualizer():
         When Called This Function Delete Old Graphics In The Graphics Folder, Keep Only The 5 Most Recent
         """
 
-        # All Folders
+        # All Content In Graphics Folder
         all_folders = list(os.listdir(self.cfg.out_graphics_path))
 
         # Remove Folder That Don't Match Date Naming Standard
@@ -71,7 +71,7 @@ class Visualizer():
         # Delete Folders That Don't Match Naming Convention
         if len(not_dates) > 0:
             for foldr_ in not_dates:
-                shutil.rmtree( os.path.join(self.cfg.out_graphics_path, foldr_))
+                shutil.rmtree(os.path.join(self.cfg.out_graphics_path, foldr_))
             shared_logger("Data Visualiser", "Deleted Graphics Folders That Didn't Match Convention", 1, self.cfg.dblog_path)
 
 
@@ -79,7 +79,7 @@ class Visualizer():
         all_folders = sorted(all_folders, reverse=True)
         if len(all_folders) > 5:
             for foldr_ in all_folders[5:]:
-                shutil.rmtree( os.path.join(self.cfg.out_graphics_path, foldr_))
+                shutil.rmtree(os.path.join(self.cfg.out_graphics_path, foldr_))
 
             # Deleted Old Folders
             shared_logger("Data Visualiser", "Deleted Old Graphics Folders", 1, self.cfg.dblog_path)
@@ -202,7 +202,7 @@ class Visualizer():
 
                     # Export Data
                     final_path   = os.path.join(viz_export_path, f"DataCollected_DatabaseEvents_{dt_ystrd}.png")
-                    # plt.savefig(final_path, dpi=150)
+                    plt.savefig(final_path, dpi=150)
                     plt.close(fig)
 
                     # Make Note To Data Logger
