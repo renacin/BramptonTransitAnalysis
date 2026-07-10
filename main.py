@@ -76,7 +76,7 @@ def gtfs_dowloader_scheduler():
     # Start The Data Exporter
     GTFS_Getter = GTFS_Downloader()
 
-    # Main Loop Checking If It's 12:30PM, Sleep Until Then, Then Export, The Wait 30 Min, Repeat
+    # Main Loop Checking If It's 3:30AM, Sleep Until Then, Then Export, The Wait 30 Min, Repeat
     while not stop_event.is_set():
         stop_event.wait(seconds_until(hour_=3, minute_=30))
         GTFS_Getter.gather_GTFS()
@@ -91,7 +91,7 @@ def data_vizualizer_scheduler():
     # Start The Data Exporter
     DataViz = Visualizer()
 
-    # Main Loop Checking If It's 6:30AM, Sleep Until Then, Then Export, The Wait 30 Min, Repeat
+    # Main Loop Checking If It's 4:30AM, Sleep Until Then, Then Export, The Wait 30 Min, Repeat
     while not stop_event.is_set():
         stop_event.wait(seconds_until(hour_=4, minute_=30))
         DataViz.visualize_all()

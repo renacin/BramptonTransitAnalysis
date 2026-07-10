@@ -241,7 +241,4 @@ class Visualizer():
 # ----------------------------------------------------------------------------------------------------------------------
 # Entry Point Into Python Code (For Testing!)
 if __name__ == "__main__":
-
-    # Create An Instance For Testing
-    DataVisualizer = Visualizer()
-    DataVisualizer.visualize_all()
+    pass

@@ -16,7 +16,7 @@ from Functions.data_helper import shared_logger
 
 
 class Exporter():
-    """ This class will collect data from GTFS Live Feed  """
+    """ This class will collect & export data bus location data & export it to appropriate folders. This is considered Bronze Layer data  """
 
     # -------------------- Functions Run On Instantiation ----------------------
     def __init__(self):
