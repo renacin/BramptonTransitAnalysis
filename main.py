@@ -58,12 +58,12 @@ def data_collector_scheduler():
 def data_exporter_scheduler():
     """ Instantiate Data Exporter & Start Main Loop """
 
-    # Start The Data Exporter
-    DataExporter = Exporter()
-
     # Main Loop Checking If It's 2:30AM, Sleep Until Then, Then Export, The Wait 30 Min, Repeat
+    DataExporter = Exporter()
     while not stop_event.is_set():
-        stop_event.wait(seconds_until(hour_=2, minute_=30))
+        # if the wait was interrupted by shutdown, bail before working
+        if stop_event.wait(seconds_until(hour_=2, minute_=30)):
+            break
         DataExporter.export_all()
         stop_event.wait(1800)
 
@@ -73,12 +73,12 @@ def data_exporter_scheduler():
 def gtfs_dowloader_scheduler():
     """ Instantiate GTFS Downloader & Start Main Loop """
 
-    # Start The Data Exporter
-    GTFS_Getter = GTFS_Downloader()
-
     # Main Loop Checking If It's 3:30AM, Sleep Until Then, Then Export, The Wait 30 Min, Repeat
+    GTFS_Getter = GTFS_Downloader()
     while not stop_event.is_set():
-        stop_event.wait(seconds_until(hour_=3, minute_=30))
+        # if the wait was interrupted by shutdown, bail before working
+        if stop_event.wait(seconds_until(hour_=3, minute_=30)):
+            break
         GTFS_Getter.gather_GTFS()
         stop_event.wait(1800)
 
@@ -88,12 +88,12 @@ def gtfs_dowloader_scheduler():
 def data_vizualizer_scheduler():
     """ Create Graphics For Data Pulled & Analyzed """
 
-    # Start The Data Exporter
-    DataViz = Visualizer()
-
     # Main Loop Checking If It's 4:30AM, Sleep Until Then, Then Export, The Wait 30 Min, Repeat
+    DataViz = Visualizer()
     while not stop_event.is_set():
-        stop_event.wait(seconds_until(hour_=4, minute_=30))
+        # if the wait was interrupted by shutdown, bail before working
+        if stop_event.wait(seconds_until(hour_=4, minute_=30)):
+            break
         DataViz.visualize_all()
         stop_event.wait(1800)
 
@@ -103,12 +103,12 @@ def data_vizualizer_scheduler():
 def dropbox_uploader_scheduler():
     """ Upload Graphcis & Files To Dropbox """
 
-    # Start The Data Exporter
-    DBX_Uploader = DropBoxUploader()
-
     # Main Loop Checking If It's 6:30AM, Sleep Until Then, Then Export, The Wait 30 Min, Repeat
+    DBX_Uploader = DropBoxUploader()
     while not stop_event.is_set():
-        stop_event.wait(seconds_until(hour_=5, minute_=30))
+        # if the wait was interrupted by shutdown, bail before working
+        if stop_event.wait(seconds_until(hour_=5, minute_=30)):
+            break
         DBX_Uploader.upload_all()
         stop_event.wait(1800)
 
