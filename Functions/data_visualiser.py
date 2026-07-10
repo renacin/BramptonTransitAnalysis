@@ -4,7 +4,9 @@
 #
 # ----------------------------------------------------------------------------------------------------------------------
 import os
+import re
 import sys
+import shutil
 import sqlite3
 import pandas as pd
 import time as time
@@ -43,6 +45,7 @@ class Visualizer():
         # Run Private Functions
         if MAPLOT_IMPORT:
             self.__visualize_logs()
+            self.__delete_old_graphics()
 
         else:
             shared_logger("Data Visualiser", "MatplotLib Not Installed", 2, self.cfg.dblog_path)
@@ -50,17 +53,36 @@ class Visualizer():
 
 
 
-
     # -------------------- Private Function #0 ---------------------------------
-    # TODO
     def __delete_old_graphics(self):
         """
-        When Called This Function Delete Old Graphics In The Graphics Folder
+        When Called This Function Delete Old Graphics In The Graphics Folder, Keep Only The 5 Most Recent
         """
 
-        # FIXME
-        print("Hello World")
+        # All Folders
+        all_folders = list(os.listdir(self.cfg.out_graphics_path))
 
+        # Remove Folder That Don't Match Date Naming Standard
+        date_pattern = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+        not_dates    = [item for item in all_folders if not date_pattern.match(item)]
+        all_folders  = [folder_ for folder_ in all_folders if folder_ not in not_dates]
+
+
+        # Delete Folders That Don't Match Naming Convention
+        if len(not_dates) > 0:
+            for foldr_ in not_dates:
+                shutil.rmtree( os.path.join(self.cfg.out_graphics_path, foldr_))
+            shared_logger("Data Visualiser", "Deleted Graphics Folders That Didn't Match Convention", 1, self.cfg.dblog_path)
+
+
+        # Only Keep 5 Most Recent Files
+        all_folders = sorted(all_folders, reverse=True)
+        if len(all_folders) > 5:
+            for foldr_ in all_folders[5:]:
+                shutil.rmtree( os.path.join(self.cfg.out_graphics_path, foldr_))
+
+            # Deleted Old Folders
+            shared_logger("Data Visualiser", "Deleted Old Graphics Folders", 1, self.cfg.dblog_path)
 
 
 
