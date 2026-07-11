@@ -8,7 +8,7 @@ import sys
 import sqlite3
 import pandas as pd
 import time as time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from Functions.env_config  import Config
 from Functions.data_helper import shared_logger
@@ -33,8 +33,9 @@ class Exporter():
         """
 
         # Run Private Functions
-        self.__export_bus_locs()
-        self.__export_old_gtfs()
+        # self.__export_bus_locs()
+        # self.__export_old_gtfs()
+        self.__transform_rawdata()
 
 
 
@@ -166,7 +167,53 @@ class Exporter():
 
 
 
+
+    # -------------------- Private Function #3 ---------------------------------
+    def __transform_rawdata(self):
+        """
+        When Called This Function Will Transform Raw Observations Of Bus Locations (Raw CSVs Created From Database - Bronze Layer) 
+        Into Cleaned Data, Free Of Duplicates, Errors, Etc.. (Silver Layer) Ready To Be Used For Analytics
+        """
+
+        #TODO: ADD SAFETY CHECKS, RIGHT FILE TYPE, WHAT HAPPENS IF NO FILES, TOO FEW FILES? START CLEAN UP OF BRONZE LAYER DATA, WHAT DO WE NEED TO DO TO GET TO SILVER?
+
+        # Read CSV Storage Folder, Add Sanity Check For Right CSVs
+        csv_path      = os.path.join(self.cfg.csv_out_path, "BUS_LOC_DB")
+        all_raw       = [file_ for file_ in list(os.listdir(csv_path)) if file_[:10] == "BUS_LOC_DB"]
+
+        # Get Current Date & Day Before
+        dt_ystrd         = (datetime.now() - timedelta(days = 1)).strftime("%d-%m-%Y")
+        dt_ystrd_m1_f1   = (datetime.now() - timedelta(days = 2)).strftime("%d-%m-%Y")
+        dt_ystrd_m1_f2   = (datetime.now() - timedelta(days = 1)).strftime("%Y-%m-%d")
+
+        print(dt_ystrd, dt_ystrd_m1_f1, dt_ystrd_m1_f2)
+
+        # # Focus On Files Needed For Silver Layer Data Product
+        focus_raw_csv = [file_ for file_ in all_raw if file_[11:21] in [str(dt_ystrd), str(dt_ystrd_m1_f1)]]
+
+        # Read All Data As A Pandas Dataframe, Only Focus On 1 Date For Data Cleaning (That's Why We Ingested More Data That We Needed)
+        focus_raw_csv           = [os.path.join(csv_path, file_) for file_ in focus_raw_csv]
+        all_raw                 = pd.concat([pd.read_csv(file_) for file_ in focus_raw_csv])
+        all_raw['dt_colc']      = pd.to_datetime(all_raw['dt_colc'])
+        all_raw['dt_colc_date'] = all_raw["dt_colc"].dt.strftime("%Y-%m-%d")
+        all_raw                 = all_raw[all_raw["dt_colc_date"] == dt_ystrd_m1_f2]
+
+
+
+
+
+
+
+
+
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 # Entry Point Into Python Code (For Testing!)
 if __name__ == "__main__":
-    pass
+    
+    #pass
+
+    # For Testing Remove Once Finished
+    exprt = Exporter()
+    exprt.export_all()
