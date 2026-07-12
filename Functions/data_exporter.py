@@ -175,7 +175,32 @@ class Exporter():
         Into Cleaned Data, Free Of Duplicates, Errors, Etc.. (Silver Layer) Ready To Be Used For Analytics
         """
 
-        #TODO: ADD SAFETY CHECKS, RIGHT FILE TYPE, WHAT HAPPENS IF NO FILES, TOO FEW FILES? START CLEAN UP OF BRONZE LAYER DATA, WHAT DO WE NEED TO DO TO GET TO SILVER?
+
+
+        # TODO: Primary dedup — drop exact repeats
+        #       drop_duplicates(subset=["vehicle_id", "position_latitude",
+        #                               "position_longitude", "current_status"])
+        #       (NOT on u_id — it collides across batch snapshots, see notes)
+
+        # TODO: Log the reconciliation
+        #       rows_in -> rows_dropped_as_dupes -> rows_out
+        #       Print/log so a future feed change is visible immediately
+
+        # TODO: Handle parked buses (jittering GPS at depot/layover)
+        #       Long runs of speed=0 at ~same position survive dedup because
+        #       coords differ by a few metres (43.714867 vs 43.714775)
+        #       Options to evaluate:
+        #         a) round lat/lng to ~5 decimals before dedup (~1m precision)
+        #         b) flag is_parked = consecutive zero-speed at same stop_id
+        #         c) leave them, filter downstream
+        #       Decide which, document why
+
+        # TODO: Verify dedup didn't destroy real movement
+        #       Sanity check: pick one vehicle, plot its path before/after
+        #       Confirm the trail still traces a coherent route
+
+
+
 
         # Read CSV Storage Folder, Add Sanity Check For Right CSVs
         csv_path      = os.path.join(self.cfg.csv_out_path, "BUS_LOC_DB")
@@ -186,17 +211,31 @@ class Exporter():
         dt_ystrd_m1_f1   = (datetime.now() - timedelta(days = 2)).strftime("%d-%m-%Y")
         dt_ystrd_m1_f2   = (datetime.now() - timedelta(days = 1)).strftime("%Y-%m-%d")
 
-        print(dt_ystrd, dt_ystrd_m1_f1, dt_ystrd_m1_f2)
-
         # # Focus On Files Needed For Silver Layer Data Product
         focus_raw_csv = [file_ for file_ in all_raw if file_[11:21] in [str(dt_ystrd), str(dt_ystrd_m1_f1)]]
 
-        # Read All Data As A Pandas Dataframe, Only Focus On 1 Date For Data Cleaning (That's Why We Ingested More Data That We Needed)
-        focus_raw_csv           = [os.path.join(csv_path, file_) for file_ in focus_raw_csv]
-        all_raw                 = pd.concat([pd.read_csv(file_) for file_ in focus_raw_csv])
-        all_raw['dt_colc']      = pd.to_datetime(all_raw['dt_colc'])
-        all_raw['dt_colc_date'] = all_raw["dt_colc"].dt.strftime("%Y-%m-%d")
-        all_raw                 = all_raw[all_raw["dt_colc_date"] == dt_ystrd_m1_f2]
+        # Proceed Only If More Than Three Files Exist Within Focus Window
+        if len(focus_raw_csv) >= 2:
+
+            # ================ Bronze To Silver - PHASE 1: Focus On Pertinent Data ====================
+            focus_raw_csv           = [os.path.join(csv_path, file_) for file_ in focus_raw_csv]
+            all_raw                 = pd.concat([pd.read_csv(file_) for file_ in focus_raw_csv])
+            all_raw['dt_colc']      = pd.to_datetime(all_raw['dt_colc'])
+            all_raw['dt_colc_date'] = all_raw["dt_colc"].dt.strftime("%Y-%m-%d")
+            all_raw                 = all_raw[all_raw["dt_colc_date"] == dt_ystrd_m1_f2]
+
+            # ============== Bronze To Silver - PHASE 2: Drop Bad Columns & Rename ====================
+            all_raw = all_raw.sort_values(by=["vehicle_id", "timestamp"])
+            all_raw = all_raw.rename(columns={'dt_colc': 'batch_timestamp', 'position_speed': 'speed_kmph'})
+            for col in ["dt_colc_date", "timestamp", "vehicle_label", "u_id", "id"]:
+                del all_raw[col]
+
+
+            # ============== Bronze To Silver - PHASE 3: Remove Duplicate Rows ========================
+
+
+            # Export For Testing!
+            all_raw.to_csv(fr"C:\Users\renac\Desktop\testing.csv")
 
 
 

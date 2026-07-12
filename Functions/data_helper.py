@@ -23,6 +23,10 @@ def hvrsn_dist(coord1, coord2):
     This function will calculate the distance between bus location and bus stop; returns distance in km
     Taken from: https://datascience.blog.wzb.eu/2018/02/02/vectorization-and-parallelization-in-python-with-numpy-and-pandas/
     """
+
+    # TODO: Change This Soon, We Can't Use As-The Crows Flies Distance, We Need Manhattan Distance For Accurate Distance Measure, & Time Estimation
+
+    # Grab Coordinates For Both Points
     b_lat, b_lng = coord1[0], coord1[1]
     a_lat, a_lng = coord2[0], coord2[1]
 
@@ -43,6 +47,7 @@ def hvrsn_dist(coord1, coord2):
     c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1-a))
 
     return R * c  # Returns Distance In KM
+
 
 
 # ---------------------- Function #2 ---------------------------------
@@ -71,6 +76,7 @@ def shared_logger(logger_name="", message_txt="", func_level=1, log_location="")
 
         # Save All Changes To The Database
         conn.commit()
+
 
 
 # ---------------------- Function #3 ---------------------------------
