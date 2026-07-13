@@ -199,6 +199,9 @@ class Exporter():
         #       Sanity check: pick one vehicle, plot its path before/after
         #       Confirm the trail still traces a coherent route
 
+        # TODO: Crop Points To Bounding Box For Brampton
+        #       Ensure Each Column Max / Min Makes Sense (Speed, Bearing, Etc...)
+
 
 
 
