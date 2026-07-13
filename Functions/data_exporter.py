@@ -202,6 +202,8 @@ class Exporter():
         # TODO: Crop Points To Bounding Box For Brampton
         #       Ensure Each Column Max / Min Makes Sense (Speed, Bearing, Etc...)
 
+        # TODO: Add Columns That Improve End User QOL
+
 
 
 
