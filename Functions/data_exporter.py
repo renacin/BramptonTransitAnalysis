@@ -177,20 +177,11 @@ class Exporter():
 
 
 
-        # TODO: Primary dedup — drop exact repeats
-        #       drop_duplicates(subset=["vehicle_id", "position_latitude",
-        #                               "position_longitude", "current_status"])
-        #       (NOT on u_id — it collides across batch snapshots, see notes)
-
-        # TODO: Log the reconciliation
-        #       rows_in -> rows_dropped_as_dupes -> rows_out
-        #       Print/log so a future feed change is visible immediately
 
         # TODO: Handle parked buses (jittering GPS at depot/layover)
         #       Long runs of speed=0 at ~same position survive dedup because
         #       coords differ by a few metres (43.714867 vs 43.714775)
         #       Options to evaluate:
-        #         a) round lat/lng to ~5 decimals before dedup (~1m precision)
         #         b) flag is_parked = consecutive zero-speed at same stop_id
         #         c) leave them, filter downstream
         #       Decide which, document why
@@ -198,9 +189,6 @@ class Exporter():
         # TODO: Verify dedup didn't destroy real movement
         #       Sanity check: pick one vehicle, plot its path before/after
         #       Confirm the trail still traces a coherent route
-
-        # TODO: Crop Points To Bounding Box For Brampton
-        #       Ensure Each Column Max / Min Makes Sense (Speed, Bearing, Etc...)
 
         # TODO: Add Columns That Improve End User QOL
 
@@ -224,7 +212,6 @@ class Exporter():
         # Proceed Only If More Than Three Files Exist Within Focus Window
         if len(focus_raw_csv) >= 2:
 
-
             #============================================================================
             # [Bronze 2 Silver] --> PHASE 1: Focus On Pertinent Data
             #============================================================================
@@ -234,22 +221,22 @@ class Exporter():
             all_raw['dt_colc_date'] = all_raw["dt_colc"].dt.strftime("%Y-%m-%d")
             all_raw                 = all_raw[all_raw["dt_colc_date"] == dt_ystrd____f2]
 
-            print(dt_ystrd____f2)
-
 
             #============================================================================
-            # [Bronze 2 Silver] --> PHASE 2: Drop Bad Columns & Rename
+            # [Bronze 2 Silver] --> PHASE 2: Drop Bad Columns, Rename, Round
             #============================================================================
             all_raw = all_raw.sort_values(by=["vehicle_id", "timestamp"])
             all_raw = all_raw.rename(columns={'dt_colc': 'batch_timestamp', 'position_speed': 'speed_kmph'})
             for col in ["dt_colc_date", "timestamp", "vehicle_label", "u_id", "id"]:
                 del all_raw[col]
 
+            all_raw["position_latitude"]  = all_raw["position_latitude"].round(5)
+            all_raw["position_longitude"] = all_raw["position_longitude"].round(5)
+
 
             #============================================================================
             # [Bronze 2 Silver] --> PHASE 3: Validate Each Column, Speed, Heading Etc...
             #============================================================================
-
             # Create A Filter So We Can Find Good & Bad Rows
             valid_mask = (
                     all_raw["speed_kmph"].between(0, 120)            &
@@ -263,12 +250,61 @@ class Exporter():
             good_reading_data = all_raw[valid_mask]
 
 
+            # Store Lens For Logging
+            all_raw_len           = len(good_reading_data)
+            bad_reading_data_len  = len(bad_reading_data)
+            good_reading_data_len = len(good_reading_data)
+
+
+            #============================================================================
+            # [Bronze 2 Silver] --> PHASE 4: Fix 1+ Updates For 1 Timestamp Issue
+            #============================================================================
+
+            # Try To Remove Duplicates Based On As Many Columns As Possible, Store Len For Logging
+            good_reading_data = good_reading_data.drop_duplicates(subset=["vehicle_id", "trip_trip_id", "position_latitude", "position_longitude", "current_status", "stop_id"])
+            nodup_p1_data_len = len(good_reading_data)
+
+            # Access Database & Grab Most Recent Route Data
+            with sqlite3.connect(self.cfg.db_path, timeout=30, isolation_level=None) as conn:
+
+                # Set PRAGMAs BEFORE Any Transactions, This Is Not An Urgent Connection
+                conn.execute("PRAGMA journal_mode=WAL")
+                conn.execute("PRAGMA busy_timeout=30000")
+
+                # Read In Database Logs From The Day Before
+                df = pd.read_sql_query(f"""SELECT DISTINCT 
+                                                A.* 
+                                            FROM ROUTE_SPEED AS A 
+                                            WHERE 1=1
+                                                
+                                        """, conn)
+                
+                print(df.head())
+                    
+
+            
+            # TODO: Remove Duplicates Based On Same Bus & Same Timestamp. Only 1 Update Per Bus
+
+
+
+
+
+            print(all_raw_len, bad_reading_data_len, good_reading_data_len, nodup_p1_data_len)
+
+
+
+            # shared_logger("Data Exporter", f"Bronze 2 Silver (P3) --> ALL: {len(all_raw)} | GOOD: {len(good_reading_data)} | QUARNTD: {len(bad_reading_data)}", 1, self.cfg.dblog_path)
+
+
+
+
+
+
+
             # Export For Testing!
             # all_raw.to_csv(fr"C:\Users\renac\Desktop\testing.csv")
-            # bad_data.to_csv(fr"C:\Users\renac\Desktop\testing_bad.csv")
+            good_reading_data.to_csv(fr"C:\Users\renac\Desktop\testing.csv")
 
-            # Make Log Of Changes
-            # shared_logger("Data Exporter", f"Bronze 2 Silver: ALL: {len(all_raw)} | GOOD: {len(good_reading_data)} | QUARNTD: {len(bad_reading_data)}", 1, self.cfg.dblog_path)
 
 
 
