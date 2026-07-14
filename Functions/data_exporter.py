@@ -212,35 +212,63 @@ class Exporter():
         all_raw       = [file_ for file_ in list(os.listdir(csv_path)) if file_[:10] == "BUS_LOC_DB"]
 
         # Get Current Date & Day Before
-        dt_ystrd         = (datetime.now() - timedelta(days = 1)).strftime("%d-%m-%Y")
-        dt_ystrd_m1_f1   = (datetime.now() - timedelta(days = 2)).strftime("%d-%m-%Y")
-        dt_ystrd_m1_f2   = (datetime.now() - timedelta(days = 1)).strftime("%Y-%m-%d")
+        days_            = 3
+        dt_ystrd         = (datetime.now() - timedelta(days = days_)).strftime("%d-%m-%Y")
+        dt_ystrd____f2   = (datetime.now() - timedelta(days = days_)).strftime("%Y-%m-%d")
+        dt_ystrd_m1_f1   = (datetime.now() - timedelta(days = days_ + 1)).strftime("%d-%m-%Y")
 
         # # Focus On Files Needed For Silver Layer Data Product
         focus_raw_csv = [file_ for file_ in all_raw if file_[11:21] in [str(dt_ystrd), str(dt_ystrd_m1_f1)]]
 
+
         # Proceed Only If More Than Three Files Exist Within Focus Window
         if len(focus_raw_csv) >= 2:
 
-            # ================ Bronze To Silver - PHASE 1: Focus On Pertinent Data ====================
+
+            #============================================================================
+            # [Bronze 2 Silver] --> PHASE 1: Focus On Pertinent Data
+            #============================================================================
             focus_raw_csv           = [os.path.join(csv_path, file_) for file_ in focus_raw_csv]
-            all_raw                 = pd.concat([pd.read_csv(file_) for file_ in focus_raw_csv])
+            all_raw                 = pd.concat([pd.read_csv(file_, dtype={"trip_route_id": str}) for file_ in focus_raw_csv])
             all_raw['dt_colc']      = pd.to_datetime(all_raw['dt_colc'])
             all_raw['dt_colc_date'] = all_raw["dt_colc"].dt.strftime("%Y-%m-%d")
-            all_raw                 = all_raw[all_raw["dt_colc_date"] == dt_ystrd_m1_f2]
+            all_raw                 = all_raw[all_raw["dt_colc_date"] == dt_ystrd____f2]
 
-            # ============== Bronze To Silver - PHASE 2: Drop Bad Columns & Rename ====================
+            print(dt_ystrd____f2)
+
+
+            #============================================================================
+            # [Bronze 2 Silver] --> PHASE 2: Drop Bad Columns & Rename
+            #============================================================================
             all_raw = all_raw.sort_values(by=["vehicle_id", "timestamp"])
             all_raw = all_raw.rename(columns={'dt_colc': 'batch_timestamp', 'position_speed': 'speed_kmph'})
             for col in ["dt_colc_date", "timestamp", "vehicle_label", "u_id", "id"]:
                 del all_raw[col]
 
 
-            # ============== Bronze To Silver - PHASE 3: Remove Duplicate Rows ========================
+            #============================================================================
+            # [Bronze 2 Silver] --> PHASE 3: Validate Each Column, Speed, Heading Etc...
+            #============================================================================
+
+            # Create A Filter So We Can Find Good & Bad Rows
+            valid_mask = (
+                    all_raw["speed_kmph"].between(0, 120)            &
+                    all_raw["position_bearing"].between(0, 360)      &
+                    all_raw["position_latitude"].between(43.5, 44.0) &
+                    all_raw["position_longitude"].between(-80.0, -79.4)
+                )
+            
+            # Separate Rows Into Good & Bad
+            bad_reading_data  = all_raw[~valid_mask]
+            good_reading_data = all_raw[valid_mask]
 
 
             # Export For Testing!
-            all_raw.to_csv(fr"C:\Users\renac\Desktop\testing.csv")
+            # all_raw.to_csv(fr"C:\Users\renac\Desktop\testing.csv")
+            # bad_data.to_csv(fr"C:\Users\renac\Desktop\testing_bad.csv")
+
+            # Make Log Of Changes
+            # shared_logger("Data Exporter", f"Bronze 2 Silver: ALL: {len(all_raw)} | GOOD: {len(good_reading_data)} | QUARNTD: {len(bad_reading_data)}", 1, self.cfg.dblog_path)
 
 
 
