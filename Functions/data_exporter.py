@@ -11,7 +11,7 @@ import time as time
 from datetime import datetime, timedelta
 
 from Functions.env_config  import Config
-from Functions.data_helper import shared_logger
+from Functions.data_helper import *
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -169,6 +169,7 @@ class Exporter():
 
 
     # -------------------- Private Function #3 ---------------------------------
+    @time_it
     def __transform_rawdata(self):
         """
         When Called This Function Will Transform Raw Observations Of Bus Locations (Raw CSVs Created From Database - Bronze Layer) 
@@ -271,19 +272,47 @@ class Exporter():
                 conn.execute("PRAGMA journal_mode=WAL")
                 conn.execute("PRAGMA busy_timeout=30000")
 
-                # Read In Database Logs From The Day Before
-                df = pd.read_sql_query(f"""SELECT DISTINCT 
-                                                A.* 
-                                            FROM ROUTE_SPEED AS A 
-                                            WHERE 1=1
-                                                
-                                        """, conn)
+                # Read In Stops Data From STOPS Database Table
+                stops_df = pd.read_sql_query(f"""SELECT DISTINCT
+                                                    stop_id,
+                                                    stop_name,
+                                                    stop_lat,
+                                                    stop_lon
+                                             
+                                                 FROM (SELECT MAX(feed_version) AS max_feed_ver
+                                                       FROM STOPS
+                                                       ) AS A
+                                             
+                                                 LEFT JOIN STOPS AS B
+                                                    ON (A.max_feed_ver = B.feed_version)
+                                             
+                                                """, conn)
                 
-                print(df.head())
+                # Left Join Bus Stop Data Onto Bus Location Observations
+                good_reading_data['stop_id' ] = good_reading_data['stop_id'].astype(str)
+                good_reading_data["stop_id"]  = good_reading_data["stop_id"].str.replace(r"\.0$", "", regex=True)
+                stops_df['stop_id']           = stops_df['stop_id'].astype(str)
+                stops_df["stop_id"]           = stops_df["stop_id"].str.replace(r"\.0$", "", regex=True)
+                data_with_stops               = pd.merge(good_reading_data, stops_df, on='stop_id', how='left')
+
+                # Determine Distance Between Points
+                data_with_stops['km2nxtstp']  = hvrsn_dist((data_with_stops['position_latitude'].values, data_with_stops['position_longitude'].values), (data_with_stops['stop_lat'].values, data_with_stops['stop_lon'].values))
+
+                print(data_with_stops)
+
+                # Create Sample For Further Analysis
+                sample_data = data_with_stops[data_with_stops["vehicle_id"] == 1905]
+                sample_data = sample_data.sort_values(by=["batch_timestamp", "km2nxtstp"])
+
+                sample_data.to_csv(fr"C:\Users\renac\Desktop\testing.csv")
+                
+                
                     
 
             
             # TODO: Remove Duplicates Based On Same Bus & Same Timestamp. Only 1 Update Per Bus
+            #       Example: 2026-07-11 00:36:03-04:00
+            #       ADD IN STOP SEQUENCE, WHICH BUS STOPS WHERE HIT IN ORDER
 
 
 
@@ -303,7 +332,7 @@ class Exporter():
 
             # Export For Testing!
             # all_raw.to_csv(fr"C:\Users\renac\Desktop\testing.csv")
-            good_reading_data.to_csv(fr"C:\Users\renac\Desktop\testing.csv")
+            # good_reading_data.to_csv(fr"C:\Users\renac\Desktop\testing.csv")
 
 
 
