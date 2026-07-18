@@ -201,7 +201,7 @@ class Exporter():
         all_raw       = [file_ for file_ in list(os.listdir(csv_path)) if file_[:10] == "BUS_LOC_DB"]
 
         # Get Current Date & Day Before
-        days_            = 3
+        days_            = 1
         dt_ystrd         = (datetime.now() - timedelta(days = days_)).strftime("%d-%m-%Y")
         dt_ystrd____f2   = (datetime.now() - timedelta(days = days_)).strftime("%Y-%m-%d")
         dt_ystrd_m1_f1   = (datetime.now() - timedelta(days = days_ + 1)).strftime("%d-%m-%Y")
@@ -257,6 +257,11 @@ class Exporter():
             good_reading_data_len = len(good_reading_data)
 
 
+            # FOR TESTING PLEASE REMOVE LATER
+            print(all_raw_len, bad_reading_data_len, good_reading_data_len)
+
+
+
             #============================================================================
             # [Bronze 2 Silver] --> PHASE 4: Fix 1+ Updates For 1 Timestamp Issue
             #============================================================================
@@ -272,28 +277,65 @@ class Exporter():
                 conn.execute("PRAGMA journal_mode=WAL")
                 conn.execute("PRAGMA busy_timeout=30000")
 
-                # Read In Stops Data From STOPS Database Table
-                stops_df = pd.read_sql_query(f"""SELECT DISTINCT
-                                                    stop_id,
-                                                    stop_name,
-                                                    stop_lat,
-                                                    stop_lon
+                # Read In Stops Data With Order Of Sequence
+                stops_seq = pd.read_sql_query(f"""SELECT DISTINCT
+                                                    A.*,
+                                                    B.stop_sequence,
+                                                    B.stop_id
+                                              
+                                                 FROM       (SELECT
+                                                                route_id,
+                                                                service_id,
+                                                                trip_id,
+                                                                trip_headsign,
+                                                                direction_id
+                                                             FROM       TRIPS
+                                                             WHERE feed_version = (SELECT MAX(feed_version) FROM TRIPS)
+                                                            ) AS A
                                              
-                                                 FROM (SELECT MAX(feed_version) AS max_feed_ver
-                                                       FROM STOPS
-                                                       ) AS A
-                                             
-                                                 LEFT JOIN STOPS AS B
-                                                    ON (A.max_feed_ver = B.feed_version)
-                                             
+                                                 LEFT JOIN  (SELECT
+                                                                trip_id,
+                                                                stop_id,
+                                                                stop_sequence
+                                                             FROM       STOP_TIMES
+                                                             WHERE feed_version = (SELECT MAX(feed_version) FROM STOP_TIMES)
+                                                            ) AS B
+                                                    ON (A.trip_id = B.trip_id)
                                                 """, conn)
                 
+
+                # Read In Stops Data With Order Of Sequence
+                stops_names = pd.read_sql_query(f"""SELECT DISTINCT
+                                                    C.stop_id,
+                                                    C.stop_name,
+                                                    C.stop_lat,
+                                                    C.stop_lon
+                                             
+                                                 FROM       (SELECT
+                                                                stop_id,
+                                                                stop_name,
+                                                                stop_lat,
+                                                                stop_lon
+                                                             FROM       STOPS
+                                                             WHERE feed_version = (SELECT MAX(feed_version) FROM STOP_TIMES)
+                                                            ) AS C
+                                                """, conn)
+                
+                # Merge Data In Pandas
+                stops_seq['stop_id']           = stops_seq['stop_id'].astype(str)
+                stops_seq["stop_id"]           = stops_seq["stop_id"].str.replace(r"\.0$", "", regex=True)
+                stops_names['stop_id']         = stops_names['stop_id'].astype(str)
+                stops_names["stop_id"]         = stops_names["stop_id"].str.replace(r"\.0$", "", regex=True)
+                stops_df                       = pd.merge(stops_seq, stops_names, on='stop_id', how='left')
+
                 # Left Join Bus Stop Data Onto Bus Location Observations
                 good_reading_data['stop_id' ] = good_reading_data['stop_id'].astype(str)
                 good_reading_data["stop_id"]  = good_reading_data["stop_id"].str.replace(r"\.0$", "", regex=True)
                 stops_df['stop_id']           = stops_df['stop_id'].astype(str)
                 stops_df["stop_id"]           = stops_df["stop_id"].str.replace(r"\.0$", "", regex=True)
-                data_with_stops               = pd.merge(good_reading_data, stops_df, on='stop_id', how='left')
+                stops_df['trip_id']           = stops_df['trip_id'].astype(str)
+                stops_df["trip_id"]           = stops_df["trip_id"].str.replace(r"\.0$", "", regex=True)
+                data_with_stops               = pd.merge(good_reading_data, stops_df, left_on=['stop_id', 'trip_trip_id'], right_on=['stop_id', 'trip_id'], how='left')
 
                 # Determine Distance Between Points
                 data_with_stops['km2nxtstp']  = hvrsn_dist((data_with_stops['position_latitude'].values, data_with_stops['position_longitude'].values), (data_with_stops['stop_lat'].values, data_with_stops['stop_lon'].values))
@@ -301,10 +343,15 @@ class Exporter():
                 print(data_with_stops)
 
                 # Create Sample For Further Analysis
-                sample_data = data_with_stops[data_with_stops["vehicle_id"] == 1905]
+                sample_data = data_with_stops.copy()
+                sample_data = sample_data[sample_data["vehicle_id"] == 634]
                 sample_data = sample_data.sort_values(by=["batch_timestamp", "km2nxtstp"])
 
                 sample_data.to_csv(fr"C:\Users\renac\Desktop\testing.csv")
+
+
+
+                # For Each Bus Stop We Need To Know What The Next Bus Stop Was, And What Trip (And Direction) Was In Progress
                 
                 
                     
@@ -318,7 +365,7 @@ class Exporter():
 
 
 
-            print(all_raw_len, bad_reading_data_len, good_reading_data_len, nodup_p1_data_len)
+            # print(all_raw_len, bad_reading_data_len, good_reading_data_len, nodup_p1_data_len)
 
 
 
