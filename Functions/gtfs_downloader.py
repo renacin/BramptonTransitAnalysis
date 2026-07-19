@@ -30,8 +30,8 @@ class GTFS_Downloader():
     def gather_GTFS(self):
 
         """ Gather GTFS Data"""
-        # self.__get_gtfs_data()
-        # self.__upld_gtfs_data()
+        self.__get_gtfs_data()
+        self.__upld_gtfs_data()
         self.__create_routemasterkey()
 
 
@@ -251,7 +251,4 @@ class GTFS_Downloader():
 # ----------------------------------------------------------------------------------------------------------------------
 # Entry Point Into Python Code (For Testing!)
 if __name__ == "__main__":
-
-    # For Testing Remove Once Finished
-    gtfs_ = GTFS_Downloader()
-    gtfs_.gather_GTFS()
+    pass
