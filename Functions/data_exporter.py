@@ -176,9 +176,6 @@ class Exporter():
         Into Cleaned Data, Free Of Duplicates, Errors, Etc.. (Silver Layer) Ready To Be Used For Analytics
         """
 
-
-
-
         # TODO: Handle parked buses (jittering GPS at depot/layover)
         #       Long runs of speed=0 at ~same position survive dedup because
         #       coords differ by a few metres (43.714867 vs 43.714775)
@@ -186,10 +183,6 @@ class Exporter():
         #         b) flag is_parked = consecutive zero-speed at same stop_id
         #         c) leave them, filter downstream
         #       Decide which, document why
-
-        # TODO: Verify dedup didn't destroy real movement
-        #       Sanity check: pick one vehicle, plot its path before/after
-        #       Confirm the trail still traces a coherent route
 
         # TODO: Add Columns That Improve End User QOL
 
@@ -256,73 +249,60 @@ class Exporter():
             bad_reading_data_len  = len(bad_reading_data)
             good_reading_data_len = len(good_reading_data)
 
-
-            # FOR TESTING PLEASE REMOVE LATER
-            print(all_raw_len, bad_reading_data_len, good_reading_data_len)
-
+            # Delete Unneeded Data
+            del all_raw
 
 
             #============================================================================
-            # [Bronze 2 Silver] --> PHASE 4: Fix 1+ Updates For 1 Timestamp Issue
+            # [Bronze 2 Silver] --> PHASE 4: Identify Multiple Updates For 1 Timestamp
             #============================================================================
+
+            # Read In Most Recent Route MasterKey
+            rt_mk_path              = os.path.join(self.cfg.csv_out_path, "ROUTES_MASTERKEY")
+            max_rt_mk_ver           = max([int(file_[:8]) for file_ in list(os.listdir(rt_mk_path)) if file_[9:] == "ROUTEMASTERKEY.csv"])
+            max_rt_mk_path          = os.path.join(self.cfg.csv_out_path, "ROUTES_MASTERKEY", f"{max_rt_mk_ver}_ROUTEMASTERKEY.csv")
+            stops_df                = pd.read_csv(max_rt_mk_path)
+
 
             # Try To Remove Duplicates Based On As Many Columns As Possible, Store Len For Logging
             good_reading_data = good_reading_data.drop_duplicates(subset=["vehicle_id", "trip_trip_id", "position_latitude", "position_longitude", "current_status", "stop_id"])
             nodup_p1_data_len = len(good_reading_data)
 
 
-                # # Left Join Bus Stop Data Onto Bus Location Observations
-                # good_reading_data['stop_id' ] = good_reading_data['stop_id'].astype(str)
-                # good_reading_data["stop_id"]  = good_reading_data["stop_id"].str.replace(r"\.0$", "", regex=True)
-                # stops_df['stop_id']           = stops_df['stop_id'].astype(str)
-                # stops_df["stop_id"]           = stops_df["stop_id"].str.replace(r"\.0$", "", regex=True)
-                # stops_df['trip_id']           = stops_df['trip_id'].astype(str)
-                # stops_df["trip_id"]           = stops_df["trip_id"].str.replace(r"\.0$", "", regex=True)
-                # data_with_stops               = pd.merge(good_reading_data, stops_df, left_on=['stop_id', 'trip_trip_id'], right_on=['stop_id', 'trip_id'], how='left')
+            # Left Join Bus Stop Data Onto Bus Location Observations
+            good_reading_data['stop_id' ] = good_reading_data['stop_id'].astype(str)
+            good_reading_data["stop_id"]  = good_reading_data["stop_id"].str.replace(r"\.0$", "", regex=True)
+            stops_df['stop_id']           = stops_df['stop_id'].astype(str)
+            stops_df["stop_id"]           = stops_df["stop_id"].str.replace(r"\.0$", "", regex=True)
+            stops_df['trip_id']           = stops_df['trip_id'].astype(str)
+            stops_df["trip_id"]           = stops_df["trip_id"].str.replace(r"\.0$", "", regex=True)
+            data_with_stops               = pd.merge(good_reading_data, stops_df, left_on=['stop_id', 'trip_trip_id'], right_on=['stop_id', 'trip_id'], how='left')
+            del stops_df
 
-                # # Determine Distance Between Points
-                # data_with_stops['km2nxtstp']  = hvrsn_dist((data_with_stops['position_latitude'].values, data_with_stops['position_longitude'].values), (data_with_stops['stop_lat'].values, data_with_stops['stop_lon'].values))
+            # Determine Distance Between Points
+            data_with_stops['km2nxtstp']  = hvrsn_dist((data_with_stops['position_latitude'].values, data_with_stops['position_longitude'].values), (data_with_stops['stop_lat'].values, data_with_stops['stop_lon'].values))
 
-                # print(data_with_stops)
-
-                # # Create Sample For Further Analysis
-                # sample_data = data_with_stops.copy()
-                # sample_data = sample_data[sample_data["vehicle_id"] == 634]
-                # sample_data = sample_data.sort_values(by=["batch_timestamp", "km2nxtstp"])
-
-                # sample_data.to_csv(fr"C:\Users\renac\Desktop\testing.csv")
+            # Sort Data By Multiple Columns
+            data_with_stops               = data_with_stops.sort_values(by=['vehicle_id', 'batch_timestamp', 'stop_sequence', 'km2nxtstp'], ascending=[True, True, True, False])
 
 
+            #============================================================================
+            # [Bronze 2 Silver] --> PHASE 5: Enrich Data
+            #============================================================================
 
-                # For Each Bus Stop We Need To Know What The Next Bus Stop Was, And What Trip (And Direction) Was In Progress
-                
-                
-                    
+            # Delete Unneeded Cols
+            del data_with_stops["trip_id"]
 
-            
-            # TODO: Remove Duplicates Based On Same Bus & Same Timestamp. Only 1 Update Per Bus
-            #       Example: 2026-07-11 00:36:03-04:00
-            #       ADD IN STOP SEQUENCE, WHICH BUS STOPS WHERE HIT IN ORDER
+            # Account For Multiple Updates For 1 Timestamp | Find Which Have Multiple
+            mltpl_obs         = data_with_stops.groupby(['vehicle_id', 'batch_timestamp'], as_index=False).agg(obs_per_btch_tmstmp = ("vehicle_id", "count"))
+            mltpl_obs         = mltpl_obs[mltpl_obs["obs_per_btch_tmstmp"] >= 2]
+            data_with_stops   = pd.merge(data_with_stops, mltpl_obs, on=['vehicle_id', 'batch_timestamp'], how='left')
+            data_with_stops["obs_per_btch_tmstmp"] = data_with_stops["obs_per_btch_tmstmp"].fillna(1)
 
-
-
-
-
-            # print(all_raw_len, bad_reading_data_len, good_reading_data_len, nodup_p1_data_len)
-
-
-
-            # shared_logger("Data Exporter", f"Bronze 2 Silver (P3) --> ALL: {len(all_raw)} | GOOD: {len(good_reading_data)} | QUARNTD: {len(bad_reading_data)}", 1, self.cfg.dblog_path)
-
-
-
-
-
-
-
-            # Export For Testing!
-            # all_raw.to_csv(fr"C:\Users\renac\Desktop\testing.csv")
-            # good_reading_data.to_csv(fr"C:\Users\renac\Desktop\testing.csv")
+            # Create Sample For Further Analysis
+            sample_data = data_with_stops.copy()
+            sample_data = sample_data[sample_data["vehicle_id"] == 634]
+            sample_data.to_csv(fr"C:\Users\renac\Desktop\testing.csv")
 
 
 

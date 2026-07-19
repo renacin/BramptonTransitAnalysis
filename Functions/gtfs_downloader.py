@@ -122,7 +122,6 @@ class GTFS_Downloader():
 
 
     # -------------------- Private Function #4 ---------------------------------
-    @time_it
     def __create_routemasterkey(self):
         """
         Having Pulled GTFS Data, Create A Master Key, A CSV File Containing The Each Routes, Each Stop, In Sequence, With All Needed Details
