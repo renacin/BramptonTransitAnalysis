@@ -47,7 +47,7 @@ class GTFS_Downloader():
                     raise OSError(f"[ERROR] Could Not Remove {file_ext} Files")
 
 
-    # -------------------- Private Function #6 ---------------------------------
+    # -------------------- Private Function #3 ---------------------------------
     def __get_gtfs_data(self):
         """
         When run this function will navigate to the City of Brampton's GTFS data repository
@@ -83,7 +83,7 @@ class GTFS_Downloader():
             raise requests.exceptions.HTTPError(f"Bad response: {response.status_code}")
         
 
-    # -------------------- Private Function #7 ---------------------------------
+    # -------------------- Private Function #4 ---------------------------------
     def __upld_gtfs_data(self):
         """
         Having Pulled GTFS Data, Check The Effective Date Range Of The Data, If New Upload To The Database, Else Pass

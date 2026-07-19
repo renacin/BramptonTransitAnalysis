@@ -201,7 +201,7 @@ class Exporter():
         all_raw       = [file_ for file_ in list(os.listdir(csv_path)) if file_[:10] == "BUS_LOC_DB"]
 
         # Get Current Date & Day Before
-        days_            = 1
+        days_            = 2
         dt_ystrd         = (datetime.now() - timedelta(days = days_)).strftime("%d-%m-%Y")
         dt_ystrd____f2   = (datetime.now() - timedelta(days = days_)).strftime("%Y-%m-%d")
         dt_ystrd_m1_f1   = (datetime.now() - timedelta(days = days_ + 1)).strftime("%d-%m-%Y")
