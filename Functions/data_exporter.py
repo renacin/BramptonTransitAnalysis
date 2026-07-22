@@ -216,6 +216,7 @@ class Exporter():
             all_raw                 = all_raw[all_raw["dt_colc_date"] == dt_ystrd____f2]
 
 
+
             #============================================================================
             # [Bronze 2 Silver] --> PHASE 2: Drop Bad Columns, Rename, Round
             #============================================================================
@@ -226,6 +227,7 @@ class Exporter():
 
             all_raw["position_latitude"]  = all_raw["position_latitude"].round(5)
             all_raw["position_longitude"] = all_raw["position_longitude"].round(5)
+
 
 
             #============================================================================
@@ -251,6 +253,7 @@ class Exporter():
 
             # Delete Unneeded Data
             del all_raw
+
 
 
             #============================================================================
@@ -286,6 +289,7 @@ class Exporter():
             data_with_stops               = data_with_stops.sort_values(by=['vehicle_id', 'batch_timestamp', 'stop_sequence', 'km2nxtstp'], ascending=[True, True, True, False])
 
 
+
             #============================================================================
             # [Bronze 2 Silver] --> PHASE 5: Enrich Data
             #============================================================================
@@ -301,7 +305,6 @@ class Exporter():
 
             # Create Sample For Further Analysis
             sample_data = data_with_stops.copy()
-            sample_data = sample_data[sample_data["vehicle_id"] == 634]
             sample_data.to_csv(fr"C:\Users\renac\Desktop\testing.csv")
 
 
