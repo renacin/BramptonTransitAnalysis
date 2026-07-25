@@ -312,7 +312,7 @@ class Exporter():
             sample_data.to_csv(fr"C:\Users\renac\Desktop\testing.csv")
 
 
-        # # TODO: Rerun with yesterdays data and figure out next steps
+        # TODO: Add Data That Enriches User QOL
 
 
 
