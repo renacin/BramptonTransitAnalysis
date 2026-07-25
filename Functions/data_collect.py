@@ -13,6 +13,8 @@ from datetime import datetime
 
 from Functions.env_config  import Config
 from Functions.data_helper import shared_logger
+
+from contextlib import closing
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -96,84 +98,86 @@ class Collector():
             df["u_id"]      = df["trip_route_id"] + "_" + df["vehicle_id"] + "_" + df["timestamp"].astype(str)
 
 
-        with sqlite3.connect(self.cfg.db_path, timeout=30, isolation_level=None) as conn:
-            try:
-                conn.execute("PRAGMA journal_mode=WAL")
-                conn.execute("PRAGMA busy_timeout=30000")
-
-                # Write To Temp Cache
-                df.to_sql('LOC_TEMP', conn, if_exists='replace', index=False)
-
-                # Write To Main Database Grab Exclusive Lock
-                conn.execute("BEGIN IMMEDIATE")
-                conn.execute("""
-                    INSERT INTO BUS_LOC_DB(id, u_id, trip_trip_id, 
-                                        trip_schedule_relationship, trip_route_id, 
-                                        position_latitude, position_longitude, position_bearing, 
-                                        position_speed, current_status, timestamp, 
-                                        stop_id, vehicle_id, vehicle_label, dt_colc)
-                    SELECT id, u_id, trip_trip_id, 
-                        trip_schedule_relationship, trip_route_id, position_latitude, 
-                        position_longitude, position_bearing, position_speed, 
-                        current_status, timestamp, stop_id, 
-                        vehicle_id, vehicle_label, dt_colc
-                    FROM LOC_TEMP
-                    WHERE NOT EXISTS (SELECT 1 FROM U_ID_TEMP WHERE U_ID_TEMP.u_id = LOC_TEMP.u_id)
-                """)
-
-                new_rows_inserted = conn.execute("SELECT changes()").fetchone()[0]
-                conn.execute("DROP TABLE IF EXISTS LOC_TEMP")
-
-                # Build updated U_ID cache in Python, then write with explicit SQL (NOT to_sql)
-                all_uids = pd.read_sql_query("SELECT * FROM U_ID_TEMP", conn)
-                all_uids = pd.concat([all_uids, df[["u_id", "timestamp"]]])
-                all_uids["timestamp"] = all_uids["timestamp"].astype('int')
-                all_uids = all_uids.sort_values(by="timestamp", ascending=False).drop_duplicates()
-                max_timestamp = all_uids["timestamp"].max() - (self.cfg.cache_time_limit * 60)
-                all_uids = all_uids[all_uids["timestamp"] >= max_timestamp]
-
-                # Write U_ID_TEMP with explicit SQL instead of to_sql — keeps pandas out of the transaction
-                conn.execute("DELETE FROM U_ID_TEMP")
-                conn.executemany(
-                    "INSERT INTO U_ID_TEMP(u_id, timestamp) VALUES (?, ?)",
-                    all_uids[["u_id", "timestamp"]].values.tolist()
-                )
-
-                conn.execute("COMMIT")
-                shared_logger("Data Collector", f"New Data -> {new_rows_inserted:04}", 1, self.cfg.dblog_path)
-
-
-            except sqlite3.OperationalError as e:
+        # Wrap Cntext Manager With Closing Context Manager. With Doesn't Natively Close SQLite Connections, Only SQLite Transactions
+        with closing(sqlite3.connect(self.cfg.db_path, timeout=30, isolation_level=None)) as conn:
+            with conn:
                 try:
-                    conn.execute("ROLLBACK")
-                except sqlite3.OperationalError:
-                    pass  # Already committed, nothing to roll back
-                shared_logger("Data Collector", f"Database Operational Error: {e}", 2, self.cfg.dblog_path)
-                time.sleep(self.cfg.timeout_time * 2)
+                    conn.execute("PRAGMA journal_mode=WAL")
+                    conn.execute("PRAGMA busy_timeout=30000")
 
-            except sqlite3.IntegrityError as e:
-                try:
-                    conn.execute("ROLLBACK")
-                except sqlite3.OperationalError:
-                    pass  # Already committed, nothing to roll back
-                shared_logger("Data Collector", f"Duplicate Key Error: {e}", 2, self.cfg.dblog_path)
-                time.sleep(self.cfg.timeout_time * 2)
+                    # Write To Temp Cache
+                    df.to_sql('LOC_TEMP', conn, if_exists='replace', index=False)
 
-            except KeyboardInterrupt:
-                try:
-                    conn.execute("ROLLBACK")
-                except sqlite3.OperationalError:
-                    pass  # Already committed, nothing to roll back
-                shared_logger("Data Collector", f"Keyboard Interrupt", 3, self.cfg.dblog_path)
-                sys.exit()
+                    # Write To Main Database Grab Exclusive Lock
+                    conn.execute("BEGIN IMMEDIATE")
+                    conn.execute("""
+                        INSERT INTO BUS_LOC_DB(id, u_id, trip_trip_id, 
+                                            trip_schedule_relationship, trip_route_id, 
+                                            position_latitude, position_longitude, position_bearing, 
+                                            position_speed, current_status, timestamp, 
+                                            stop_id, vehicle_id, vehicle_label, dt_colc)
+                        SELECT id, u_id, trip_trip_id, 
+                            trip_schedule_relationship, trip_route_id, position_latitude, 
+                            position_longitude, position_bearing, position_speed, 
+                            current_status, timestamp, stop_id, 
+                            vehicle_id, vehicle_label, dt_colc
+                        FROM LOC_TEMP
+                        WHERE NOT EXISTS (SELECT 1 FROM U_ID_TEMP WHERE U_ID_TEMP.u_id = LOC_TEMP.u_id)
+                    """)
 
-            except Exception as e:
-                try:
-                    conn.execute("ROLLBACK")
-                except sqlite3.OperationalError:
-                    pass  # Already committed, nothing to roll back
-                shared_logger("Data Collector", f"Unexpected Error: {e}", 2, self.cfg.dblog_path)
-                time.sleep(self.cfg.timeout_time * 2)   
+                    new_rows_inserted = conn.execute("SELECT changes()").fetchone()[0]
+                    conn.execute("DROP TABLE IF EXISTS LOC_TEMP")
+
+                    # Build updated U_ID cache in Python, then write with explicit SQL (NOT to_sql)
+                    all_uids = pd.read_sql_query("SELECT * FROM U_ID_TEMP", conn)
+                    all_uids = pd.concat([all_uids, df[["u_id", "timestamp"]]])
+                    all_uids["timestamp"] = all_uids["timestamp"].astype('int')
+                    all_uids = all_uids.sort_values(by="timestamp", ascending=False).drop_duplicates()
+                    max_timestamp = all_uids["timestamp"].max() - (self.cfg.cache_time_limit * 60)
+                    all_uids = all_uids[all_uids["timestamp"] >= max_timestamp]
+
+                    # Write U_ID_TEMP with explicit SQL instead of to_sql — keeps pandas out of the transaction
+                    conn.execute("DELETE FROM U_ID_TEMP")
+                    conn.executemany(
+                        "INSERT INTO U_ID_TEMP(u_id, timestamp) VALUES (?, ?)",
+                        all_uids[["u_id", "timestamp"]].values.tolist()
+                    )
+
+                    conn.execute("COMMIT")
+                    shared_logger("Data Collector", f"New Data -> {new_rows_inserted:04}", 1, self.cfg.dblog_path)
+
+
+                except sqlite3.OperationalError as e:
+                    try:
+                        conn.execute("ROLLBACK")
+                    except sqlite3.OperationalError:
+                        pass  # Already committed, nothing to roll back
+                    shared_logger("Data Collector", f"Database Operational Error: {e}", 2, self.cfg.dblog_path)
+                    time.sleep(self.cfg.timeout_time * 2)
+
+                except sqlite3.IntegrityError as e:
+                    try:
+                        conn.execute("ROLLBACK")
+                    except sqlite3.OperationalError:
+                        pass  # Already committed, nothing to roll back
+                    shared_logger("Data Collector", f"Duplicate Key Error: {e}", 2, self.cfg.dblog_path)
+                    time.sleep(self.cfg.timeout_time * 2)
+
+                except KeyboardInterrupt:
+                    try:
+                        conn.execute("ROLLBACK")
+                    except sqlite3.OperationalError:
+                        pass  # Already committed, nothing to roll back
+                    shared_logger("Data Collector", f"Keyboard Interrupt", 3, self.cfg.dblog_path)
+                    sys.exit()
+
+                except Exception as e:
+                    try:
+                        conn.execute("ROLLBACK")
+                    except sqlite3.OperationalError:
+                        pass  # Already committed, nothing to roll back
+                    shared_logger("Data Collector", f"Unexpected Error: {e}", 2, self.cfg.dblog_path)
+                    time.sleep(self.cfg.timeout_time * 2)   
 
 
 

@@ -9,6 +9,8 @@ import sqlite3
 import logging
 import time
 import os
+
+from contextlib import closing
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -67,15 +69,16 @@ def shared_logger(logger_name="", message_txt="", func_level=1, log_location="")
     now = datetime.now()
 
     # Write To Database
-    with sqlite3.connect(log_location, timeout=30, isolation_level=None) as conn:
+    with closing(sqlite3.connect(log_location, timeout=30, isolation_level=None)) as conn:
+        with conn:
+            
+            # Connect TO Database Table & Write Data
+            conn.execute("PRAGMA journal_mode=WAL")
+            conn.execute("PRAGMA busy_timeout=30000")
+            conn.execute("INSERT INTO DB_LOGS (time_stamp, reporter, warning_level, info) values (?, ?, ?, ?)", (now, logger_name, func_level, message_txt))
 
-        # Connect TO Database Table & Write Data
-        conn.execute("PRAGMA journal_mode=WAL")
-        conn.execute("PRAGMA busy_timeout=30000")
-        conn.execute("INSERT INTO DB_LOGS (time_stamp, reporter, warning_level, info) values (?, ?, ?, ?)", (now, logger_name, func_level, message_txt))
-
-        # Save All Changes To The Database
-        conn.commit()
+            # Save All Changes To The Database
+            conn.commit()
 
 
 

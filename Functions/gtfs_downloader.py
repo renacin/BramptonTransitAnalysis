@@ -12,6 +12,8 @@ from datetime import datetime
 
 from Functions.data_helper import *
 from Functions.env_config  import Config
+
+from contextlib import closing
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -95,29 +97,30 @@ class GTFS_Downloader():
         """
 
         # Make A Connection To The Database
-        with sqlite3.connect(self.cfg.db_path) as conn:
+        with closing(sqlite3.connect(self.cfg.db_path)) as conn:
+            with conn:
 
-            # First Find The GTFS Feed_Info.txt File
-            feed_df          = pd.read_csv(os.path.join(self.cfg.csv_out_path, "GTFS", "feed_info.txt"), usecols=["feed_version"])
-            feed_cur_version = str(feed_df['feed_version'].iloc[0])
-            all_gtfs_ver     = pd.read_sql_query("SELECT DISTINCT feed_version FROM FEED_INFO", conn)
-            del feed_df
-        
-            # If The Current Edit Is Not In The Database Add All Data
-            if feed_cur_version not in all_gtfs_ver["feed_version"].values:
+                # First Find The GTFS Feed_Info.txt File
+                feed_df          = pd.read_csv(os.path.join(self.cfg.csv_out_path, "GTFS", "feed_info.txt"), usecols=["feed_version"])
+                feed_cur_version = str(feed_df['feed_version'].iloc[0])
+                all_gtfs_ver     = pd.read_sql_query("SELECT DISTINCT feed_version FROM FEED_INFO", conn)
+                del feed_df
+            
+                # If The Current Edit Is Not In The Database Add All Data
+                if feed_cur_version not in all_gtfs_ver["feed_version"].values:
 
-                # Upload The Rest Of The Data | Only Update GTFS Files
-                for file_name in self.cfg.table_dict:
-                    if file_name not in self.cfg.GATHER_TABLE:
-                        temp_df                 = pd.read_csv(os.path.join(self.cfg.csv_out_path, "GTFS", f"{file_name.lower()}.txt"))
-                        temp_df["feed_version"] = feed_cur_version
-                        temp_df                 = temp_df[self.cfg.table_dict[file_name]]
-                        temp_df.to_sql(file_name, conn, if_exists="append", index=False)
-                        shared_logger("Data Janitor  ", f"New GTFS Data Uploaded -> {file_name}", 1, self.cfg.dblog_path)
+                    # Upload The Rest Of The Data | Only Update GTFS Files
+                    for file_name in self.cfg.table_dict:
+                        if file_name not in self.cfg.GATHER_TABLE:
+                            temp_df                 = pd.read_csv(os.path.join(self.cfg.csv_out_path, "GTFS", f"{file_name.lower()}.txt"))
+                            temp_df["feed_version"] = feed_cur_version
+                            temp_df                 = temp_df[self.cfg.table_dict[file_name]]
+                            temp_df.to_sql(file_name, conn, if_exists="append", index=False)
+                            shared_logger("Data Janitor  ", f"New GTFS Data Uploaded -> {file_name}", 1, self.cfg.dblog_path)
 
 
-            # Delete All Text Files In Folder
-            self.__delete_files(".txt", self.cfg.foldr_path)
+                # Delete All Text Files In Folder
+                self.__delete_files(".txt", self.cfg.foldr_path)
 
 
 
@@ -132,117 +135,118 @@ class GTFS_Downloader():
         out_path = os.path.join(self.cfg.csv_out_path, f"ROUTES_MASTERKEY")
 
         # GTFS Downlaoder Will Run Before This, Check The Feed Versions Of Each Table
-        with sqlite3.connect(self.cfg.db_path, timeout=30, isolation_level=None) as conn:
+        with closing(sqlite3.connect(self.cfg.db_path, timeout=30, isolation_level=None)) as conn:
+            with conn:
 
-            try:
+                try:
 
-                # Set PRAGMAs BEFORE Any Transactions, This Is Not An Urgent Connection
-                conn.execute("PRAGMA journal_mode=WAL")
-                conn.execute("PRAGMA busy_timeout=30000")
+                    # Set PRAGMAs BEFORE Any Transactions, This Is Not An Urgent Connection
+                    conn.execute("PRAGMA journal_mode=WAL")
+                    conn.execute("PRAGMA busy_timeout=30000")
 
-                # Find Most Current Feed Version
-                unique_feed_version = pd.read_sql_query(f"""SELECT MAX(MAX_FEED) AS MAX_FEED_VER
-                                                            FROM (SELECT   MAX(feed_version) AS MAX_FEED FROM TRIPS
-                                                                  UNION ALL
-                                                                  SELECT   MAX(feed_version) AS MAX_FEED FROM STOPS
-                                                                  UNION ALL
-                                                                  SELECT   MAX(feed_version) AS MAX_FEED FROM STOP_TIMES)
+                    # Find Most Current Feed Version
+                    unique_feed_version = pd.read_sql_query(f"""SELECT MAX(MAX_FEED) AS MAX_FEED_VER
+                                                                FROM (SELECT   MAX(feed_version) AS MAX_FEED FROM TRIPS
+                                                                    UNION ALL
+                                                                    SELECT   MAX(feed_version) AS MAX_FEED FROM STOPS
+                                                                    UNION ALL
+                                                                    SELECT   MAX(feed_version) AS MAX_FEED FROM STOP_TIMES)
+                                                            """, conn)
+                    
+
+                    # Grab Needed Data For Coparison
+                    gtfs_feed_version    = int(unique_feed_version['MAX_FEED_VER'].iloc[0])
+                    focus_raw_csv        = [file_ for file_ in list(os.listdir(out_path)) if file_[9:] == "ROUTEMASTERKEY.csv"]
+
+
+                    # May Run Into An Value Error, Nest In Try/Except
+                    try:
+                        max_file_version = max([int(file_[:8]) for file_ in focus_raw_csv])
+                    except ValueError:
+                        max_file_version = 0
+
+
+                    # Look Into Feed, Run Only If No File, Or Current Masterkey Is Older Than GTFS Feed
+                    if (len(focus_raw_csv) == 0) or (gtfs_feed_version > max_file_version):
+                    
+                        # Read In Stops Data With Order Of Sequence
+                        stops_seq = pd.read_sql_query(f"""SELECT
+                                                            A.*,
+                                                            B.stop_sequence,
+                                                            B.stop_id
+                                                        
+                                                            FROM       (SELECT
+                                                                        route_id,
+                                                                        service_id,
+                                                                        trip_id,
+                                                                        trip_headsign,
+                                                                        direction_id
+                                                                        FROM       TRIPS
+                                                                        WHERE feed_version = (SELECT MAX(feed_version) FROM TRIPS)
+                                                                    ) AS A
+                                                        
+                                                            LEFT JOIN  (SELECT
+                                                                        trip_id,
+                                                                        stop_id,
+                                                                        stop_sequence
+                                                                        FROM       STOP_TIMES
+                                                                        WHERE feed_version = (SELECT MAX(feed_version) FROM STOP_TIMES)
+                                                                    ) AS B
+                                                            ON (A.trip_id = B.trip_id)
                                                         """, conn)
-                
+                        
 
-                # Grab Needed Data For Coparison
-                gtfs_feed_version    = int(unique_feed_version['MAX_FEED_VER'].iloc[0])
-                focus_raw_csv        = [file_ for file_ in list(os.listdir(out_path)) if file_[9:] == "ROUTEMASTERKEY.csv"]
+                        # Read In Stops Data With Order Of Sequence
+                        stops_names = pd.read_sql_query(f"""SELECT
+                                                            C.stop_id,
+                                                            C.stop_name,
+                                                            C.stop_lat,
+                                                            C.stop_lon
+                                                        
+                                                            FROM       (SELECT
+                                                                        stop_id,
+                                                                        stop_name,
+                                                                        stop_lat,
+                                                                        stop_lon
+                                                                        FROM       STOPS
+                                                                        WHERE feed_version = (SELECT MAX(feed_version) FROM STOPS)
+                                                                    ) AS C
+                                                        """, conn)
+                        
+                        # Merge Data In Pandas
+                        stops_seq['stop_id']           = stops_seq['stop_id'].astype(str)
+                        stops_seq["stop_id"]           = stops_seq["stop_id"].str.replace(r"\.0$", "",   regex=True)
+                        stops_names['stop_id']         = stops_names['stop_id'].astype(str)
+                        stops_names["stop_id"]         = stops_names["stop_id"].str.replace(r"\.0$", "", regex=True)
+                        stops_df                       = pd.merge(stops_seq, stops_names, on='stop_id', how='left')
 
-
-                # May Run Into An Value Error, Nest In Try/Except
-                try:
-                    max_file_version = max([int(file_[:8]) for file_ in focus_raw_csv])
-                except ValueError:
-                    max_file_version = 0
-
-
-                # Look Into Feed, Run Only If No File, Or Current Masterkey Is Older Than GTFS Feed
-                if (len(focus_raw_csv) == 0) or (gtfs_feed_version > max_file_version):
-                
-                    # Read In Stops Data With Order Of Sequence
-                    stops_seq = pd.read_sql_query(f"""SELECT
-                                                        A.*,
-                                                        B.stop_sequence,
-                                                        B.stop_id
-                                                    
-                                                        FROM       (SELECT
-                                                                    route_id,
-                                                                    service_id,
-                                                                    trip_id,
-                                                                    trip_headsign,
-                                                                    direction_id
-                                                                    FROM       TRIPS
-                                                                    WHERE feed_version = (SELECT MAX(feed_version) FROM TRIPS)
-                                                                ) AS A
-                                                    
-                                                        LEFT JOIN  (SELECT
-                                                                    trip_id,
-                                                                    stop_id,
-                                                                    stop_sequence
-                                                                    FROM       STOP_TIMES
-                                                                    WHERE feed_version = (SELECT MAX(feed_version) FROM STOP_TIMES)
-                                                                ) AS B
-                                                        ON (A.trip_id = B.trip_id)
-                                                    """, conn)
-                    
-
-                    # Read In Stops Data With Order Of Sequence
-                    stops_names = pd.read_sql_query(f"""SELECT
-                                                        C.stop_id,
-                                                        C.stop_name,
-                                                        C.stop_lat,
-                                                        C.stop_lon
-                                                    
-                                                        FROM       (SELECT
-                                                                    stop_id,
-                                                                    stop_name,
-                                                                    stop_lat,
-                                                                    stop_lon
-                                                                    FROM       STOPS
-                                                                    WHERE feed_version = (SELECT MAX(feed_version) FROM STOPS)
-                                                                ) AS C
-                                                    """, conn)
-                    
-                    # Merge Data In Pandas
-                    stops_seq['stop_id']           = stops_seq['stop_id'].astype(str)
-                    stops_seq["stop_id"]           = stops_seq["stop_id"].str.replace(r"\.0$", "",   regex=True)
-                    stops_names['stop_id']         = stops_names['stop_id'].astype(str)
-                    stops_names["stop_id"]         = stops_names["stop_id"].str.replace(r"\.0$", "", regex=True)
-                    stops_df                       = pd.merge(stops_seq, stops_names, on='stop_id', how='left')
-
-                    # Export Data
-                    out_file = os.path.join(out_path, f"{gtfs_feed_version}_ROUTEMASTERKEY.csv")
-                    stops_df.to_csv(out_file, index=False)
-                    shared_logger("Data Janitor", f"New Route Masterkey Created: {gtfs_feed_version}", 1, self.cfg.dblog_path)
+                        # Export Data
+                        out_file = os.path.join(out_path, f"{gtfs_feed_version}_ROUTEMASTERKEY.csv")
+                        stops_df.to_csv(out_file, index=False)
+                        shared_logger("Data Janitor", f"New Route Masterkey Created: {gtfs_feed_version}", 1, self.cfg.dblog_path)
 
 
-            # If Something Happens Rollback To Begin, Inform User, And Wait
-            except (sqlite3.IntegrityError, sqlite3.OperationalError) as e:
-                try:
-                    conn.execute("ROLLBACK")
-                except:
-                    pass
-                shared_logger("Data Janitor", f"Failed To Create New Route Masterkey: {e}", 2, self.cfg.dblog_path)
+                # If Something Happens Rollback To Begin, Inform User, And Wait
+                except (sqlite3.IntegrityError, sqlite3.OperationalError) as e:
+                    try:
+                        conn.execute("ROLLBACK")
+                    except:
+                        pass
+                    shared_logger("Data Janitor", f"Failed To Create New Route Masterkey: {e}", 2, self.cfg.dblog_path)
 
-            except KeyboardInterrupt:
-                try:
-                    conn.execute("ROLLBACK")
-                except:
-                    pass
-                shared_logger("Data Janitor", f"Keyboard Interrupt", 2, self.cfg.dblog_path)
+                except KeyboardInterrupt:
+                    try:
+                        conn.execute("ROLLBACK")
+                    except:
+                        pass
+                    shared_logger("Data Janitor", f"Keyboard Interrupt", 2, self.cfg.dblog_path)
 
-            except Exception as e:
-                try:
-                    conn.execute("ROLLBACK")
-                except:
-                    pass
-                shared_logger("Data Janitor", f"Failed To Create New Route Masterkey: {e}", 2, self.cfg.dblog_path)
+                except Exception as e:
+                    try:
+                        conn.execute("ROLLBACK")
+                    except:
+                        pass
+                    shared_logger("Data Janitor", f"Failed To Create New Route Masterkey: {e}", 2, self.cfg.dblog_path)
 
 
 

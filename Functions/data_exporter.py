@@ -12,6 +12,8 @@ from datetime import datetime, timedelta
 
 from Functions.env_config  import Config
 from Functions.data_helper import *
+
+from contextlib import closing
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -52,49 +54,51 @@ class Exporter():
 
 
         # Try To Hold A Lock On The Database
-        with sqlite3.connect(self.cfg.db_path, timeout=120, isolation_level=None) as conn:
+        # Wrap Cntext Manager With Closing Context Manager. With Doesn't Natively Close SQLite Connections, Only SQLite Transactions
+        with closing(sqlite3.connect(self.cfg.db_path, timeout=120, isolation_level=None)) as conn:
+            with conn:   
 
-            # Set PRAGMAs BEFORE any transaction, while no lock is held
-            conn.execute("PRAGMA journal_mode=WAL")
-            conn.execute("PRAGMA busy_timeout=120000")
+                # Set PRAGMAs BEFORE any transaction, while no lock is held
+                conn.execute("PRAGMA journal_mode=WAL")
+                conn.execute("PRAGMA busy_timeout=120000")
 
-            try:
-                conn.execute("BEGIN IMMEDIATE")
-
-                # Grab All Data & Export
-                df = pd.read_sql_query("""SELECT * FROM BUS_LOC_DB""", conn)
-                df.to_csv(bus_locs_out_path, index=False)
-                shared_logger("Data Exporter", f"Exporting {len(df)} Rows", 1, self.cfg.dblog_path)
-
-                # Delete All Data & Vacuum Database
-                conn.execute("""DELETE FROM BUS_LOC_DB""")
-                conn.execute("COMMIT")
-                conn.execute("VACUUM")
-                shared_logger("Data Exporter", f"Exported All Bus Locations", 1, self.cfg.dblog_path)
-
-
-            # If Something Happens Rollback To Begin, Inform User, And Wait
-            except (sqlite3.IntegrityError, sqlite3.OperationalError) as e:
                 try:
-                    conn.execute("ROLLBACK")
-                except:
-                    pass
-                shared_logger("Data Exporter", f"Bus Location Export cleanup failed: {e}", 2, self.cfg.dblog_path)
+                    conn.execute("BEGIN IMMEDIATE")
 
-            except KeyboardInterrupt:
-                try:
-                    conn.execute("ROLLBACK")
-                except:
-                    pass
-                shared_logger("Data Exporter", f"Keyboard Interrupt", 2, self.cfg.dblog_path)
-                sys.exit()
+                    # Grab All Data & Export
+                    df = pd.read_sql_query("""SELECT * FROM BUS_LOC_DB""", conn)
+                    df.to_csv(bus_locs_out_path, index=False)
+                    shared_logger("Data Exporter", f"Exporting {len(df)} Rows", 1, self.cfg.dblog_path)
 
-            except Exception as e:
-                try:
-                    conn.execute("ROLLBACK")
-                except:
-                    pass
-                shared_logger("Data Exporter", f"Bus Location Export cleanup failed: {e}", 2, self.cfg.dblog_path)
+                    # Delete All Data & Vacuum Database
+                    conn.execute("""DELETE FROM BUS_LOC_DB""")
+                    conn.execute("COMMIT")
+                    conn.execute("VACUUM")
+                    shared_logger("Data Exporter", f"Exported All Bus Locations", 1, self.cfg.dblog_path)
+
+
+                # If Something Happens Rollback To Begin, Inform User, And Wait
+                except (sqlite3.IntegrityError, sqlite3.OperationalError) as e:
+                    try:
+                        conn.execute("ROLLBACK")
+                    except:
+                        pass
+                    shared_logger("Data Exporter", f"Bus Location Export cleanup failed: {e}", 2, self.cfg.dblog_path)
+
+                except KeyboardInterrupt:
+                    try:
+                        conn.execute("ROLLBACK")
+                    except:
+                        pass
+                    shared_logger("Data Exporter", f"Keyboard Interrupt", 2, self.cfg.dblog_path)
+                    sys.exit()
+
+                except Exception as e:
+                    try:
+                        conn.execute("ROLLBACK")
+                    except:
+                        pass
+                    shared_logger("Data Exporter", f"Bus Location Export cleanup failed: {e}", 2, self.cfg.dblog_path)
 
 
 
@@ -106,64 +110,66 @@ class Exporter():
         """
         
         # Make A Connecion To The Data Collection Database - It Must be Exclusive As We Are Exporting & Cleaning The Database
-        with sqlite3.connect(self.cfg.db_path, timeout=120, isolation_level=None) as conn:
+        # Wrap Cntext Manager With Closing Context Manager. With Doesn't Natively Close SQLite Connections, Only SQLite Transactions
+        with closing(sqlite3.connect(self.cfg.db_path, timeout=120, isolation_level=None)) as conn:
+            with conn:
 
-            # Set PRAGMAs BEFORE any transaction, while no lock is held
-            conn.execute("PRAGMA journal_mode=WAL")
-            conn.execute("PRAGMA busy_timeout=120000")
+                # Set PRAGMAs BEFORE any transaction, while no lock is held
+                conn.execute("PRAGMA journal_mode=WAL")
+                conn.execute("PRAGMA busy_timeout=120000")
 
-            try:
-                # Read Each GTFS Dataset That Has FEED_VERSION In It.
-                for table_ in self.cfg.table_dict:
-                    if table_ not in self.cfg.NOT_FEED_BASED:
-
-                        # We Need To Find Rows Where The Feed Version Is 2 Cycles Older Than The Current
-                        df     = pd.read_sql_query(f"""SELECT DISTINCT feed_version FROM {table_}""", conn)
-                        dates_ = [int(x) for x in df["feed_version"].tolist()]
-                        dates_.sort(reverse=True)
-
-                        # Get All Data Older Than The Second Entry
-                        if len(dates_) > 1:
-
-                            # Get Path Name
-                            dt_nw = datetime.now().strftime(self.cfg.td_xl_dt_dsply_frmt)
-                            out_path = os.path.join(self.cfg.csv_out_path, table_, f"{table_}_{dt_nw}.csv")
-
-                            # Pull All Data & Write To Appropriate Folder
-                            df = pd.read_sql_query(f"""SELECT * FROM {table_} WHERE CAST(feed_version AS INTEGER) < CAST({str(dates_[1])} AS INTEGER)""", conn)
-                            df.to_csv(out_path, index=False)
-                            shared_logger("Data Exporter", f"Exported Old {table_} Data", 1, self.cfg.dblog_path)
-
-                            # Delete All Data & Vacuum Database
-                            conn.execute("BEGIN IMMEDIATE")
-                            conn.execute(f"""DELETE FROM {table_} WHERE CAST(feed_version AS INTEGER) < CAST({str(dates_[1])} AS INTEGER)""")
-                            conn.execute("COMMIT")
-                            conn.execute("VACUUM")
-                            shared_logger("Data Exporter", f"Cleaned Old {table_} Data", 1, self.cfg.dblog_path)
-
-
-            # If Something Happens Rollback To Begin, Inform User, And Wait
-            except (sqlite3.IntegrityError, sqlite3.OperationalError) as e:
                 try:
-                    conn.execute("ROLLBACK")
-                except:
-                    pass
-                shared_logger("Data Exporter", f"Failed To Clean Up {table_}: {e}", 2, self.cfg.dblog_path)
+                    # Read Each GTFS Dataset That Has FEED_VERSION In It.
+                    for table_ in self.cfg.table_dict:
+                        if table_ not in self.cfg.NOT_FEED_BASED:
 
-            except KeyboardInterrupt:
-                try:
-                    conn.execute("ROLLBACK")
-                except:
-                    pass
-                shared_logger("Data Exporter", f"Keyboard Interrupt", 2, self.cfg.dblog_path)
-                sys.exit()
+                            # We Need To Find Rows Where The Feed Version Is 2 Cycles Older Than The Current
+                            df     = pd.read_sql_query(f"""SELECT DISTINCT feed_version FROM {table_}""", conn)
+                            dates_ = [int(x) for x in df["feed_version"].tolist()]
+                            dates_.sort(reverse=True)
 
-            except Exception as e:
-                try:
-                    conn.execute("ROLLBACK")
-                except:
-                    pass
-                shared_logger("Data Exporter", f"Failed To Clean Up {table_}: {e}", 2, self.cfg.dblog_path)
+                            # Get All Data Older Than The Second Entry
+                            if len(dates_) > 1:
+
+                                # Get Path Name
+                                dt_nw = datetime.now().strftime(self.cfg.td_xl_dt_dsply_frmt)
+                                out_path = os.path.join(self.cfg.csv_out_path, table_, f"{table_}_{dt_nw}.csv")
+
+                                # Pull All Data & Write To Appropriate Folder
+                                df = pd.read_sql_query(f"""SELECT * FROM {table_} WHERE CAST(feed_version AS INTEGER) < CAST({str(dates_[1])} AS INTEGER)""", conn)
+                                df.to_csv(out_path, index=False)
+                                shared_logger("Data Exporter", f"Exported Old {table_} Data", 1, self.cfg.dblog_path)
+
+                                # Delete All Data & Vacuum Database
+                                conn.execute("BEGIN IMMEDIATE")
+                                conn.execute(f"""DELETE FROM {table_} WHERE CAST(feed_version AS INTEGER) < CAST({str(dates_[1])} AS INTEGER)""")
+                                conn.execute("COMMIT")
+                                conn.execute("VACUUM")
+                                shared_logger("Data Exporter", f"Cleaned Old {table_} Data", 1, self.cfg.dblog_path)
+
+
+                # If Something Happens Rollback To Begin, Inform User, And Wait
+                except (sqlite3.IntegrityError, sqlite3.OperationalError) as e:
+                    try:
+                        conn.execute("ROLLBACK")
+                    except:
+                        pass
+                    shared_logger("Data Exporter", f"Failed To Clean Up {table_}: {e}", 2, self.cfg.dblog_path)
+
+                except KeyboardInterrupt:
+                    try:
+                        conn.execute("ROLLBACK")
+                    except:
+                        pass
+                    shared_logger("Data Exporter", f"Keyboard Interrupt", 2, self.cfg.dblog_path)
+                    sys.exit()
+
+                except Exception as e:
+                    try:
+                        conn.execute("ROLLBACK")
+                    except:
+                        pass
+                    shared_logger("Data Exporter", f"Failed To Clean Up {table_}: {e}", 2, self.cfg.dblog_path)
 
 
 

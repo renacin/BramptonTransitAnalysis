@@ -12,6 +12,8 @@ from datetime import datetime, timedelta
 
 from Functions.env_config  import Config
 from Functions.data_helper import *
+
+from contextlib import closing
 # ----------------------------------------------------------------------------------------------------------------------
 
 
