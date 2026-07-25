@@ -14,6 +14,7 @@ from Functions.env_config  import Config
 from Functions.data_helper import *
 
 from contextlib import closing
+from pathlib import Path
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -35,8 +36,8 @@ class Exporter():
         """
 
         # Run Private Functions
-        self.__export_bus_locs()
-        self.__export_old_gtfs()
+        # self.__export_bus_locs()
+        # self.__export_old_gtfs()
         self.__transform_rawdata()
 
 
@@ -181,33 +182,33 @@ class Exporter():
         Into Cleaned Data, Free Of Duplicates, Errors, Etc.. (Silver Layer) Ready To Be Used For Analytics
         """
 
-        # Read CSV Storage Folder, Add Sanity Check For Right CSVs
+        # Read CSV Storage Folder, Grab The 3 Most Recent Exports. Sort By Write Time, NOT Filename 
         csv_path      = os.path.join(self.cfg.csv_out_path, "BUS_LOC_DB")
-        all_raw       = [file_ for file_ in list(os.listdir(csv_path)) if file_[:10] == "BUS_LOC_DB"]
+        all_files     = sorted(Path(csv_path).glob("BUS_LOC_DB_*.csv"), key=os.path.getmtime)[-3:]
 
         # Get Current Date & Day Before
         days_            = 1
-        dt_ystrd         = (datetime.now() - timedelta(days = days_)).strftime("%d-%m-%Y")
         dt_ystrd____f2   = (datetime.now() - timedelta(days = days_)).strftime("%Y-%m-%d")
         dt_ystrd____f3   = (datetime.now() - timedelta(days = days_)).strftime("%Y%m%d")
-        dt_ystrd_m1_f1   = (datetime.now() - timedelta(days = days_ + 1)).strftime("%d-%m-%Y")
 
-        # # Focus On Files Needed For Silver Layer Data Product
-        focus_raw_csv = [file_ for file_ in all_raw if file_[11:21] in [str(dt_ystrd), str(dt_ystrd_m1_f1)]]
 
-        # Proceed Only If More Than Three Files Exist Within Focus Window
-        if len(focus_raw_csv) >= 2:
+        # Proceed Only If There Is At Least One Export To Read
+        if len(all_files) >= 1:
 
             # Catch Errors Or Exceptions
             try:
                 #============================================================================
                 # [Bronze 2 Silver] --> PHASE 1: Focus On Pertinent Data
                 #============================================================================
-                focus_raw_csv           = [os.path.join(csv_path, file_) for file_ in focus_raw_csv]
-                all_raw                 = pd.concat([pd.read_csv(file_, dtype={"trip_route_id": str}) for file_ in focus_raw_csv])
+                all_raw                 = pd.concat([pd.read_csv(file_, dtype={"trip_route_id": str}) for file_ in all_files], ignore_index=True)
                 all_raw['dt_colc']      = pd.to_datetime(all_raw['dt_colc'])
                 all_raw['dt_colc_date'] = all_raw["dt_colc"].dt.strftime("%Y-%m-%d")
                 all_raw                 = all_raw[all_raw["dt_colc_date"] == dt_ystrd____f2]
+
+                # Nothing Dated Yesterday? Log It Loudly Instead Of Writing An Empty File
+                if len(all_raw) == 0:
+                    shared_logger("Data Exporter", f"No Rows Found For {dt_ystrd____f2} In {len(all_files)} Export(s)", 2, self.cfg.dblog_path)
+                    return
 
 
 
@@ -267,7 +268,7 @@ class Exporter():
 
 
                 # Left Join Bus Stop Data Onto Bus Location Observations
-                good_reading_data['trip_id']  =  norm_stop_id(good_reading_data['trip_id'])
+                good_reading_data['trip_trip_id']  =  norm_stop_id(good_reading_data['trip_trip_id'])
                 good_reading_data['stop_id' ] =  norm_stop_id(good_reading_data['stop_id'])
                 stops_df['stop_id']           =  norm_stop_id(stops_df['stop_id'])
                 stops_df["trip_id"]           =  norm_stop_id(stops_df["trip_id"])
@@ -327,8 +328,12 @@ class Exporter():
 
 
 
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 # Entry Point Into Python Code (For Testing!)
 if __name__ == "__main__":
     
-    pass
+    # pass
+    exprtr = Exporter()
+    exprtr.export_all()

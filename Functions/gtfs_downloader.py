@@ -167,7 +167,7 @@ class GTFS_Downloader():
 
 
                     # Look Into Feed, Run Only If No File, Or Current Masterkey Is Older Than GTFS Feed
-                    if True: #(len(focus_raw_csv) == 0) or (gtfs_feed_version > max_file_version)
+                    if (len(focus_raw_csv) == 0) or (gtfs_feed_version > max_file_version):
                     
                         # Read In Stops Data With Order Of Sequence
                         stops_seq = pd.read_sql_query(f"""SELECT

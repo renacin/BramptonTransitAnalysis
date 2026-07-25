@@ -71,7 +71,7 @@ def data_exporter_scheduler():
 
 
 # Create Scheduled Behaviour For: GTFS Downloader
-def gtfs_dowloader_scheduler():
+def gtfs_downloader_scheduler():
     """ Instantiate GTFS Downloader & Start Main Loop """
 
     # Main Loop Checking If It's 3:30AM, Sleep Until Then, Then Export, The Wait 30 Min, Repeat
@@ -126,7 +126,7 @@ def main():
     # Define Each Process, They Should Be Their Own Thread And Run Independently
     threads = [threading.Thread(target = data_collector_scheduler,   name="DataCollector",   daemon=True),
                threading.Thread(target = data_exporter_scheduler,    name="DataExporter",    daemon=True),
-               threading.Thread(target = gtfs_dowloader_scheduler,   name="GTFSDownloader",  daemon=True),
+               threading.Thread(target = gtfs_downloader_scheduler,  name="GTFSDownloader",  daemon=True),
                threading.Thread(target = data_vizualizer_scheduler,  name="DataVizualizer",  daemon=True),
                threading.Thread(target = dropbox_uploader_scheduler, name="DropBoxUploader", daemon=True),]
  
