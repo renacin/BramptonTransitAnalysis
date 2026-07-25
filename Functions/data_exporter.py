@@ -200,7 +200,7 @@ class Exporter():
         all_raw       = [file_ for file_ in list(os.listdir(csv_path)) if file_[:10] == "BUS_LOC_DB"]
 
         # Get Current Date & Day Before
-        days_            = 2
+        days_            = 1
         dt_ystrd         = (datetime.now() - timedelta(days = days_)).strftime("%d-%m-%Y")
         dt_ystrd____f2   = (datetime.now() - timedelta(days = days_)).strftime("%Y-%m-%d")
         dt_ystrd_m1_f1   = (datetime.now() - timedelta(days = days_ + 1)).strftime("%d-%m-%Y")
@@ -279,12 +279,10 @@ class Exporter():
 
 
             # Left Join Bus Stop Data Onto Bus Location Observations
-            good_reading_data['stop_id' ] = good_reading_data['stop_id'].astype(str)
-            good_reading_data["stop_id"]  = good_reading_data["stop_id"].str.replace(r"\.0$", "", regex=True)
-            stops_df['stop_id']           = stops_df['stop_id'].astype(str)
-            stops_df["stop_id"]           = stops_df["stop_id"].str.replace(r"\.0$", "", regex=True)
-            stops_df['trip_id']           = stops_df['trip_id'].astype(str)
-            stops_df["trip_id"]           = stops_df["trip_id"].str.replace(r"\.0$", "", regex=True)
+            good_reading_data['stop_id' ] =  norm_stop_id(good_reading_data['stop_id'])
+            stops_df['stop_id']           =  norm_stop_id(stops_df['stop_id'])
+            stops_df['trip_id']           =  norm_stop_id(stops_df['trip_id'])
+            stops_df["trip_id"]           =  norm_stop_id(stops_df["trip_id"])
             data_with_stops               = pd.merge(good_reading_data, stops_df, left_on=['stop_id', 'trip_trip_id'], right_on=['stop_id', 'trip_id'], how='left')
             del stops_df
 
@@ -314,7 +312,7 @@ class Exporter():
             sample_data.to_csv(fr"C:\Users\renac\Desktop\testing.csv")
 
 
-        # TODO: Rerun with yesterdays data and figure out next steps
+        # # TODO: Rerun with yesterdays data and figure out next steps
 
 
 
@@ -331,8 +329,6 @@ class Exporter():
 # Entry Point Into Python Code (For Testing!)
 if __name__ == "__main__":
     
-    #pass
-
-    # For Testing Remove Once Finished
-    exprt = Exporter()
-    exprt.export_all()
+    # pass
+    exptr = Exporter()
+    exptr.export_all()

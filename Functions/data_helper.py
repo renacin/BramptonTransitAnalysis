@@ -103,6 +103,24 @@ def time_it(func):
     return wrapper
 
 
+# ---------------------- Function #4 ---------------------------------
+def norm_stop_id(s):
+    """ 
+    This is function will take a cell value from a pandas dataframe and make sure it's operable in other joins.
+    It converts to string, removes trailling '.0', and leading 0000
+    """
+
+    # Convert Input To String & Remove Trailing Zeros
+    s = s.astype(str).str.strip()
+    s = s.str.replace(r"\.0$", "", regex=True)
+
+    # If The String Is Just Numbers Make Sure There Are No Leading Zeros (Becareful Of Parent Stop IDs)
+    numeric = s.str.fullmatch(r"\d+")
+    s.loc[numeric] = s.loc[numeric].str.lstrip("0").replace("", "0")
+
+    return s
+
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Entry Point Into Python Code (For Testing!)

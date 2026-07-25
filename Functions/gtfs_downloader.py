@@ -154,7 +154,7 @@ class GTFS_Downloader():
                                                             """, conn)
                     
 
-                    # Grab Needed Data For Coparison
+                    # Grab Needed Data For Comparison
                     gtfs_feed_version    = int(unique_feed_version['MAX_FEED_VER'].iloc[0])
                     focus_raw_csv        = [file_ for file_ in list(os.listdir(out_path)) if file_[9:] == "ROUTEMASTERKEY.csv"]
 
@@ -167,7 +167,7 @@ class GTFS_Downloader():
 
 
                     # Look Into Feed, Run Only If No File, Or Current Masterkey Is Older Than GTFS Feed
-                    if (len(focus_raw_csv) == 0) or (gtfs_feed_version > max_file_version):
+                    if True: #(len(focus_raw_csv) == 0) or (gtfs_feed_version > max_file_version)
                     
                         # Read In Stops Data With Order Of Sequence
                         stops_seq = pd.read_sql_query(f"""SELECT
@@ -193,8 +193,7 @@ class GTFS_Downloader():
                                                                         WHERE feed_version = (SELECT MAX(feed_version) FROM STOP_TIMES)
                                                                     ) AS B
                                                             ON (A.trip_id = B.trip_id)
-                                                        """, conn)
-                        
+                                                        """, conn)           
 
                         # Read In Stops Data With Order Of Sequence
                         stops_names = pd.read_sql_query(f"""SELECT
@@ -213,11 +212,10 @@ class GTFS_Downloader():
                                                                     ) AS C
                                                         """, conn)
                         
+
                         # Merge Data In Pandas
-                        stops_seq['stop_id']           = stops_seq['stop_id'].astype(str)
-                        stops_seq["stop_id"]           = stops_seq["stop_id"].str.replace(r"\.0$", "",   regex=True)
-                        stops_names['stop_id']         = stops_names['stop_id'].astype(str)
-                        stops_names["stop_id"]         = stops_names["stop_id"].str.replace(r"\.0$", "", regex=True)
+                        stops_seq['stop_id']           = norm_stop_id(stops_seq['stop_id'])
+                        stops_names["stop_id"]         = norm_stop_id(stops_names["stop_id"])
                         stops_df                       = pd.merge(stops_seq, stops_names, on='stop_id', how='left')
 
                         # Export Data
