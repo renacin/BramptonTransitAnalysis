@@ -15,7 +15,7 @@ class Config():
         # Try To Create A Table For Each Item In The Following Database
         self.BUS_LOC_URL         = r'https://gtfs-rt-merge.prod.bt-cadavl.com/BramptonTransit/GTFS/merged_VehiclePosition.json'
         self.GTFS_URL            = r'https://www.arcgis.com/sharing/rest/content/items/a355aabd5a8c490186bdce559c9c75fb/data'
-        self.FOLDERs             = ["BUS_LOC_DB", "FEED_INFO", "ROUTES", "TRIPS", "STOPS", "STOP_TIMES", "ROUTE_SPEED", "GTFS", "GRAPHICS", "ROUTES_MASTERKEY"]
+        self.FOLDERs             = ["BUS_LOC_DB", "FEED_INFO", "ROUTES", "TRIPS", "STOPS", "STOP_TIMES", "ROUTE_SPEED", "GTFS", "GRAPHICS", "ROUTES_MASTERKEY", "CLEANED_LOC_DATA"]
         self.NOT_FEED_BASED      = {"BUS_LOC_DB", "U_ID_TEMP"}
         self.GATHER_TABLE        = {"BUS_LOC_DB", "U_ID_TEMP", "ROUTE_SPEED"}
         self.log_dict            = {"DB_LOGS":        ['time_stamp', 'reporter', 'warning_level', 'info']}
