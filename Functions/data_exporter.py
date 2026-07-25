@@ -36,8 +36,8 @@ class Exporter():
         """
 
         # Run Private Functions
-        # self.__export_bus_locs()
-        # self.__export_old_gtfs()
+        self.__export_bus_locs()
+        self.__export_old_gtfs()
         self.__transform_rawdata()
 
 
@@ -334,6 +334,4 @@ class Exporter():
 # Entry Point Into Python Code (For Testing!)
 if __name__ == "__main__":
     
-    # pass
-    exprtr = Exporter()
-    exprtr.export_all()
+    pass
