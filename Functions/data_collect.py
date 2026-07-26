@@ -74,7 +74,6 @@ class Collector():
 
         except KeyboardInterrupt:
             shared_logger("Data Collector", f"Keyboard Interrupt", 3, self.cfg.dblog_path)
-            sys.exit()
 
 
 
@@ -169,7 +168,7 @@ class Collector():
                     except sqlite3.OperationalError:
                         pass  # Already committed, nothing to roll back
                     shared_logger("Data Collector", f"Keyboard Interrupt", 3, self.cfg.dblog_path)
-                    sys.exit()
+
 
                 except Exception as e:
                     try:

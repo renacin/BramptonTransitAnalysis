@@ -92,7 +92,6 @@ class Exporter():
                     except:
                         pass
                     shared_logger("Data Exporter", f"Keyboard Interrupt", 2, self.cfg.dblog_path)
-                    sys.exit()
 
                 except Exception as e:
                     try:
@@ -167,7 +166,6 @@ class Exporter():
                     except:
                         pass
                     shared_logger("Data Exporter", f"Keyboard Interrupt", 2, self.cfg.dblog_path)
-                    sys.exit()
 
                 except Exception as e:
                     try:
@@ -337,7 +335,6 @@ class Exporter():
 
             except KeyboardInterrupt:
                 shared_logger("Data Exporter", f"Keyboard Interrupt", 2, self.cfg.dblog_path)
-                sys.exit()
 
             except Exception as e:
                 shared_logger("Data Exporter", f"Failed To Clean Up Bus Loc Data: {e}", 2, self.cfg.dblog_path)
