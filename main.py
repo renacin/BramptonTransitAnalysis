@@ -15,6 +15,7 @@ from Functions.data_exporter      import *
 from Functions.data_collect       import *
 from Functions.data_visualiser    import *
 from Functions.upld_dropbox       import *
+from Functions.data_deleter       import *
 
 # Keyboard Shortcut Can Trigger This - Be Careful!
 stop_event = threading.Event()
@@ -78,7 +79,7 @@ def gtfs_downloader_scheduler():
     GTFS_Getter = GTFS_Downloader()
     while not stop_event.is_set(): # Be Careful With Stop_Event It Triggers On A Keyboard Shortcut Close!
         # if the wait was interrupted by shutdown, bail before working
-        if stop_event.wait(seconds_until(hour_=3, minute_=30)):
+        if stop_event.wait(seconds_until(hour_=3, minute_=00)):
             break
         GTFS_Getter.gather_GTFS()
         stop_event.wait(1800)
@@ -93,7 +94,7 @@ def data_vizualizer_scheduler():
     DataViz = Visualizer()
     while not stop_event.is_set(): # Be Careful With Stop_Event It Triggers On A Keyboard Shortcut Close!
         # if the wait was interrupted by shutdown, bail before working
-        if stop_event.wait(seconds_until(hour_=4, minute_=30)):
+        if stop_event.wait(seconds_until(hour_=3, minute_=30)):
             break
         DataViz.visualize_all()
         stop_event.wait(1800)
@@ -102,15 +103,30 @@ def data_vizualizer_scheduler():
 
 # Create Scheduled Behaviour For: GTFS Downloader
 def dropbox_uploader_scheduler():
-    """ Upload Graphcis & Files To Dropbox """
+    """ Upload Graphics & Files To Dropbox """
 
     # Main Loop Checking If It's 6:30AM, Sleep Until Then, Then Export, The Wait 30 Min, Repeat
     DBX_Uploader = DropBoxUploader()
     while not stop_event.is_set(): # Be Careful With Stop_Event It Triggers On A Keyboard Shortcut Close!
         # if the wait was interrupted by shutdown, bail before working
-        if stop_event.wait(seconds_until(hour_=5, minute_=30)):
+        if stop_event.wait(seconds_until(hour_=4, minute_=00)):
             break
         DBX_Uploader.upload_all()
+        stop_event.wait(1800)
+
+
+
+# Create Scheduled Behaviour For: Data Deleter
+def data_deleter_scheduler():
+    """ Delete Old Data """
+
+    # Main Loop Checking If It's 6:30AM, Sleep Until Then, Then Export, The Wait 30 Min, Repeat
+    DataDeleter = Deleter()
+    while not stop_event.is_set(): # Be Careful With Stop_Event It Triggers On A Keyboard Shortcut Close!
+        # if the wait was interrupted by shutdown, bail before working
+        if stop_event.wait(seconds_until(hour_=4, minute_=30)):
+            break
+        DataDeleter.delete_all()
         stop_event.wait(1800)
 
 
@@ -128,7 +144,8 @@ def main():
                threading.Thread(target = data_exporter_scheduler,    name="DataExporter",    daemon=True),
                threading.Thread(target = gtfs_downloader_scheduler,  name="GTFSDownloader",  daemon=True),
                threading.Thread(target = data_vizualizer_scheduler,  name="DataVizualizer",  daemon=True),
-               threading.Thread(target = dropbox_uploader_scheduler, name="DropBoxUploader", daemon=True),]
+               threading.Thread(target = dropbox_uploader_scheduler, name="DropBoxUploader", daemon=True),
+               threading.Thread(target = data_deleter_scheduler,     name="DataDeleter",     daemon=True),]
  
     # Start Each Thread
     for t in threads:
