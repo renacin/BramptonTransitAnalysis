@@ -56,32 +56,32 @@ def data_collector_scheduler():
 
 
 
-# Create Scheduled Behaviour For: Data Exporter
-def data_exporter_scheduler():
-    """ Instantiate Data Exporter & Start Main Loop """
-
-    # Main Loop Checking If It's 2:30AM, Sleep Until Then, Then Export, The Wait 30 Min, Repeat
-    DataExporter = Exporter()
-    while not stop_event.is_set(): # Be Careful With Stop_Event It Triggers On A Keyboard Shortcut Close!
-        # if the wait was interrupted by shutdown, bail before working
-        if stop_event.wait(seconds_until(hour_=2, minute_=30)):
-            break
-        DataExporter.export_all()
-        stop_event.wait(1800)
-
-
-
 # Create Scheduled Behaviour For: GTFS Downloader
 def gtfs_downloader_scheduler():
     """ Instantiate GTFS Downloader & Start Main Loop """
 
-    # Main Loop Checking If It's 3:30AM, Sleep Until Then, Then Export, The Wait 30 Min, Repeat
+    # Main Loop Checking If It's 2:30AM, Sleep Until Then, Then Export, Then Wait 30 Min, Repeat
     GTFS_Getter = GTFS_Downloader()
+    while not stop_event.is_set(): # Be Careful With Stop_Event It Triggers On A Keyboard Shortcut Close!
+        # if the wait was interrupted by shutdown, bail before working
+        if stop_event.wait(seconds_until(hour_=2, minute_=30)):
+            break
+        GTFS_Getter.gather_GTFS()
+        stop_event.wait(1800)
+
+
+
+# Create Scheduled Behaviour For: Data Exporter
+def data_exporter_scheduler():
+    """ Instantiate Data Exporter & Start Main Loop """
+
+    # Main Loop Checking If It's 3:00AM, Sleep Until Then, Then Export, Then Wait 30 Min, Repeat
+    DataExporter = Exporter()
     while not stop_event.is_set(): # Be Careful With Stop_Event It Triggers On A Keyboard Shortcut Close!
         # if the wait was interrupted by shutdown, bail before working
         if stop_event.wait(seconds_until(hour_=3, minute_=00)):
             break
-        GTFS_Getter.gather_GTFS()
+        DataExporter.export_all()
         stop_event.wait(1800)
 
 
@@ -90,7 +90,7 @@ def gtfs_downloader_scheduler():
 def data_vizualizer_scheduler():
     """ Create Graphics For Data Pulled & Analyzed """
 
-    # Main Loop Checking If It's 4:30AM, Sleep Until Then, Then Export, The Wait 30 Min, Repeat
+    # Main Loop Checking If It's 3:30AM, Sleep Until Then, Then Export, Then Wait 30 Min, Repeat
     DataViz = Visualizer()
     while not stop_event.is_set(): # Be Careful With Stop_Event It Triggers On A Keyboard Shortcut Close!
         # if the wait was interrupted by shutdown, bail before working
@@ -105,7 +105,7 @@ def data_vizualizer_scheduler():
 def dropbox_uploader_scheduler():
     """ Upload Graphics & Files To Dropbox """
 
-    # Main Loop Checking If It's 6:30AM, Sleep Until Then, Then Export, The Wait 30 Min, Repeat
+    # Main Loop Checking If It's 4:00AM, Sleep Until Then, Then Export, Then Wait 30 Min, Repeat
     DBX_Uploader = DropBoxUploader()
     while not stop_event.is_set(): # Be Careful With Stop_Event It Triggers On A Keyboard Shortcut Close!
         # if the wait was interrupted by shutdown, bail before working
@@ -120,7 +120,7 @@ def dropbox_uploader_scheduler():
 def data_deleter_scheduler():
     """ Delete Old Data """
 
-    # Main Loop Checking If It's 6:30AM, Sleep Until Then, Then Export, The Wait 30 Min, Repeat
+    # Main Loop Checking If It's 4:30AM, Sleep Until Then, Then Export, Then Wait 30 Min, Repeat
     DataDeleter = Deleter()
     while not stop_event.is_set(): # Be Careful With Stop_Event It Triggers On A Keyboard Shortcut Close!
         # if the wait was interrupted by shutdown, bail before working
