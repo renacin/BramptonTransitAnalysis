@@ -119,7 +119,9 @@ class Exporter():
                 conn.execute("PRAGMA journal_mode=WAL")
                 conn.execute("PRAGMA busy_timeout=120000")
 
+                # Wrap In Try & Accept
                 try:
+
                     # Read Each GTFS Dataset That Has FEED_VERSION In It.
                     for table_ in self.cfg.table_dict:
                         if table_ not in self.cfg.NOT_FEED_BASED:
@@ -137,13 +139,15 @@ class Exporter():
                                 out_path = os.path.join(self.cfg.csv_out_path, table_, f"{table_}_{dt_nw}.csv")
 
                                 # Pull All Data & Write To Appropriate Folder
-                                df = pd.read_sql_query(f"""SELECT * FROM {table_} WHERE CAST(feed_version AS INTEGER) < CAST({str(dates_[1])} AS INTEGER)""", conn)
+                                df = pd.read_sql_query(f"""SELECT * FROM {table_} WHERE CAST(feed_version AS INTEGER) <= CAST({str(dates_[1])} AS INTEGER)""", conn)
                                 df.to_csv(out_path, index=False)
+
+                                # Export To Logger
                                 shared_logger("Data Exporter", f"Exported Old {table_} Data", 1, self.cfg.dblog_path)
 
                                 # Delete All Data & Vacuum Database
                                 conn.execute("BEGIN IMMEDIATE")
-                                conn.execute(f"""DELETE FROM {table_} WHERE CAST(feed_version AS INTEGER) < CAST({str(dates_[1])} AS INTEGER)""")
+                                conn.execute(f"""DELETE FROM {table_} WHERE CAST(feed_version AS INTEGER) <= CAST({str(dates_[1])} AS INTEGER)""")
                                 conn.execute("COMMIT")
                                 conn.execute("VACUUM")
                                 shared_logger("Data Exporter", f"Cleaned Old {table_} Data", 1, self.cfg.dblog_path)
@@ -281,6 +285,8 @@ class Exporter():
                 # Sort Data By Multiple Columns
                 data_with_stops               = data_with_stops.sort_values(by=['vehicle_id', 'batch_timestamp', 'stop_sequence', 'km2nxtstp'], ascending=[True, True, True, False])
 
+                # Round KM To Next Stop, We Only Need Two Digits
+                data_with_stops['km2nxtstp'] = data_with_stops['km2nxtstp'].astype(str).str.extract(r'(-?\d+\.\d{2})')[0].astype(float)
 
 
                 #============================================================================
@@ -303,12 +309,22 @@ class Exporter():
                 data_with_stops["is_weekend"]  = data_with_stops["batch_timestamp"].dt.dayofweek >= 5
 
                 # For Logging
+                data_with_stops = data_with_stops.drop_duplicates()
                 data_with_stops_len = len(data_with_stops)
 
 
                 #============================================================================
                 # [Bronze 2 Silver] --> PHASE 6: Export Data To Appropriate Location
                 #============================================================================
+
+                # Reorganize Data For Better Readability
+                data_with_stops = data_with_stops.loc[:,["trip_trip_id","trip_schedule_relationship","trip_route_id",
+                                                         "service_id","trip_headsign","direction_id","batch_timestamp",
+                                                         "hour_of_day","day_of_week","is_weekend","obs_per_btch_tmstmp",
+                                                         "vehicle_id","position_latitude","position_longitude","position_bearing",
+                                                         "speed_kmph","current_status","stop_sequence","stop_id","stop_name",
+                                                         "stop_lat","stop_lon","km2nxtstp"]]
+
 
                 # Export Data
                 out_path = os.path.join(self.cfg.csv_out_path, f"CLEANED_LOC_DATA")
@@ -335,3 +351,4 @@ class Exporter():
 if __name__ == "__main__":
     
     pass
+
