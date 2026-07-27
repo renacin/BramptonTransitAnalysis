@@ -35,6 +35,8 @@ class Collector():
         It will then upload those new bus locations to the appropriate database table.
         """
 
+        #TODO: Get Rid Of Time.Sleeps Here, Sleeps Should Be In The Scheduler With stop_event.wait()
+
         # Try To Pull GTFS Data From Transit URL, Be Careful Of Request Errors
         try:
             r = requests.get(self.cfg.BUS_LOC_URL, headers={'User-Agent': 'Mozilla/5.0'}, timeout=self.cfg.timeout_time)

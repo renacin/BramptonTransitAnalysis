@@ -37,6 +37,8 @@ class Deleter():
         self.__delete_old_graphics()
         self.__delete_raw_bus_locs()
 
+        # TODO: Delete Other Old Files That Store GTFS Data
+
 
 
     # -------------------- Private Function #1 ---------------------------------
@@ -105,6 +107,12 @@ class Deleter():
             shared_logger("Data Deleter", f"Deleted {len(to_drop)} Old Raw Bus Locations", 1, self.cfg.dblog_path)
 
 
+
+    # -------------------- Private Function #3 ---------------------------------
+    def __delete_old_gtfs(self):
+        """
+        When Called This Function Delete Old GTFS Data Stored As CSVs In Pertinent Folders
+        """
 
 
 

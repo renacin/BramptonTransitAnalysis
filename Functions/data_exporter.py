@@ -342,6 +342,13 @@ class Exporter():
 
 
 
+    # -------------------- Private Function #3 ---------------------------------
+    def __predict_bus_arrivals(self):
+        """
+        When Called This Function Will Determine The Arrival Times At Bus Stops (Gold Layer) Ready To Be Used For Analytics
+        """
+
+        # TODO: Finish This
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Entry Point Into Python Code (For Testing!)

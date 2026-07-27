@@ -52,6 +52,10 @@ class Visualizer():
             shared_logger("Data Visualiser", "MatplotLib Not Installed", 2, self.cfg.dblog_path)
 
 
+        # Run Other Functions From Visualizer Class
+        #TODO
+
+
 
     # -------------------- Private Function #1 ---------------------------------
     def __visualize_logs(self):
@@ -203,6 +207,13 @@ class Visualizer():
 
 
 
+    # -------------------- Private Function #1 ---------------------------------
+    def __describe_db_events(self):
+        """
+        When Called This Function Will Describe All Database Events From The Day Before
+        """
+
+        #TODO
 
 
 # ----------------------------------------------------------------------------------------------------------------------
