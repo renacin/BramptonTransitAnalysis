@@ -7,7 +7,7 @@ import time
 import threading
 from datetime import datetime, timedelta
 
-from Functions.env_config         import *
+from Functions.env_config         import Config
 from Functions.env_setup          import *
 from Functions.gtfs_downloader    import *
 from Functions.data_helper        import *
@@ -22,7 +22,7 @@ stop_event = threading.Event()
 # ----------------------------------------------------------------------------------------------------------------------
 
 
-# Find Out How Many Seconds Until The Export Window
+# Find Out How Many Seconds Until The Export Window | Needed For Scheduling
 def seconds_until(hour_, minute_):
     """ How Many Seconds Until Time Window? """
 
@@ -37,6 +37,45 @@ def seconds_until(hour_, minute_):
     # Find Total Seconds
     diff = target - now
     return int(diff.total_seconds()) + 1
+
+
+
+# Create A Nightly Jobs List For Jobs That Only Run Once A Day
+NIGHTLY_JOBS = [("GTFS Checker",       GTFS_Downloader,     "gather_GTFS",     2, 30), 
+                ("Data Exporter",      Exporter,            "export_all",      3, 00), 
+                ("Data Visualiser",    Visualizer,          "visualize_all",   3, 30), 
+                ("Dropbox Uploader",   DropBoxUploader,     "upload_all",      4, 00), 
+                ("Data Deleter",       Deleter,             "delete_all",      4, 30)
+                ]
+
+
+
+# Create Logic For Sub-Process That Only Run Once A Day
+def job_scheduler(name, worker_cls, method_name, hour_, minute_):
+    """ Given parameters (class, function, time), this scheduler will spin up a daemon and assign the job """
+
+    # Need Config Files
+    cfg = Config()
+
+    # With The Passed Class, We Call / Assign it To A Variable, Using getattr we get the method (with the name provided) and assign it to a variable
+    worker = worker_cls()
+    job    = getattr(worker, method_name)
+
+    # Make Sure The Stop Event Isn't True Before Running In A Loop
+    while not stop_event.is_set():
+        if stop_event.wait(seconds_until(hour_ = hour_, minute_ = minute_)):
+            break
+
+        # Try The Job
+        try:
+            job()
+
+        # Capture The Error
+        except Exception as e:
+            shared_logger(name, f"Sheduler Issue: {e}", 3, cfg.dblog_path)
+
+        # Wait After Job Is Done
+        stop_event.wait(1800)
 
 
 
@@ -56,96 +95,19 @@ def data_collector_scheduler():
 
 
 
-# Create Scheduled Behaviour For: GTFS Downloader
-def gtfs_downloader_scheduler():
-    """ Instantiate GTFS Downloader & Start Main Loop """
-
-    # Main Loop Checking If It's 2:30AM, Sleep Until Then, Then Export, Then Wait 30 Min, Repeat
-    GTFS_Getter = GTFS_Downloader()
-    while not stop_event.is_set(): # Be Careful With Stop_Event It Triggers On A Keyboard Shortcut Close!
-        # if the wait was interrupted by shutdown, bail before working
-        if stop_event.wait(seconds_until(hour_=2, minute_=30)):
-            break
-        GTFS_Getter.gather_GTFS()
-        stop_event.wait(1800)
-
-
-
-# Create Scheduled Behaviour For: Data Exporter
-def data_exporter_scheduler():
-    """ Instantiate Data Exporter & Start Main Loop """
-
-    # Main Loop Checking If It's 3:00AM, Sleep Until Then, Then Export, Then Wait 30 Min, Repeat
-    DataExporter = Exporter()
-    while not stop_event.is_set(): # Be Careful With Stop_Event It Triggers On A Keyboard Shortcut Close!
-        # if the wait was interrupted by shutdown, bail before working
-        if stop_event.wait(seconds_until(hour_=3, minute_=00)):
-            break
-        DataExporter.export_all()
-        stop_event.wait(1800)
-
-
-
-# Create Scheduled Behaviour For: GTFS Downloader
-def data_vizualizer_scheduler():
-    """ Create Graphics For Data Pulled & Analyzed """
-
-    # Main Loop Checking If It's 3:30AM, Sleep Until Then, Then Export, Then Wait 30 Min, Repeat
-    DataViz = Visualizer()
-    while not stop_event.is_set(): # Be Careful With Stop_Event It Triggers On A Keyboard Shortcut Close!
-        # if the wait was interrupted by shutdown, bail before working
-        if stop_event.wait(seconds_until(hour_=3, minute_=30)):
-            break
-        DataViz.visualize_all()
-        stop_event.wait(1800)
-
-
-
-# Create Scheduled Behaviour For: GTFS Downloader
-def dropbox_uploader_scheduler():
-    """ Upload Graphics & Files To Dropbox """
-
-    # Main Loop Checking If It's 4:00AM, Sleep Until Then, Then Export, Then Wait 30 Min, Repeat
-    DBX_Uploader = DropBoxUploader()
-    while not stop_event.is_set(): # Be Careful With Stop_Event It Triggers On A Keyboard Shortcut Close!
-        # if the wait was interrupted by shutdown, bail before working
-        if stop_event.wait(seconds_until(hour_=4, minute_=00)):
-            break
-        DBX_Uploader.upload_all()
-        stop_event.wait(1800)
-
-
-
-# Create Scheduled Behaviour For: Data Deleter
-def data_deleter_scheduler():
-    """ Delete Old Data """
-
-    # Main Loop Checking If It's 4:30AM, Sleep Until Then, Then Export, Then Wait 30 Min, Repeat
-    DataDeleter = Deleter()
-    while not stop_event.is_set(): # Be Careful With Stop_Event It Triggers On A Keyboard Shortcut Close!
-        # if the wait was interrupted by shutdown, bail before working
-        if stop_event.wait(seconds_until(hour_=4, minute_=30)):
-            break
-        DataDeleter.delete_all()
-        stop_event.wait(1800)
-
-
 
 # ----------------------------------------------------------------------------------------------------------------------
-# The Main Function Will Run Each Sub Function As It's Own Process & Have Error Catching For Graceful Shut Down
+# The Main Function Will Run Each Sub Function As It's Own Thread & Have Error Catching For Graceful Shut Down
 def main():
 
     # Step #1 Prepare Folders With Environment Setup
     EnvSetup = EnvConfig()
     EnvSetup.setup()
 
-    # Define Each Process, They Should Be Their Own Thread And Run Independently
-    threads = [threading.Thread(target = data_collector_scheduler,   name="DataCollector",   daemon=True),
-               threading.Thread(target = data_exporter_scheduler,    name="DataExporter",    daemon=True),
-               threading.Thread(target = gtfs_downloader_scheduler,  name="GTFSDownloader",  daemon=True),
-               threading.Thread(target = data_vizualizer_scheduler,  name="DataVizualizer",  daemon=True),
-               threading.Thread(target = dropbox_uploader_scheduler, name="DropBoxUploader", daemon=True),
-               threading.Thread(target = data_deleter_scheduler,     name="DataDeleter",     daemon=True),]
+    # Define Each Thread, Start With Data Collector Separatly First, Then Add Rest
+    threads      = [threading.Thread(target = data_collector_scheduler,   name="DataCollector",   daemon=True)]
+    for jobs_ in NIGHTLY_JOBS:
+        threads += [threading.Thread(target = job_scheduler, args= jobs_, name=jobs_[0].replace(" ", ""), daemon=True)]
  
     # Start Each Thread
     for t in threads:
@@ -153,7 +115,7 @@ def main():
  
     # Main Loop Of Thread (Keep Looking For A Kill Signal)
     try:
-        while True:
+        while not stop_event.is_set():
             time.sleep(1)
  
     except KeyboardInterrupt:
