@@ -213,7 +213,16 @@ class Visualizer():
         When Called This Function Will Describe All Database Events From The Day Before
         """
 
-        #TODO
+        #TODO: Create A Few Sentences That Will Explain What Happened To (Export As A Simple Text Fiole With Cool Formatting):
+        #           + How Many Bus Locs Were Collected           (Raw) (Get Data From Bronze 2 Silver Database Update)
+        #           + How Many Bus Locs Were Problematic         (Raw) (Get Data From Bronze 2 Silver Database Update)
+        #           + How Many Bus Locs Were Left After Clean Up (Raw) (Get Data From Bronze 2 Silver Database Update)
+        #           + Did The Script Pull new GTFS Data?
+        #           + Was A New RouteMasterKey, Other Files Generated?
+        #           + Were Any Old Files Deleted (GTFS, Images, Etc...)
+        #           + Anythign Else?
+
+        
 
 
 # ----------------------------------------------------------------------------------------------------------------------
