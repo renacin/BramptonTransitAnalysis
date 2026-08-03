@@ -41,11 +41,11 @@ def seconds_until(hour_, minute_):
 
 
 # Create A Nightly Jobs List For Jobs That Only Run Once A Day
-NIGHTLY_JOBS = [("GTFS Checker",       GTFS_Downloader,     "gather_GTFS",     2, 30), 
-                ("Data Exporter",      Exporter,            "export_all",      3, 00), 
-                ("Data Visualiser",    Visualizer,          "visualize_all",   3, 30), 
-                ("Dropbox Uploader",   DropBoxUploader,     "upload_all",      4, 00), 
-                ("Data Deleter",       Deleter,             "delete_all",      4, 30)
+NIGHTLY_JOBS = [("GTFS Checker",       GTFS_Downloader,     "gather_GTFS",     1, 30), 
+                ("Data Exporter",      Exporter,            "export_all",      1, 50), 
+                ("Data Visualiser",    Visualizer,          "visualize_all",   2, 10), 
+                ("Dropbox Uploader",   DropBoxUploader,     "upload_all",      2, 30), 
+                ("Data Deleter",       Deleter,             "delete_all",      2, 50)
                 ]
 
 
